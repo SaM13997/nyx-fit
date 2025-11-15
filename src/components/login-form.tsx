@@ -65,6 +65,11 @@ export function LoginForm({
       navigateAfterAuth();
     } catch (error) {
       console.error("Google sign-in failed", error);
+      if (error instanceof Error && error.message.includes("403")) {
+        console.error(
+          "A 403 Forbidden error occurred. This is likely due to a misconfiguration of your environment variables. Please check your .env.local file and your Convex environment variables (npx convex env list) and ensure that SITE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BETTER_AUTH_SECRET, and CONVEX_SITE_URL are all set correctly."
+        );
+      }
     }
   };
 
