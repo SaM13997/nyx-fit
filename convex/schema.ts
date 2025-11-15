@@ -1,4 +1,54 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-export default defineSchema({});
+export const setValidator = v.object({
+  id: v.string(),
+  weight: v.number(),
+  reps: v.number(),
+});
+
+export const exerciseValidator = v.object({
+  id: v.string(),
+  name: v.string(),
+  sets: v.array(setValidator),
+  category: v.optional(v.string()),
+});
+
+export const genderValidator = v.union(v.literal("male"), v.literal("female"));
+
+export const fitnessLevelValidator = v.union(
+  v.literal("beginner"),
+  v.literal("intermediary"),
+  v.literal("advanced"),
+  v.literal("pro")
+);
+
+export default defineSchema({
+  profiles: defineTable({
+    name: v.string(),
+    email: v.string(),
+    gender: v.optional(genderValidator),
+    profilePicture: v.optional(v.string()),
+    fitnessLevel: v.optional(fitnessLevelValidator),
+    notificationsEnabled: v.boolean(),
+    createdAt: v.string(),
+  })
+    .index("byEmail", ["email"])
+    .index("byCreatedAt", ["createdAt"]),
+
+  workouts: defineTable({
+    date: v.string(),
+    duration: v.number(),
+    startTime: v.optional(v.string()),
+    endTime: v.optional(v.string()),
+    isActive: v.optional(v.boolean()),
+    exercises: v.array(exerciseValidator),
+    notes: v.optional(v.string()),
+  }).index("byDate", ["date"]),
+
+  weightEntries: defineTable({
+    date: v.string(),
+    weight: v.number(),
+    note: v.optional(v.string()),
+  }).index("byDate", ["date"]),
+});

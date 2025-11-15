@@ -10,7 +10,10 @@
 
 import type * as auth from "../auth.js";
 import type * as http from "../http.js";
+import type * as profiles from "../profiles.js";
 import type * as users from "../users.js";
+import type * as weightEntries from "../weightEntries.js";
+import type * as workouts from "../workouts.js";
 
 import type {
   ApiFromModules,
@@ -29,7 +32,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   http: typeof http;
+  profiles: typeof profiles;
   users: typeof users;
+  weightEntries: typeof weightEntries;
+  workouts: typeof workouts;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
