@@ -92,7 +92,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<div className="h-lvh mx-auto max-w-md flex flex-col overflow-x-clip w-full">
+				<div className="h-lvh mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
 					<div className="flex-1 flex flex-col">{children}</div>
 					<BottomNav />
 					<TanStackDevtools

@@ -25,6 +25,7 @@ export const fitnessLevelValidator = v.union(
 
 export default defineSchema({
   profiles: defineTable({
+    userId: v.string(),
     name: v.string(),
     email: v.string(),
     gender: v.optional(genderValidator),
@@ -33,10 +34,12 @@ export default defineSchema({
     notificationsEnabled: v.boolean(),
     createdAt: v.string(),
   })
+    .index("byUserId", ["userId"])
     .index("byEmail", ["email"])
     .index("byCreatedAt", ["createdAt"]),
 
   workouts: defineTable({
+    userId: v.string(),
     date: v.string(),
     duration: v.number(),
     startTime: v.optional(v.string()),
@@ -44,11 +47,16 @@ export default defineSchema({
     isActive: v.optional(v.boolean()),
     exercises: v.array(exerciseValidator),
     notes: v.optional(v.string()),
-  }).index("byDate", ["date"]),
+  })
+    .index("byUserId", ["userId"])
+    .index("byDate", ["date"]),
 
   weightEntries: defineTable({
+    userId: v.string(),
     date: v.string(),
     weight: v.number(),
     note: v.optional(v.string()),
-  }).index("byDate", ["date"]),
+  })
+    .index("byUserId", ["userId"])
+    .index("byDate", ["date"]),
 });

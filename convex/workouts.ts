@@ -1,4 +1,5 @@
 import type { Workout } from "../src/lib/types";
+import { authComponent } from "./auth";
 
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -44,7 +45,14 @@ const sanitizeUpdates = (updates: Partial<WorkoutDoc>): Partial<WorkoutDoc> => {
 export const listWorkouts = query({
   args: {},
   handler: async (ctx): Promise<Workout[]> => {
-    const docs = await ctx.db.query("workouts").collect();
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return [];
+    }
+    const docs = await ctx.db
+      .query("workouts")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .collect();
     return docs.map(mapWorkout);
   },
 });
@@ -60,7 +68,14 @@ export const getWorkout = query({
 export const createWorkout = mutation({
   args: workoutFieldsValidator,
   handler: async (ctx, args): Promise<Workout> => {
-    const insertedId = await ctx.db.insert("workouts", args);
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const insertedId = await ctx.db.insert("workouts", {
+      ...args,
+      userId: user._id,
+    });
     const doc = (await ctx.db.get(insertedId)) as WorkoutDoc;
     return mapWorkout(doc);
   },
@@ -72,9 +87,16 @@ export const updateWorkout = mutation({
     updates: workoutUpdateValidator,
   },
   handler: async (ctx, args): Promise<Workout> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
     const existing = await ctx.db.get(args.id);
     if (!existing) {
       throw new Error("Workout not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
     }
 
     const updates = sanitizeUpdates(args.updates as Partial<WorkoutDoc>);
@@ -87,6 +109,17 @@ export const updateWorkout = mutation({
 export const deleteWorkout = mutation({
   args: { id: v.id("workouts") },
   handler: async (ctx, args): Promise<Id<"workouts">> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Workout not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
+    }
     await ctx.db.delete(args.id);
     return args.id;
   },
@@ -98,9 +131,14 @@ export const deleteWorkout = mutation({
 export const listRecentWorkouts = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args): Promise<Workout[]> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return [];
+    }
     const limit = args.limit ?? 5;
     const docs = await ctx.db
       .query("workouts")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
       .order("desc")
       .take(limit);
     return docs.map(mapWorkout);
@@ -113,8 +151,13 @@ export const listRecentWorkouts = query({
 export const getActiveWorkout = query({
   args: {},
   handler: async (ctx): Promise<Workout | null> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return null;
+    }
     const doc = await ctx.db
       .query("workouts")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
       .filter((q) => q.eq(q.field("isActive"), true))
       .first();
     return doc ? mapWorkout(doc) : null;
@@ -127,8 +170,13 @@ export const getActiveWorkout = query({
 export const startWorkout = mutation({
   args: {},
   handler: async (ctx): Promise<Workout> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
     const now = new Date().toISOString();
     const insertedId = await ctx.db.insert("workouts", {
+      userId: user._id,
       date: now,
       duration: 0,
       startTime: now,

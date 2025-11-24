@@ -1,10 +1,10 @@
 import type { LucideIcon } from 'lucide-react'
-import { Home, Network, SquareFunction } from 'lucide-react'
+import { Dumbbell, Home, Network, SquareFunction } from 'lucide-react'
 
 import { StickyNoteIcon } from '@/components/icons'
 
 export type BottomNavItem = {
-  href: '/' | '/demo/start/server-funcs' | '/demo/start/api-request' | '/demo/start/ssr'
+  href: '/' | '/workouts' | '/demo/start/server-funcs' | '/demo/start/api-request' | '/demo/start/ssr'
   icon: LucideIcon
   label: string
   color: string
@@ -18,6 +18,13 @@ export const bottomNavItems: BottomNavItem[] = [
     icon: Home,
     color: 'bg-cyan-500/10',
     darkColor: 'text-cyan-400',
+  },
+  {
+    href: '/workouts',
+    label: 'Workouts',
+    icon: Dumbbell,
+    color: 'bg-rose-500/10',
+    darkColor: 'text-rose-400',
   },
   {
     href: '/demo/start/server-funcs',

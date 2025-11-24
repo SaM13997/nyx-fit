@@ -1,52 +1,100 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import {
+  useRecentWorkouts,
+  useActiveWorkout,
+  useCurrentProfile,
+  useStartWorkout,
+} from "@/lib/convex/hooks";
+import { HomeHeader } from "@/components/home/HomeHeader";
+import { RecentWorkoutsList } from "@/components/home/RecentWorkoutsList";
+import { QuickActions } from "@/components/home/QuickActions";
+import { WorkoutStatusCard } from "@/components/home/WorkoutStatusCard";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AuthDebug } from "@/components/auth-debug";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-
-
 function HomePage() {
-  const { data: sessionData, isPending, error } = authClient.useSession();
+  const navigate = useNavigate();
+  const { data: sessionData, isPending: isAuthPending } = authClient.useSession();
+  const session = sessionData?.session;
 
-  const session = sessionData?.session ?? null;
+  const { workouts, isLoading: isLoadingWorkouts } = useRecentWorkouts(5);
+  const { activeWorkout } = useActiveWorkout();
+  const { profile } = useCurrentProfile();
+  const { startWorkout } = useStartWorkout();
 
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleStartWorkout = async () => {
+    try {
+      setIsStarting(true);
+      const newWorkout = await startWorkout();
+      navigate({ to: `/workout/${newWorkout.id}` });
+    } catch (error) {
+      console.error("Failed to start workout:", error);
+      setIsStarting(false);
+    }
+  };
+
+  if (isAuthPending) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="bg-black px-4 py-6 min-h-screen text-white flex flex-col items-center justify-center gap-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+            Nyx Fitness
+          </h1>
+          <p className="text-zinc-400">
+            Track your workouts, monitor your progress.
+          </p>
+        </div>
+        <Link to="/login">
+          <Button size="lg" className="font-semibold">
+            Get Started
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-black px-4 py-6 min-h-screen text-white">
+    <div className="bg-black px-4 py-6 min-h-screen text-white pb-24">
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={cn("flex flex-col gap-4")}
+        className={cn("flex flex-col gap-6")}
       >
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dummy App</h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Minimal template wired up with Better Auth + Convex.
-          </p>
-        </div>
-
-        <AuthDebug
-          sessionData={sessionData}
-          isPending={isPending}
-          error={error}
+        <HomeHeader
+          userName={profile?.name ?? sessionData?.user.name ?? "User"}
+          profilePicture={profile?.profilePicture ?? sessionData?.user.image ?? undefined}
         />
-        {!session && (
-          <Link
-            to="/login"
-            className="text-sm font-medium text-sky-400 transition hover:text-sky-300"
-          >
-            Go to login
-          </Link>
-        )}
-        {session && (
-          <Button onClick={() => authClient.signOut()}>Sign out</Button>
-        )}
+
+        <WorkoutStatusCard
+          activeWorkout={activeWorkout ?? null}
+          isStarting={isStarting}
+          onStartWorkout={handleStartWorkout}
+        />
+
+        <QuickActions />
+
+        <RecentWorkoutsList
+          workouts={workouts}
+          isLoading={isLoadingWorkouts}
+        />
       </motion.div>
     </div>
   );

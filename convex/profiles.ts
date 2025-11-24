@@ -1,4 +1,5 @@
 import type { Profile } from "../src/lib/types";
+import { authComponent } from "./auth";
 
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -46,7 +47,14 @@ const sanitizeUpdates = (updates: Partial<ProfileDoc>): Partial<ProfileDoc> => {
 export const listProfiles = query({
   args: {},
   handler: async (ctx): Promise<Profile[]> => {
-    const docs = await ctx.db.query("profiles").collect();
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return [];
+    }
+    const docs = await ctx.db
+      .query("profiles")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .collect();
     return docs.map(mapProfile);
   },
 });
@@ -62,7 +70,14 @@ export const getProfile = query({
 export const createProfile = mutation({
   args: profileFieldsValidator,
   handler: async (ctx, args): Promise<Profile> => {
-    const insertedId = await ctx.db.insert("profiles", args);
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const insertedId = await ctx.db.insert("profiles", {
+      ...args,
+      userId: user._id,
+    });
     const doc = (await ctx.db.get(insertedId)) as ProfileDoc;
     return mapProfile(doc);
   },
@@ -74,9 +89,16 @@ export const updateProfile = mutation({
     updates: profileUpdateValidator,
   },
   handler: async (ctx, args): Promise<Profile> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
     const existing = await ctx.db.get(args.id);
     if (!existing) {
       throw new Error("Profile not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
     }
 
     const updates = sanitizeUpdates(args.updates as Partial<ProfileDoc>);
@@ -89,6 +111,17 @@ export const updateProfile = mutation({
 export const deleteProfile = mutation({
   args: { id: v.id("profiles") },
   handler: async (ctx, args): Promise<Id<"profiles">> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Profile not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
+    }
     await ctx.db.delete(args.id);
     return args.id;
   },
@@ -101,7 +134,14 @@ export const deleteProfile = mutation({
 export const getCurrentProfile = query({
   args: {},
   handler: async (ctx): Promise<Profile | null> => {
-    const doc = await ctx.db.query("profiles").first();
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return null;
+    }
+    const doc = await ctx.db
+      .query("profiles")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .first();
     return doc ? mapProfile(doc) : null;
   },
 });

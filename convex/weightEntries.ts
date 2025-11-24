@@ -1,4 +1,5 @@
 import type { WeightEntry } from "../src/lib/types";
+import { authComponent } from "./auth";
 
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -37,7 +38,14 @@ const sanitizeUpdates = (
 export const listWeightEntries = query({
   args: {},
   handler: async (ctx): Promise<WeightEntry[]> => {
-    const docs = await ctx.db.query("weightEntries").collect();
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      return [];
+    }
+    const docs = await ctx.db
+      .query("weightEntries")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .collect();
     return docs.map(mapWeightEntry);
   },
 });
@@ -53,7 +61,14 @@ export const getWeightEntry = query({
 export const createWeightEntry = mutation({
   args: weightEntryFieldsValidator,
   handler: async (ctx, args): Promise<WeightEntry> => {
-    const insertedId = await ctx.db.insert("weightEntries", args);
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const insertedId = await ctx.db.insert("weightEntries", {
+      ...args,
+      userId: user._id,
+    });
     const doc = (await ctx.db.get(insertedId)) as WeightEntryDoc;
     return mapWeightEntry(doc);
   },
@@ -65,9 +80,16 @@ export const updateWeightEntry = mutation({
     updates: weightEntryUpdateValidator,
   },
   handler: async (ctx, args): Promise<WeightEntry> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
     const existing = await ctx.db.get(args.id);
     if (!existing) {
       throw new Error("Weight entry not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
     }
 
     const updates = sanitizeUpdates(args.updates as Partial<WeightEntryDoc>);
@@ -80,6 +102,17 @@ export const updateWeightEntry = mutation({
 export const deleteWeightEntry = mutation({
   args: { id: v.id("weightEntries") },
   handler: async (ctx, args): Promise<Id<"weightEntries">> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Weight entry not found");
+    }
+    if (existing.userId !== user._id) {
+      throw new Error("Unauthorized");
+    }
     await ctx.db.delete(args.id);
     return args.id;
   },
