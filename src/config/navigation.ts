@@ -26,26 +26,5 @@ export const bottomNavItems: BottomNavItem[] = [
     color: 'bg-rose-500/10',
     darkColor: 'text-rose-400',
   },
-  {
-    href: '/demo/start/server-funcs',
-    label: 'Server Functions',
-    icon: SquareFunction,
-    color: 'bg-purple-500/10',
-    darkColor: 'text-purple-400',
-  },
-  {
-    href: '/demo/start/api-request',
-    label: 'API Request',
-    icon: Network,
-    color: 'bg-emerald-500/10',
-    darkColor: 'text-emerald-400',
-  },
-  {
-    href: '/demo/start/ssr',
-    label: 'SSR Demos',
-    icon: StickyNoteIcon,
-    color: 'bg-amber-500/10',
-    darkColor: 'text-amber-400',
-  },
 ] as const
 

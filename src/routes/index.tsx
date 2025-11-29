@@ -72,7 +72,7 @@ function HomePage() {
   }
 
   return (
-    <div className="bg-black px-4 py-6 min-h-screen text-white pb-24">
+    <div className=" px-4 py-6 min-h-screen text-white pb-24">
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
