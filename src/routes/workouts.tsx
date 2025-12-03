@@ -2,7 +2,9 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Plus, Dumbbell } from "lucide-react";
 import type { Workout } from "@/lib/types";
-import { useWorkouts, useStartWorkout } from "@/lib/convex/hooks";
+import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/convex/hooks";
+import { WorkoutStatusCard } from "@/components/home";
+import { useState } from "react";
 
 export const Route = createFileRoute("/workouts")({
   component: WorkoutsPage,
@@ -28,7 +30,22 @@ function formatDate(dateString: string): string {
 }
 
 function WorkoutsPage() {
+  const navigate = useNavigate();
   const { workouts, isLoading } = useWorkouts();
+  const { activeWorkout } = useActiveWorkout();
+  const { startWorkout } = useStartWorkout();
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleStartWorkout = async () => {
+    try {
+      setIsStarting(true);
+      const newWorkout = await startWorkout();
+      navigate({ to: `/workout/${newWorkout.id}` });
+    } catch (error) {
+      console.error("Failed to start workout:", error);
+      setIsStarting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white font-sans relative">
@@ -54,7 +71,11 @@ function WorkoutsPage() {
             </p>
           </div>
 
-          <StartWorkoutButton />
+          <WorkoutStatusCard
+            activeWorkout={activeWorkout ?? null}
+            isStarting={isStarting}
+            onStartWorkout={handleStartWorkout}
+          />
 
           {isLoading ? (
             <div className="text-zinc-500 px-1">Loading workouts...</div>
