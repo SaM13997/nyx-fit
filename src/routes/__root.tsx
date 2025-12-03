@@ -49,6 +49,10 @@ export const Route = createRootRouteWithContext<{
 				name: 'viewport',
 				content: 'width=device-width, initial-scale=1',
 			},
+			{
+				name: 'theme-color',
+				content: '#000000',
+			},
 		],
 		links: [
 			{ rel: 'stylesheet', href: appCss },
@@ -91,8 +95,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
-				<div className="h-lvh mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
+			<body className="bg-background">
+				<div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
 					<div className="flex-1 flex flex-col">{children}</div>
 					<BottomNav />
 					<TanStackDevtools

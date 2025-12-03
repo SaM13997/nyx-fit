@@ -131,11 +131,11 @@ function WorkoutPage() {
   };
 
   if (!workout) {
-    return <div className="min-h-screen bg-black text-white p-4">Loading...</div>;
+    return <div className="min-h-screen  text-white p-4">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-black pb-32 px-4 pt-2 text-white font-sans">
+    <div className="min-h-screen pb-12 px-4 pt-2 text-white font-sans">
       {/* Header */}
       <header className="flex items-center justify-between mb-8 sticky top-0 bg-black/80 backdrop-blur-md z-30 py-4 -mx-4 px-4">
         <div className="flex items-center gap-4">
@@ -288,7 +288,7 @@ function WorkoutPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {workout.exercises.map((exercise: Exercise) => (
+            {workout.exercises.toReversed().map((exercise: Exercise) => (
               <ExerciseItem
                 key={exercise.id}
                 exercise={exercise}

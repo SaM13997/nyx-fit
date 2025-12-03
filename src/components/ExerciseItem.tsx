@@ -28,7 +28,7 @@ export function ExerciseItem({ exercise, onClick }: ExerciseItemProps) {
           {exercise.sets.map((set, idx) => (
             <div
               key={set.id}
-              className="bg-black/20 rounded-lg px-2 py-1 text-xs whitespace-nowrap text-gray-300"
+              className="bg-zinc-500/20 rounded-lg px-2 py-1 text-xs whitespace-nowrap text-gray-300"
             >
               <span className="font-medium text-white">{set.weight}</span> lbs × <span className="font-medium text-white">{set.reps}</span>
             </div>
