@@ -59,19 +59,47 @@ function WorkoutPage() {
     setShowEndWorkoutDialog(false);
   };
 
-  const handleAddExercise = async (name: string) => {
+  const handleAddSet = async (name: string, weight: number, reps: number) => {
     if (!workout) return;
-    const newExercise: Exercise = {
-      id: uuidv4(),
-      name,
-      sets: [],
-    };
-    await updateWorkout({
-      id: workout.id as Id<"workouts">,
-      updates: {
-        exercises: [...workout.exercises, newExercise],
-      },
-    });
+
+    let exerciseId: string;
+    const existingExercise = workout.exercises.find((e) => e.name === name);
+
+    if (existingExercise) {
+      exerciseId = existingExercise.id;
+      const newSet: WorkoutSet = {
+        id: uuidv4(),
+        weight,
+        reps,
+      };
+      await updateWorkout({
+        id: workout.id as Id<"workouts">,
+        updates: {
+          exercises: workout.exercises.map((ex) =>
+            ex.id === exerciseId ? { ...ex, sets: [...ex.sets, newSet] } : ex
+          ),
+        },
+      });
+    } else {
+      exerciseId = uuidv4();
+      const newExercise: Exercise = {
+        id: exerciseId,
+        name,
+        sets: [
+          {
+            id: uuidv4(),
+            weight,
+            reps,
+          },
+        ],
+      };
+      await updateWorkout({
+        id: workout.id as Id<"workouts">,
+        updates: {
+          exercises: [...workout.exercises, newExercise],
+        },
+      });
+    }
   };
 
   const handleSetUpdate = async (exerciseId: string, sets: WorkoutSet[]) => {
@@ -284,7 +312,8 @@ function WorkoutPage() {
       <AddExerciseDrawer
         isOpen={showAddExercise}
         onClose={() => setShowAddExercise(false)}
-        onAddExercise={handleAddExercise}
+        onAddSet={handleAddSet}
+        exercises={workout.exercises}
       />
 
       {/* End Workout Confirmation Dialog */}
