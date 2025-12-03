@@ -33,6 +33,7 @@ code {
   --font-heading: var(--font-heading);
   --font-sans: var(--font-sans);
   --color-background: var(--background);
+  --color-black: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -166,5 +167,42 @@ code {
   overflow-y: scroll;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Animated Hexagonal Pattern Background */
+.animated-hex-bg {
+  --s: 56px; /* control the size */
+  --g: 10px; /* control the gap */
+  --c: #a032f4; /* energetic orange - primary workout color */
+  
+  --_l: #0000 calc(33% - .866*var(--g)),var(--c) calc(33.2% - .866*var(--g)) 33%,#0000 34%;
+  background:
+    repeating-linear-gradient(var(--c) 0 var(--g), #0000 0 50%)
+     0 calc(.866*var(--s) - var(--g)/2),
+    conic-gradient(from -150deg at var(--g) 50%,var(--c) 120deg,#0000 0),
+    linear-gradient(-120deg,var(--_l)),linear-gradient( -60deg,var(--_l))
+    #1a1a2e; /* deep blue-black - secondary color */
+  background-size: var(--s) calc(3.466*var(--s));
+  animation: hexPattern infinite 2s linear;
+}
+
+.animated-hex-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  -webkit-mask: 
+    linear-gradient(#000 50%,#0000 0) 
+    0 calc(.866*var(--s))/100% calc(3.466*var(--s));
+  mask: 
+    linear-gradient(#000 50%,#0000 0) 
+    0 calc(.866*var(--s))/100% calc(3.466*var(--s));
+  animation: hexPattern infinite 2s linear reverse;
+  background: inherit;
+}
+
+@keyframes hexPattern {
+  to {
+    background-position-x: calc(-1*var(--s));
   }
 }

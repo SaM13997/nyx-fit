@@ -29,6 +29,45 @@ function formatDate(dateString: string): string {
   });
 }
 
+// !TODO: Redo the background of the padded area section with gemini 3 instead
+
+// html,
+// html:before{
+//   --s: 56px; /* control the size */
+//   --g: 10px; /* control the gap */
+//   --c: #ECD078; /* first color */
+
+//   --_l: #0000 calc(33% - .866*var(--g)),var(--c) calc(33.2% - .866*var(--g)) 33%,#0000 34%;
+//   background:
+//     repeating-linear-gradient(var(--c) 0 var(--g), #0000 0 50%)
+//      0 calc(.866*var(--s) - var(--g)/2),
+//     conic-gradient(from -150deg at var(--g) 50%,var(--c) 120deg,#0000 0),
+//     linear-gradient(-120deg,var(--_l)),linear-gradient( -60deg,var(--_l))
+//     #0B486B; /* second color */
+//   background-size: var(--s) calc(3.466*var(--s));
+//   animation: p infinite 2s linear;
+// }
+// html:before {
+//   content: "";
+//   position: fixed;
+//   inset: 0;
+//   -webkit-mask: 
+//     linear-gradient(#000 50%,#0000 0) 
+//     0 calc(.866*var(--s))/100% calc(3.466*var(--s));
+//   animation-direction: reverse;
+// }
+// @keyframes p {
+//   to {
+//     background-position-x: calc(-1*var(--s));
+//   }
+// }
+
+// use this animated background code to create the background for the  Visual Design Element - Top 35%.
+
+// Change teh colors to match workout theme color and our design aesthetic:
+
+// Add it behind a backdrop blur and fade from black to transparent from tl to br
+
 function WorkoutsPage() {
   const navigate = useNavigate();
   const { workouts, isLoading } = useWorkouts();
@@ -48,14 +87,24 @@ function WorkoutsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative">
+    <div className=" bg-black text-white font-sans relative">
       {/* Visual Design Element - Top 35% */}
-      <div className="fixed top-0 left-0 right-0 h-[35vh] pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-purple-900/5 to-transparent" />
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="px-4 pt-12">
-          <div className="mx-auto max-w-md">
-            <h1 className="text-6xl font-bold tracking-tighter bg-gradient-to-br from-purple-400 via-purple-200 to-purple-500 bg-clip-text text-transparent">
+      <div className="relative h-[35vh] pointer-events-none overflow-hidden">
+        {/* Animated hexagonal pattern background */}
+        <div className="absolute inset-0 animated-hex-bg opacity-50" />
+
+        {/* Backdrop blur layer */}
+        <div className="absolute inset-0 backdrop-blur-sm" />
+
+        {/* Gradient fade from black (top-left) to transparent (bottom-right) */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
+
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+
+        {/* Content */}
+        <div className="relative flex flex-col justify-end  h-full px-4 pt-12">
+          <div className=" max-w-md">
+            <h1 className="text-6xl font-bold tracking-tighter ">
               Workouts
             </h1>
           </div>
@@ -63,7 +112,7 @@ function WorkoutsPage() {
       </div>
 
       {/* Content */}
-      <div className="relative px-4 pb-24 pt-[35vh]">
+      <div className="relative px-4 pb-24">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
             <p className="text-sm text-zinc-400">
