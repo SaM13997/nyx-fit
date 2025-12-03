@@ -135,7 +135,7 @@ function WorkoutPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col gap-4  px-4 pt-2 text-white font-sans">
+    <div className="min-h-screen flex flex-col gap-2  px-4 pt-2 text-white font-sans">
       {/* Header */}
       <header className="flex sticky top-0 items-center justify-between   bg-black/80 backdrop-blur-md z-30 py-4  px-4">
         <div className="flex items-center gap-4">
@@ -171,7 +171,7 @@ function WorkoutPage() {
       </header>
 
       {/* Main Stats Card */}
-      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-2  border border-white/10 shadow-2xl">
+      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-4  border border-white/10 shadow-2xl">
         <div className={`absolute inset-0 ${workout.isActive
           ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
           : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
@@ -180,7 +180,7 @@ function WorkoutPage() {
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-1">
+              <h2 className="text-3xl font-heading font-bold text-white mb-1">
                 {new Date(workout.date).toLocaleDateString("en-US", {
                   weekday: "short",
                   month: "short",
@@ -188,7 +188,7 @@ function WorkoutPage() {
                 })}
               </h2>
               <div className="flex items-center gap-2 text-gray-400">
-                <span className="text-sm font-medium">
+                <span className="text-sm  font-medium">
                   {workout.isActive ? "Current Duration" : "Total Duration"}
                 </span>
               </div>
@@ -209,7 +209,7 @@ function WorkoutPage() {
           </div>
 
           <div className="flex items-end gap-1 mb-6">
-            <span className="text-5xl font-bold tracking-tighter tabular-nums">
+            <span className="text-5xl font-bold font-heading tracking-tighter tabular-nums">
               {workout.isActive
                 ? formatDuration(currentDuration)
                 : formatDuration(workout.duration)}
