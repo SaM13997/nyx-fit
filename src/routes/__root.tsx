@@ -97,7 +97,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="bg-background">
 				<div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
-					<div className="flex-1 flex flex-col">{children}</div>
+					<div className="flex-1 flex pb-6 flex-col">{children}</div>
 					<BottomNav />
 					<TanStackDevtools
 						config={{

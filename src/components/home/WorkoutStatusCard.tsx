@@ -19,81 +19,98 @@ export function WorkoutStatusCard({
     <motion.div
       layout
       layoutId="workout-status-container"
-      onClick={
-        !activeWorkout && !isStarting ? onStartWorkout : undefined
-      }
+      onClick={!activeWorkout && !isStarting ? onStartWorkout : undefined}
       className={cn(
-        "rounded-3xl p-6 relative",
-        activeWorkout
-          ? "bg-green-400/20 border border-green-400/30"
-          : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700",
+        "relative overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
         !activeWorkout && !isStarting && "cursor-pointer",
         isStarting && "opacity-50"
       )}
     >
+      {/* Background Gradient */}
+      <div
+        className={cn(
+          "absolute inset-0 transition-colors duration-500",
+          activeWorkout
+            ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
+            : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
+        )}
+      />
+
       {activeWorkout ? (
         <Link
-          to={`/workout/${activeWorkout.id}`}
-          className="absolute inset-0"
+          to="/workout/$id"
+          params={{ id: activeWorkout.id }}
+          className="absolute inset-0 z-20"
           aria-label="View active workout"
         />
       ) : null}
-      <div className="flex items-center justify-between">
-        <div className="text-left">
-          <motion.h2
-            layoutId="workout-status-title"
+
+      <div className="relative z-10">
+        <div className="flex items-center justify-between">
+          <div className="text-left">
+            <motion.h2
+              layoutId="workout-status-title"
+              className={cn(
+                "text-xl font-bold mb-1",
+                activeWorkout ? "text-white" : "text-white"
+              )}
+            >
+              {activeWorkout ? "Active Workout" : "Start New Workout"}
+            </motion.h2>
+            <motion.p
+              layoutId="workout-status-subtitle"
+              className={cn(
+                "text-sm font-medium",
+                activeWorkout ? "text-green-400" : "text-gray-400"
+              )}
+            >
+              {activeWorkout
+                ? "In Progress"
+                : isStarting
+                  ? "Starting..."
+                  : "Begin your fitness session"}
+            </motion.p>
+          </div>
+          <motion.div
+            layoutId="workout-status-icon"
             className={cn(
-              "text-xl font-bold",
-              activeWorkout && "text-green-400"
+              "rounded-full h-14 w-14 flex items-center justify-center border",
+              activeWorkout
+                ? "bg-green-500/10 border-green-500/20"
+                : "bg-white/5 border-white/10"
             )}
           >
-            {activeWorkout ? "Active Workout" : "Start New Workout"}
-          </motion.h2>
-          <motion.p
-            layoutId="workout-status-subtitle"
-            className={cn(
-              "text-sm",
-              activeWorkout ? "text-green-300" : "text-purple-100"
+            {activeWorkout ? (
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 blur-md rounded-full" />
+                <Dumbbell className="h-6 w-6 text-green-500 relative z-10" />
+              </div>
+            ) : (
+              <Plus className="h-6 w-6 text-gray-400" />
             )}
-          >
-            {activeWorkout
-              ? "In Progress"
-              : isStarting
-              ? "Starting..."
-              : "Begin your fitness session"}
-          </motion.p>
+          </motion.div>
         </div>
-        <motion.div
-          layoutId="workout-status-icon"
-          className={cn(
-            "rounded-full h-12 w-12 flex items-center justify-center",
-            activeWorkout ? "bg-green-400/20" : "bg-white/20"
-          )}
-        >
-          {activeWorkout ? (
-            <Dumbbell className="h-6 w-6 text-green-400" />
-          ) : (
-            <Plus className="h-6 w-6" />
-          )}
-        </motion.div>
+        {activeWorkout && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-6 pt-4 border-t border-white/5 flex justify-between text-xs text-gray-500 font-medium uppercase tracking-wider"
+          >
+            <div>
+              <span className="block text-gray-600 mb-0.5">Started</span>
+              {new Date(activeWorkout.startTime!).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+            <div className="text-right">
+              <span className="block text-gray-600 mb-0.5">Exercises</span>
+              {activeWorkout.exercises.length}
+            </div>
+          </motion.div>
+        )}
       </div>
-      {activeWorkout && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="text-sm text-gray-300 mt-4"
-        >
-          <p>
-            Started:{" "}
-            {new Date(activeWorkout.startTime!).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-          <p>Exercises: {activeWorkout.exercises.length}</p>
-        </motion.div>
-      )}
     </motion.div>
   );
 }
