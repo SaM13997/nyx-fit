@@ -137,7 +137,7 @@ function WorkoutPage() {
   return (
     <div className="min-h-screen pb-12 px-4 pt-2 text-white font-sans">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8 sticky top-0 bg-black/80 backdrop-blur-md z-30 py-4 -mx-4 px-4">
+      <header className="flex items-center justify-between mb-8  bg-black/80 backdrop-blur-md z-30 py-4 -mx-4 px-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => window.history.back()}
@@ -171,7 +171,7 @@ function WorkoutPage() {
       </header>
 
       {/* Main Stats Card */}
-      <div className="relative overflow-hidden rounded-[2rem] p-6 mb-8 border border-white/10 shadow-2xl">
+      <div className="sticky top-5 bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-8 border border-white/10 shadow-2xl">
         <div className={`absolute inset-0 ${workout.isActive
           ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
           : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
