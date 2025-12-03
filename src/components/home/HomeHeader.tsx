@@ -7,9 +7,9 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ userName, profilePicture }: HomeHeaderProps) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-between ">
       <div>
-        <h1 className="text-2xl font-bold">Welcome back, {userName}!</h1>
+        <h1 className="text-2xl font-bold">Hey, <span className="">{userName.split(" ")[0]}</span>!</h1>
         <p className="text-gray-400 text-sm">Ready to crush your workout?</p>
       </div>
       {profilePicture && (
