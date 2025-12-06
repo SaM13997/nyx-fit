@@ -34,9 +34,7 @@
 ### 🎯 High Priority Features
 
 - [x] Create a workouts page(not accessible via the bottomNav) that shows all the workouts and is reachable when the "view all" button is clicked in home.tsx
-  - [x] Consequently remove the workouts from the stats page since that doesn't fit semantically.
 - [ ] Weights page fixes:
-  - [x] Move the log weight button to the bottom, make it sticky.
   - [ ] Chart changes:
     - [ ] The has a bit of padding in the left direction, make the x-padding uniform.
     - [ ] Change the buttons to W,M,Y for week month and year(also this component breaks when selecting the week button right now, fix that).

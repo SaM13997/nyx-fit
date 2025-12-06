@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Dumbbell, Plus } from "lucide-react";
+import { ArrowUpRight, CornerUpRight, Dumbbell, Link2Off, Plus, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Workout } from "@/lib/types";
 
@@ -21,7 +21,7 @@ export function WorkoutStatusCard({
       layoutId="workout-status-container"
       onClick={!activeWorkout && !isStarting ? onStartWorkout : undefined}
       className={cn(
-        "relative overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
+        "relative delay-500 overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
         !activeWorkout && !isStarting && "cursor-pointer",
         isStarting && "opacity-50"
       )}
@@ -29,7 +29,7 @@ export function WorkoutStatusCard({
       {/* Background Gradient */}
       <div
         className={cn(
-          "absolute inset-0 transition-colors duration-500",
+          "absolute inset-0 transition-colors delay-500 duration-500",
           activeWorkout
             ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
             : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
@@ -60,7 +60,7 @@ export function WorkoutStatusCard({
             <motion.p
               layoutId="workout-status-subtitle"
               className={cn(
-                "text-sm font-medium",
+                "text-sm font-medium delay-500 transition-colors duration-500",
                 activeWorkout ? "text-green-400" : "text-gray-400"
               )}
             >
@@ -83,7 +83,8 @@ export function WorkoutStatusCard({
             {activeWorkout ? (
               <div className="relative">
                 <div className="absolute inset-0 bg-green-500/20 blur-md rounded-full" />
-                <Dumbbell className="h-6 w-6 text-green-500 relative z-10" />
+                {/* <Dumbbell className="h-6 w-6 text-green-500 relative z-10" /> */}
+                <ArrowUpRight className="h-6 w-6  text-green-500 relative z-10" />
               </div>
             ) : (
               <Plus className="h-6 w-6 text-gray-400" />

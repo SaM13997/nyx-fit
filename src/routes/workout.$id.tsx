@@ -171,7 +171,7 @@ function WorkoutPage() {
       </header>
 
       {/* Main Stats Card */}
-      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-4  border border-white/10 shadow-2xl">
+      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-4  border border-white/10 shadow-2xl transition-colors duration-500 ease-out">
         <div className={`absolute inset-0 ${workout.isActive
           ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
           : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
@@ -216,7 +216,7 @@ function WorkoutPage() {
             </span>
           </div>
 
-          {/* Tags */}
+          {/* Tags
           <div className="flex flex-wrap gap-2">
             {getExerciseCategories().map((category) => (
               <span
@@ -226,7 +226,7 @@ function WorkoutPage() {
                 {category}
               </span>
             ))}
-          </div>
+          </div> */}
 
           {/* Time Details */}
           {workout.startTime && (

@@ -36,7 +36,7 @@ function HomePage() {
     try {
       setIsStarting(true);
       const newWorkout = await startWorkout();
-      navigate({ to: `/workout/${newWorkout.id}` });
+      // navigate({ to: `/workout/${newWorkout.id}` });
     } catch (error) {
       console.error("Failed to start workout:", error);
       setIsStarting(false);
@@ -82,15 +82,12 @@ function HomePage() {
           userName={profile?.name ?? sessionData?.user.name ?? "User"}
           profilePicture={profile?.profilePicture ?? sessionData?.user.image ?? undefined}
         />
-
         <WorkoutStatusCard
           activeWorkout={activeWorkout ?? null}
           isStarting={isStarting}
           onStartWorkout={handleStartWorkout}
         />
-
         <QuickActions />
-
         <RecentWorkoutsList
           workouts={workouts}
           isLoading={isLoadingWorkouts}
