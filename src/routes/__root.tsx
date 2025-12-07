@@ -21,7 +21,7 @@ import {
 	getCookieName,
 } from '@convex-dev/better-auth/react-start'
 import { authClient } from '@/lib/auth-client'
-import { FontThemeProvider } from '@/components/FontThemeContext'
+import { AppearanceProvider } from '@/lib/AppearanceContext'
 import appCss from '../styles.css?url'
 
 // Get auth information for SSR using available cookies
@@ -83,11 +83,11 @@ function RootComponent() {
 			client={context.convexClient}
 			authClient={authClient}
 		>
-			<FontThemeProvider>
+			<AppearanceProvider>
 				<RootDocument>
 					<Outlet />
 				</RootDocument>
-			</FontThemeProvider>
+			</AppearanceProvider>
 		</ConvexBetterAuthProvider>
 	)
 }

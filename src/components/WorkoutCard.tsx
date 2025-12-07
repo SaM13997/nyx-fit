@@ -77,7 +77,7 @@ export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
               <span className="block text-xs uppercase tracking-wider text-zinc-500">
                 Duration
               </span>
-              <span className={cn("block text-sm font-medium", isActive ? "text-green-300" : "text-purple-300")}>
+              <span className={cn("block text-sm font-medium", isActive ? "text-green-300" : "text-purple-100")}>
                 {formatDuration(workout.duration)}
               </span>
             </div>

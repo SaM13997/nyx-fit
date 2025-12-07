@@ -12,7 +12,6 @@ import {
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { RecentWorkoutsList } from "@/components/home/RecentWorkoutsList";
 import { WeeklyAttendance } from "@/components/home/WeeklyAttendance";
-import { WeeklyAttendanceShowcase } from "@/components/home/WeeklyAttendanceVariations";
 import { QuickActions } from "@/components/home/QuickActions";
 import { WorkoutStatusCard } from "@/components/home/WorkoutStatusCard";
 import { useState } from "react";
@@ -86,8 +85,7 @@ function HomePage() {
           userName={profile?.name ?? sessionData?.user.name ?? "User"}
           profilePicture={profile?.profilePicture ?? sessionData?.user.image ?? undefined}
         />
-        {/* <WeeklyAttendance workouts={allWorkouts} isLoading={isLoadingAllWorkouts} /> */}
-        <WeeklyAttendanceShowcase workouts={allWorkouts} isLoading={isLoadingAllWorkouts} />
+        <WeeklyAttendance workouts={allWorkouts} isLoading={isLoadingAllWorkouts} />
         <WorkoutStatusCard
           activeWorkout={activeWorkout}
           isLoading={isLoadingActiveWorkout}

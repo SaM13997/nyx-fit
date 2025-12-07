@@ -122,7 +122,7 @@ function WorkoutsPage() {
 function WorkoutList({ workouts }: { workouts: Workout[] }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 px-1">
+      <div className="flex items-center justify-between gap-3 px-1">
         <h2 className="text-xl font-bold">Recent History</h2>
         <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full text-xs font-bold border border-purple-500/20">
           {workouts.length}

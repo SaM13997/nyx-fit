@@ -1,7 +1,24 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { motion } from 'framer-motion'
-import { useFontTheme, type FontTheme } from '@/components/FontThemeContext'
-import { Check } from 'lucide-react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useAppearance, type FontTheme, type AttendanceVariant } from '@/lib/AppearanceContext'
+import { authClient } from '@/lib/auth-client'
+import {
+  ChevronRight,
+  User,
+  Lock,
+  Bell,
+  Moon,
+  Info,
+  HelpCircle,
+  Trash2,
+  LogOut,
+  Palette,
+  Check,
+  ChevronLeft,
+  Type
+} from 'lucide-react'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -31,80 +48,248 @@ const fontThemes = [
   },
 ]
 
+const attendanceVariants = [
+  {
+    id: 'pill' as AttendanceVariant,
+    name: 'The Pill Track',
+    description: 'Glassmorphic, vertical pills',
+  },
+  {
+    id: 'circle' as AttendanceVariant,
+    name: 'Material Circles',
+    description: 'Clean, circular indicators',
+  },
+  {
+    id: 'bar' as AttendanceVariant,
+    name: 'Sleek Bar',
+    description: 'Minimalist heatmap bar',
+  },
+]
+
+type SettingsView = 'main' | 'appearance'
+
 function SettingsPage() {
-  const { theme, setTheme } = useFontTheme()
+  const navigate = useNavigate()
+  const { data: sessionData } = authClient.useSession()
+  const [currentView, setCurrentView] = useState<SettingsView>('main')
+  const {
+    fontTheme,
+    setFontTheme,
+    attendanceVariant,
+    setAttendanceVariant
+  } = useAppearance()
+
+  const handleLogout = async () => {
+    await authClient.signOut()
+    navigate({ to: '/login' })
+  }
+
+  // Sub-components for cleaner render
+  const SettingsItem = ({
+    icon: Icon,
+    label,
+    onClick,
+    value,
+    isDestructive = false
+  }: {
+    icon: any,
+    label: string,
+    onClick?: () => void,
+    value?: string,
+    isDestructive?: boolean
+  }) => (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "h-10 w-10 rounded-full flex items-center justify-center",
+          isDestructive ? "bg-red-500/10 text-red-500" : "bg-white/10 text-zinc-400"
+        )}>
+          <Icon size={20} />
+        </div>
+        <span className={cn(
+          "font-medium",
+          isDestructive ? "text-red-500" : "text-zinc-200"
+        )}>{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {value && <span className="text-sm text-zinc-500">{value}</span>}
+        <ChevronRight size={18} className="text-zinc-600" />
+      </div>
+    </motion.button>
+  )
+
+  const MainSettings = () => (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="flex flex-col gap-6"
+    >
+      {/* User Profile Card */}
+      <div className="flex items-center gap-4 p-4 bg-white/10 rounded-2xl border border-white/10">
+        <div className="h-14 w-14 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 overflow-hidden">
+          {sessionData?.user.image && (
+            <img src={sessionData.user.image} alt="Profile" className="h-full w-full object-cover" />
+          )}
+        </div>
+        <div className="flex-1">
+          <h2 className="font-bold text-lg text-white">{sessionData?.user.name}</h2>
+          <p className="text-sm text-zinc-400">Fitness Enthusiast</p>
+        </div>
+        <ChevronRight className="text-zinc-500" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">App Settings</h3>
+        <SettingsItem icon={Palette} label="Appearance" onClick={() => setCurrentView('appearance')} />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">Account</h3>
+        <SettingsItem icon={User} label="Profile details" />
+        <SettingsItem icon={Lock} label="Password" />
+        <SettingsItem icon={Bell} label="Notifications" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">Support</h3>
+        <SettingsItem icon={Info} label="About application" />
+        <SettingsItem icon={HelpCircle} label="Help/FAQ" />
+        <SettingsItem icon={Trash2} label="Deactivate my account" isDestructive />
+      </div>
+
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={handleLogout}
+        className="mt-4 w-full py-4 text-center font-semibold text-red-500 rounded-2xl border border-white/5 bg-white/5 hover:bg-black transition-colors"
+      >
+        Log Out
+      </motion.button>
+    </motion.div>
+  )
+
+  const AppearanceSettings = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className="flex flex-col gap-6"
+    >
+      <button
+        onClick={() => setCurrentView('main')}
+        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
+      >
+        <ChevronLeft size={20} />
+        <span className="font-medium">Back</span>
+      </button>
+
+      <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+        Appearance
+      </h2>
+
+      {/* Weekly Attendance Selector */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Palette size={20} className="text-purple-400" />
+          Wait, what was that card?
+        </h3>
+        <p className="text-sm text-zinc-400">Choose how your weekly progress is displayed on the home screen.</p>
+
+        <div className="grid gap-3">
+          {attendanceVariants.map((variant) => (
+            <motion.button
+              key={variant.id}
+              onClick={() => setAttendanceVariant(variant.id)}
+              className={cn(
+                "relative p-4 rounded-xl border text-left transition-all",
+                attendanceVariant === variant.id
+                  ? "bg-purple-900/20 border-purple-500/50"
+                  : "bg-white/5 border-white/10 hover:bg-white/10"
+              )}
+              whileTap={{ scale: 0.99 }}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className={cn(
+                    "font-semibold",
+                    attendanceVariant === variant.id ? "text-purple-300" : "text-zinc-200"
+                  )}>{variant.name}</h4>
+                  <p className="text-xs text-zinc-500">{variant.description}</p>
+                </div>
+                {attendanceVariant === variant.id && (
+                  <motion.div layoutId="check-attend" className="bg-purple-500 rounded-full p-1">
+                    <Check size={14} className="text-black" />
+                  </motion.div>
+                )}
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-white/10" />
+
+      {/* Font Theme Selector */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Type size={20} className="text-cyan-400" />
+          Typography
+        </h3>
+        <div className="grid gap-3">
+          {fontThemes.map((theme) => (
+            <motion.button
+              key={theme.id}
+              onClick={() => setFontTheme(theme.id)}
+              className={cn(
+                "relative p-4 rounded-xl border text-left transition-all",
+                fontTheme === theme.id
+                  ? "bg-cyan-900/20 border-cyan-500/50"
+                  : "bg-white/5 border-white/10 hover:bg-white/10"
+              )}
+              whileTap={{ scale: 0.99 }}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className={cn(
+                    "font-semibold",
+                    fontTheme === theme.id ? "text-cyan-300" : "text-zinc-200"
+                  )}>{theme.name}</h4>
+                  <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
+                    <span className="bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{theme.heading}</span>
+                    <span>+</span>
+                    <span className="bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{theme.body}</span>
+                  </div>
+                </div>
+                {fontTheme === theme.id && (
+                  <motion.div layoutId="check-font" className="bg-cyan-500 rounded-full p-1">
+                    <Check size={14} className="text-black" />
+                  </motion.div>
+                )}
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Customize your Nyx Fit experience</p>
+    <div className="px-4 py-6 pb-24 min-h-screen text-white">
+      <div className="flex items-center gap-3 mb-6">
+        <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Font Theme</h2>
-        <div className="flex flex-col gap-3">
-          {fontThemes.map((fontTheme) => {
-            const isActive = theme === fontTheme.id
-
-            return (
-              <motion.button
-                key={fontTheme.id}
-                onClick={() => setTheme(fontTheme.id)}
-                className="relative flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-colors hover:bg-white/10"
-                whileTap={{ scale: 0.98 }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-font-theme"
-                    className="absolute inset-0 rounded-2xl border-2 border-cyan-400/50 bg-cyan-400/10"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{fontTheme.name}</h3>
-                      {isActive && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', bounce: 0.5 }}
-                        >
-                          <Check className="h-5 w-5 text-cyan-400" />
-                        </motion.div>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{fontTheme.description}</p>
-                  </div>
-                </div>
-
-                <div className="relative mt-2 flex flex-col gap-1 rounded-lg bg-black/20 p-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs text-muted-foreground">Headings:</span>
-                    <span className="text-sm font-semibold">{fontTheme.heading}</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs text-muted-foreground">Body:</span>
-                    <span className="text-sm">{fontTheme.body}</span>
-                  </div>
-                </div>
-              </motion.button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-        <h3 className="text-lg font-semibold mb-3">Preview</h3>
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold">Heading Example</h1>
-          <p className="text-base">
-            This is body text. The quick brown fox jumps over the lazy dog.
-          </p>
-        </div>
-      </div>
+      <AnimatePresence mode="wait">
+        {currentView === 'main' ? (
+          <MainSettings key="main" />
+        ) : (
+          <AppearanceSettings key="appearance" />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
