@@ -23,7 +23,7 @@ export const useWorkouts = () => {
 export const useActiveWorkout = () => {
   const workout = useQuery(api.workouts.getActiveWorkout);
   return {
-    activeWorkout: workout,
+    activeWorkout: workout ?? null,
     isLoading: workout === undefined,
   };
 };

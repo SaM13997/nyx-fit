@@ -26,7 +26,7 @@ function HomePage() {
   const session = sessionData?.session;
 
   const { workouts, isLoading: isLoadingWorkouts } = useRecentWorkouts(5);
-  const { activeWorkout } = useActiveWorkout();
+  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout();
   const { profile } = useCurrentProfile();
   const { startWorkout } = useStartWorkout();
 
@@ -83,7 +83,8 @@ function HomePage() {
           profilePicture={profile?.profilePicture ?? sessionData?.user.image ?? undefined}
         />
         <WorkoutStatusCard
-          activeWorkout={activeWorkout ?? null}
+          activeWorkout={activeWorkout}
+          isLoading={isLoadingActiveWorkout}
           isStarting={isStarting}
           onStartWorkout={handleStartWorkout}
         />
