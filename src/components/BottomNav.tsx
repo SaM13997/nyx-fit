@@ -4,17 +4,20 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { bottomNavItems } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
+import { authClient } from "@/lib/auth-client";
+
 export function BottomNav() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
   const [mounted, setMounted] = useState(false);
+  const { data: session } = authClient.useSession();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  if (!mounted || pathname === "/login" || !session) {
     return null;
   }
 
