@@ -78,16 +78,31 @@ export function AddExerciseDrawer({
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
-                {selectedExercise ? (
-                  <motion.h2
-                    layoutId="exercise-name"
-                    className="text-xl font-bold text-white"
-                  >
-                    {selectedExercise}
-                  </motion.h2>
-                ) : (
-                  <h2 className="text-xl font-bold text-white">Add Exercise</h2>
-                )}
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {selectedExercise ? (
+                    <motion.h2
+                      key="selected"
+                      initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="text-xl font-bold text-white block"
+                    >
+                      {selectedExercise}
+                    </motion.h2>
+                  ) : (
+                    <motion.h2
+                      key="default"
+                      initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, y: 20, filter: "blur(10px)" }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="text-xl font-bold text-white block"
+                    >
+                      Add Exercise
+                    </motion.h2>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="flex items-center gap-3">
@@ -131,7 +146,6 @@ export function AddExerciseDrawer({
                   </div>
 
                   <motion.button
-                    layoutId="exercise-name"
                     onClick={() => setSelectedExercise(pickerExercise)}
                     className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20"
                   >
@@ -147,7 +161,7 @@ export function AddExerciseDrawer({
                   <div className="flex justify-center gap-4">
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lbs</span>
-                      <div className="relative h-40 w-32 overflow-hidden bg-white/5 rounded-2xl border border-white/10">
+                      <div className="relative h-40 w-32 overflow-hidden">
                         <WheelPicker
                           options={WEIGHT_OPTIONS.map((w) => ({ value: w, label: w }))}
                           value={weight}
@@ -159,7 +173,7 @@ export function AddExerciseDrawer({
 
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Reps</span>
-                      <div className="relative h-40 w-32 overflow-hidden bg-white/5 rounded-2xl border border-white/10">
+                      <div className="relative h-40 w-32 overflow-hidden">
                         <WheelPicker
                           options={REP_OPTIONS.map((r) => ({ value: r, label: r }))}
                           value={reps}
