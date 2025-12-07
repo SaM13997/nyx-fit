@@ -89,10 +89,10 @@ function HomePage() {
           onStartWorkout={handleStartWorkout}
         />
         <QuickActions />
-        <RecentWorkoutsList
+        {/* <RecentWorkoutsList
           workouts={workouts}
           isLoading={isLoadingWorkouts}
-        />
+        /> */}
       </motion.div>
     </div>
   );

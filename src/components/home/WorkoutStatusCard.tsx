@@ -38,7 +38,7 @@ export function WorkoutStatusCard({
         initial={false}
         animate={{
           background: activeWorkout
-            ? "linear-gradient(to bottom right, rgba(34, 197, 94, 0.4), rgba(24, 24, 27, 1), rgba(0, 0, 0, 1))"
+            ? "linear-gradient(to bottom right, rgba(1, 107, 40, 0.4), rgba(24, 24, 27, 1), rgba(0, 0, 0, 1))"
             : "linear-gradient(to bottom right, rgba(147, 51, 234, 0.4), rgba(24, 24, 27, 1), rgba(0, 0, 0, 1))",
         }}
         transition={{ duration: 0.5 }}

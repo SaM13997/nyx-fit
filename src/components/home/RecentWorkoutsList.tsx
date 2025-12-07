@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Dumbbell } from "lucide-react";
 import type { Workout } from "@/lib/types";
+import { WorkoutCard } from "@/components/WorkoutCard";
 
 interface RecentWorkoutsListProps {
   workouts: Workout[];
@@ -41,31 +41,8 @@ export function RecentWorkoutsList({
         </div>
       ) : (
         <div className="space-y-3">
-          {workouts.map((workout) => (
-            <Link
-              key={workout.id}
-              to={`/workout/${workout.id}`}
-              className="block bg-white/5 hover:bg-white/10 rounded-2xl p-4 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">
-                    {new Date(workout.date).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {workout.duration} min • {workout.exercises.length}{" "}
-                    exercises
-                  </p>
-                </div>
-                <div className="text-gray-400">
-                  <Dumbbell className="h-5 w-5" />
-                </div>
-              </div>
-            </Link>
+          {workouts.map((workout, index) => (
+            <WorkoutCard key={workout.id} workout={workout} index={index} />
           ))}
         </div>
       )}
