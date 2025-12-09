@@ -45,15 +45,19 @@ const sanitizeUpdates = (updates: Partial<WorkoutDoc>): Partial<WorkoutDoc> => {
 export const listWorkouts = query({
   args: {},
   handler: async (ctx): Promise<Workout[]> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
+    try {
+      const user = await authComponent.getAuthUser(ctx);
+      if (!user) {
+        return [];
+      }
+      const docs = await ctx.db
+        .query("workouts")
+        .withIndex("byUserId", (q) => q.eq("userId", user._id))
+        .collect();
+      return docs.map(mapWorkout);
+    } catch (error) {
       return [];
     }
-    const docs = await ctx.db
-      .query("workouts")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .collect();
-    return docs.map(mapWorkout);
   },
 });
 
@@ -131,17 +135,21 @@ export const deleteWorkout = mutation({
 export const listRecentWorkouts = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args): Promise<Workout[]> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
+    try {
+      const user = await authComponent.getAuthUser(ctx);
+      if (!user) {
+        return [];
+      }
+      const limit = args.limit ?? 5;
+      const docs = await ctx.db
+        .query("workouts")
+        .withIndex("byUserId", (q) => q.eq("userId", user._id))
+        .order("desc")
+        .take(limit);
+      return docs.map(mapWorkout);
+    } catch (error) {
       return [];
     }
-    const limit = args.limit ?? 5;
-    const docs = await ctx.db
-      .query("workouts")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .order("desc")
-      .take(limit);
-    return docs.map(mapWorkout);
   },
 });
 
@@ -151,16 +159,20 @@ export const listRecentWorkouts = query({
 export const getActiveWorkout = query({
   args: {},
   handler: async (ctx): Promise<Workout | null> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
+    try {
+      const user = await authComponent.getAuthUser(ctx);
+      if (!user) {
+        return null;
+      }
+      const doc = await ctx.db
+        .query("workouts")
+        .withIndex("byUserId", (q) => q.eq("userId", user._id))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .first();
+      return doc ? mapWorkout(doc) : null;
+    } catch (error) {
       return null;
     }
-    const doc = await ctx.db
-      .query("workouts")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .first();
-    return doc ? mapWorkout(doc) : null;
   },
 });
 

@@ -4,32 +4,44 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
-export const useRecentWorkouts = (limit?: number) => {
-  const workouts = useQuery(api.workouts.listRecentWorkouts, { limit });
+export const useRecentWorkouts = (limit?: number, options?: { enabled?: boolean }) => {
+  const workouts = useQuery(
+    api.workouts.listRecentWorkouts,
+    options?.enabled === false ? "skip" : { limit }
+  );
   return {
     workouts: workouts ?? [],
     isLoading: workouts === undefined,
   };
 };
 
-export const useWorkouts = () => {
-  const workouts = useQuery(api.workouts.listWorkouts);
+export const useWorkouts = (options?: { enabled?: boolean }) => {
+  const workouts = useQuery(
+    api.workouts.listWorkouts,
+    options?.enabled === false ? "skip" : {}
+  );
   return {
     workouts: workouts ?? [],
     isLoading: workouts === undefined,
   };
 };
 
-export const useActiveWorkout = () => {
-  const workout = useQuery(api.workouts.getActiveWorkout);
+export const useActiveWorkout = (options?: { enabled?: boolean }) => {
+  const workout = useQuery(
+    api.workouts.getActiveWorkout,
+    options?.enabled === false ? "skip" : {}
+  );
   return {
     activeWorkout: workout ?? null,
     isLoading: workout === undefined,
   };
 };
 
-export const useCurrentProfile = () => {
-  const profile = useQuery(api.profiles.getCurrentProfile);
+export const useCurrentProfile = (options?: { enabled?: boolean }) => {
+  const profile = useQuery(
+    api.profiles.getCurrentProfile,
+    options?.enabled === false ? "skip" : {}
+  );
   return {
     profile,
     isLoading: profile === undefined,

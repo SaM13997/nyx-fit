@@ -27,10 +27,14 @@ function HomePage() {
   const { data: sessionData, isPending: isAuthPending } = authClient.useSession();
   const session = sessionData?.session;
 
-  //  const { workouts, isLoading: isLoadingWorkouts } = useRecentWorkouts(5);
-  const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } = useWorkouts();
-  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout();
-  const { profile } = useCurrentProfile();
+  //  const { workouts, isLoading: isLoadingWorkouts } = useRecentWorkouts(5, { enabled: !!session });
+  const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } = useWorkouts({
+    enabled: !!session,
+  });
+  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout({
+    enabled: !!session,
+  });
+  const { profile } = useCurrentProfile({ enabled: !!session });
   const { startWorkout } = useStartWorkout();
 
   const [isStarting, setIsStarting] = useState(false);

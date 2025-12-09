@@ -47,15 +47,19 @@ const sanitizeUpdates = (updates: Partial<ProfileDoc>): Partial<ProfileDoc> => {
 export const listProfiles = query({
   args: {},
   handler: async (ctx): Promise<Profile[]> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
+    try {
+      const user = await authComponent.getAuthUser(ctx);
+      if (!user) {
+        return [];
+      }
+      const docs = await ctx.db
+        .query("profiles")
+        .withIndex("byUserId", (q) => q.eq("userId", user._id))
+        .collect();
+      return docs.map(mapProfile);
+    } catch (error) {
       return [];
     }
-    const docs = await ctx.db
-      .query("profiles")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .collect();
-    return docs.map(mapProfile);
   },
 });
 
@@ -134,15 +138,19 @@ export const deleteProfile = mutation({
 export const getCurrentProfile = query({
   args: {},
   handler: async (ctx): Promise<Profile | null> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
+    try {
+      const user = await authComponent.getAuthUser(ctx);
+      if (!user) {
+        return null;
+      }
+      const doc = await ctx.db
+        .query("profiles")
+        .withIndex("byUserId", (q) => q.eq("userId", user._id))
+        .first();
+      return doc ? mapProfile(doc) : null;
+    } catch (error) {
       return null;
     }
-    const doc = await ctx.db
-      .query("profiles")
-      .withIndex("byUserId", (q) => q.eq("userId", user._id))
-      .first();
-    return doc ? mapProfile(doc) : null;
   },
 });
 
