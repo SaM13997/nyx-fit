@@ -9,6 +9,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
     "@convex-dev/better-auth": "^0.9.6",
     "@convex-dev/react-query": "^0.0.0-alpha.11",
     "@ncdai/react-wheel-picker": "^1.0.19",
