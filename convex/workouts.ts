@@ -15,6 +15,7 @@ const workoutFieldsValidator = {
   endTime: v.optional(v.string()),
   isActive: v.optional(v.boolean()),
   exercises: v.array(exerciseValidator),
+  bodyPartWorkedOut: v.optional(v.array(v.string())),
   notes: v.optional(v.string()),
 } as const;
 
@@ -25,7 +26,37 @@ const workoutUpdateValidator = v.object({
   endTime: workoutFieldsValidator.endTime,
   isActive: workoutFieldsValidator.isActive,
   exercises: v.optional(workoutFieldsValidator.exercises),
+  bodyPartWorkedOut: v.optional(workoutFieldsValidator.bodyPartWorkedOut),
   notes: workoutFieldsValidator.notes,
+});
+
+// ... mapWorkout function logic usually implicitly spreads ...rest so checking if we need to explicitly add it.
+// mapWorkout takes doc and spreads ...rest, so it should be fine as long as doc has it.
+
+// ...
+
+export const startWorkout = mutation({
+  args: {
+    bodyPartWorkedOut: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args): Promise<Workout> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+    const now = new Date().toISOString();
+    const insertedId = await ctx.db.insert("workouts", {
+      userId: user._id,
+      date: now,
+      duration: 0,
+      startTime: now,
+      isActive: true,
+      exercises: [],
+      bodyPartWorkedOut: args.bodyPartWorkedOut,
+    });
+    const doc = (await ctx.db.get(insertedId)) as WorkoutDoc;
+    return mapWorkout(doc);
+  },
 });
 
 const mapWorkout = (doc: WorkoutDoc): Workout => {
@@ -176,26 +207,4 @@ export const getActiveWorkout = query({
   },
 });
 
-/**
- * Start a new workout session
- */
-export const startWorkout = mutation({
-  args: {},
-  handler: async (ctx): Promise<Workout> => {
-    const user = await authComponent.getAuthUser(ctx);
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-    const now = new Date().toISOString();
-    const insertedId = await ctx.db.insert("workouts", {
-      userId: user._id,
-      date: now,
-      duration: 0,
-      startTime: now,
-      isActive: true,
-      exercises: [],
-    });
-    const doc = (await ctx.db.get(insertedId)) as WorkoutDoc;
-    return mapWorkout(doc);
-  },
-});
+

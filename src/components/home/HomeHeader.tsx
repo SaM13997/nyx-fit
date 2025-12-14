@@ -1,5 +1,5 @@
 import type { Profile } from "@/lib/types";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 interface HomeHeaderProps {
   userName: string;
   profilePicture?: string;
@@ -12,13 +12,12 @@ export function HomeHeader({ userName, profilePicture }: HomeHeaderProps) {
         <h1 className="text-2xl font-bold">Hey, <span className="">{userName.split(" ")[0]}</span>!</h1>
         <p className="text-gray-400 text-sm">Ready to crush your workout?</p>
       </div>
-      {profilePicture && (
-        <img
-          src={profilePicture}
-          alt={userName}
-          className="h-12 w-12 rounded-full object-cover"
-        />
-      )}
+      <Avatar>
+        <AvatarImage src={profilePicture} />
+        <AvatarFallback>
+          <span className="text-white">{userName.split(" ")[0][0]}</span>
+        </AvatarFallback>
+      </Avatar>
     </div>
   );
 }

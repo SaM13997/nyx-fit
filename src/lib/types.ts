@@ -6,6 +6,7 @@ export type Workout = {
   endTime?: string; // ISO string for when workout ended
   isActive?: boolean; // Whether the workout is currently in progress
   exercises: Exercise[];
+  bodyPartWorkedOut?: string[];
   notes?: string;
 };
 

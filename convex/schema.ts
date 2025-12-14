@@ -46,6 +46,7 @@ export default defineSchema({
     endTime: v.optional(v.string()),
     isActive: v.optional(v.boolean()),
     exercises: v.array(exerciseValidator),
+    bodyPartWorkedOut: v.optional(v.array(v.string())),
     notes: v.optional(v.string()),
   })
     .index("byUserId", ["userId"])

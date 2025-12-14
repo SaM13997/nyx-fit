@@ -3,14 +3,12 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import {
-  useRecentWorkouts,
   useActiveWorkout,
   useCurrentProfile,
   useStartWorkout,
   useWorkouts,
 } from "@/lib/convex/hooks";
 import { HomeHeader } from "@/components/home/HomeHeader";
-import { RecentWorkoutsList } from "@/components/home/RecentWorkoutsList";
 import { WeeklyAttendance } from "@/components/home/WeeklyAttendance";
 import { QuickActions } from "@/components/home/QuickActions";
 import { WorkoutStatusCard } from "@/components/home/WorkoutStatusCard";
@@ -23,11 +21,9 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const navigate = useNavigate();
   const { data: sessionData, isPending: isAuthPending } = authClient.useSession();
   const session = sessionData?.session;
 
-  //  const { workouts, isLoading: isLoadingWorkouts } = useRecentWorkouts(5, { enabled: !!session });
   const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } = useWorkouts({
     enabled: !!session,
   });
@@ -39,11 +35,10 @@ function HomePage() {
 
   const [isStarting, setIsStarting] = useState(false);
 
-  const handleStartWorkout = async () => {
+  const handleStartWorkout = async (bodyParts: string[]) => {
     try {
       setIsStarting(true);
-      const newWorkout = await startWorkout();
-      // navigate({ to: `/workout/${newWorkout.id}` });
+      const newWorkout = await startWorkout({ bodyPartWorkedOut: bodyParts });
     } catch (error) {
       console.error("Failed to start workout:", error);
       setIsStarting(false);

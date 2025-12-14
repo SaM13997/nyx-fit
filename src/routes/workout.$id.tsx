@@ -48,6 +48,12 @@ function WorkoutPage() {
 
   const handleEndWorkout = async () => {
     if (!workout) return;
+
+    // Save body parts to localStorage for next workout
+    if (workout.bodyPartWorkedOut && workout.bodyPartWorkedOut.length > 0) {
+      localStorage.setItem("lastWorkedBodyParts", JSON.stringify(workout.bodyPartWorkedOut));
+    }
+
     await updateWorkout({
       id: workout.id as Id<"workouts">,
       updates: {
