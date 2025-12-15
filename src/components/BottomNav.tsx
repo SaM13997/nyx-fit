@@ -30,8 +30,8 @@ export function BottomNav() {
   };
 
   return (
-    <div className="sticky bottom-6 left-0 right-0 z-50 mt-auto flex justify-center px-4">
-      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 p-2 backdrop-blur-[80px]">
+    <div className="sticky bottom-6 left-0 right-0 z-50 mt-auto flex justify-center px-4 pointer-events-none">
+      <div className="flex items-center gap-2 pointer-events-auto rounded-full border border-white/10 bg-white/10 p-2 backdrop-blur-[80px]">
         {bottomNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);

@@ -46,6 +46,7 @@ export const createAuth = (
 		trustedOrigins: [
 			'http://localhost:3000',
 			'https://localhost:3000',
+			'https://fit.webdevsam.pro',
 			siteUrl,
 		],
 	})
