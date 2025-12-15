@@ -5,9 +5,19 @@ import { DataModel } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { betterAuth } from 'better-auth'
 
-const siteUrl = process.env.SITE_URL!
-const googleClientId = process.env.GOOGLE_CLIENT_ID!
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET!
+const siteUrl = process.env.SITE_URL
+const googleClientId = process.env.GOOGLE_CLIENT_ID
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
+
+if (!siteUrl) {
+	throw new Error('Missing SITE_URL environment variable')
+}
+if (!googleClientId) {
+	throw new Error('Missing GOOGLE_CLIENT_ID environment variable')
+}
+if (!googleClientSecret) {
+	throw new Error('Missing GOOGLE_CLIENT_SECRET environment variable')
+}
 
 // console.log('GOOGLE_CLIENT_ID', googleClientId)
 // console.log('GOOGLE_CLIENT_SECRET', googleClientSecret)
