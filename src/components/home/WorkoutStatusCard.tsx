@@ -139,7 +139,7 @@ export function WorkoutStatusCard({
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              <h2 className="text-xl font-bold mb-4">Select Body Parts</h2>
+              <h2 className="text-xl font-bold mb-1">Select Body Parts</h2>
               <p className="text-sm text-gray-400 mb-6">
                 What are you working on today?
               </p>
