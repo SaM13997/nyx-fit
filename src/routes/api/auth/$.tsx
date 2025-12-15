@@ -5,9 +5,11 @@ export const Route = createFileRoute("/api/auth/$")({
   server: {
     handlers: {
       GET: ({ request }) => {
+        console.log(`[API/AUTH] GET request to ${request.url}`);
         return reactStartHandler(request);
       },
       POST: ({ request }) => {
+        console.log(`[API/AUTH] POST request to ${request.url}`);
         return reactStartHandler(request);
       },
     },
