@@ -1,0 +1,52 @@
+{
+  "packageId": "pro.webdevsam.fit.twa",
+  "host": "fit.webdevsam.pro",
+  "name": "Nyx Fitness",
+  "launcherName": "Nyx Fit",
+  "display": "fullscreen",
+  "themeColor": "#09090B",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#09090B",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://fit.webdevsam.pro/favicon/web-app-manifest-512x512.png",
+  "maskableIconUrl": "https://fit.webdevsam.pro/favicon/web-app-manifest-512x512.png",
+  "monochromeIconUrl": "https://fit.webdevsam.pro/favicon/web-app-manifest-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "D:\\dev\\personal\\nyx-fit\\android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://fit.webdevsam.pro/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "playBilling": {
+      "enabled": true
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://fit.webdevsam.pro/",
+  "minSdkVersion": 21,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [],
+  "appVersion": "1"
+}
