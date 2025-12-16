@@ -3,7 +3,7 @@
   "host": "fit.webdevsam.pro",
   "name": "Nyx Fitness",
   "launcherName": "Nyx Fit",
-  "display": "fullscreen",
+  "display": "standalone",
   "themeColor": "#09090B",
   "themeColorDark": "#000000",
   "navigationColor": "#000000",
@@ -18,11 +18,11 @@
   "monochromeIconUrl": "https://fit.webdevsam.pro/favicon/web-app-manifest-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "D:\\dev\\personal\\nyx-fit\\android.keystore",
+    "path": "D:\\dev\\personal\\nyx-fit\\builds\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "3",
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://fit.webdevsam.pro/manifest.json",
@@ -48,5 +48,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "3"
 }

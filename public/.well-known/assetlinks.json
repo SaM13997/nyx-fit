@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "pro.webdevsam.fit.twa",
+      "sha256_cert_fingerprints": [
+        "E3:D4:CF:67:E0:21:51:AA:5A:7D:B8:DA:1F:D4:86:F8:EB:D9:6F:3F:A0:9C:5A:92:39:81:CE:6D:20:E6:70:1C"
+      ]
+    }
+  }
+]
