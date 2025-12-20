@@ -3,18 +3,13 @@ import { useMutation, useQuery } from "convex/react";
 
 import { Exercise, WorkoutSet } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
-import {
-  ArrowLeft,
-  MoreHorizontal,
-  Plus,
-  Share2,
-  Square,
-} from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Plus, Share2, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ExerciseItem } from "@/components/ExerciseItem";
 import { SetDrawer } from "@/components/SetDrawer";
 import { AddExerciseDrawer } from "@/components/AddExerciseDrawer";
+import { RestTimer } from "@/components/RestTimer";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
 
@@ -51,7 +46,10 @@ function WorkoutPage() {
 
     // Save body parts to localStorage for next workout
     if (workout.bodyPartWorkedOut && workout.bodyPartWorkedOut.length > 0) {
-      localStorage.setItem("lastWorkedBodyParts", JSON.stringify(workout.bodyPartWorkedOut));
+      localStorage.setItem(
+        "lastWorkedBodyParts",
+        JSON.stringify(workout.bodyPartWorkedOut)
+      );
     }
 
     await updateWorkout({
@@ -126,16 +124,6 @@ function WorkoutPage() {
     setIsDrawerOpen(true);
   };
 
-  const getExerciseCategories = () => {
-    if (!workout) return [];
-    const categories = new Set(
-      workout.exercises
-        .map((e) => e.category)
-        .filter((c): c is string => !!c)
-    );
-    return Array.from(categories);
-  };
-
   if (!workout) {
     return <div className="min-h-screen  text-white p-4">Loading...</div>;
   }
@@ -161,7 +149,9 @@ function WorkoutPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <p className="text-green-400 text-xs font-medium tracking-wide uppercase">In Progress</p>
+                <p className="text-green-400 text-xs font-medium tracking-wide uppercase">
+                  In Progress
+                </p>
               </div>
             )}
           </div>
@@ -177,11 +167,14 @@ function WorkoutPage() {
       </header>
 
       {/* Main Stats Card */}
-      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-[2rem] p-6 mb-4  border border-white/10 shadow-2xl transition-colors duration-500 ease-out">
-        <div className={`absolute inset-0 ${workout.isActive
-          ? "bg-gradient-to-br from-green-900/40 via-zinc-900 to-black"
-          : "bg-gradient-to-br from-purple-900/40 via-zinc-900 to-black"
-          }`} />
+      <div className=" bg-black/80 z-20 backdrop-blur-md  overflow-hidden rounded-4xl p-6 mb-4  border border-white/10 shadow-2xl transition-colors duration-500 ease-out">
+        <div
+          className={`absolute inset-0 ${
+            workout.isActive
+              ? "bg-linear-to-br from-green-900/40 via-zinc-900 to-black"
+              : "bg-linear-to-br from-purple-900/40 via-zinc-900 to-black"
+          }`}
+        />
 
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
@@ -209,7 +202,9 @@ function WorkoutPage() {
               </button>
             ) : (
               <div className="h-14 w-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <span className="text-lg font-bold">{workout.exercises.length}</span>
+                <span className="text-lg font-bold">
+                  {workout.exercises.length}
+                </span>
               </div>
             )}
           </div>
@@ -236,7 +231,7 @@ function WorkoutPage() {
 
           {/* Time Details */}
           {workout.startTime && (
-            <div className="mt-6 pt-4 border-t border-white/5 flex justify-between text-xs text-gray-500 font-medium uppercase tracking-wider">
+            <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-xs text-gray-500 font-medium uppercase tracking-wider">
               <div>
                 <span className="block text-gray-600 mb-0.5">Started</span>
                 {new Date(workout.startTime).toLocaleTimeString("en-US", {
@@ -244,6 +239,10 @@ function WorkoutPage() {
                   minute: "2-digit",
                 })}
               </div>
+
+              {/* Rest Timer */}
+              <RestTimer isActiveWorkout={!!workout.isActive} />
+
               {workout.endTime && (
                 <div className="text-right">
                   <span className="block text-gray-600 mb-0.5">Ended</span>
@@ -281,7 +280,9 @@ function WorkoutPage() {
             <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
               <Plus className="h-8 w-8 text-gray-600" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">Start your workout</h3>
+            <h3 className="text-lg font-bold text-white mb-2">
+              Start your workout
+            </h3>
             <p className="text-gray-400 text-sm mb-6 max-w-[200px] mx-auto">
               Add your first exercise to begin tracking your progress
             </p>
@@ -324,7 +325,7 @@ function WorkoutPage() {
 
       {/* End Workout Confirmation Dialog */}
       {showEndWorkoutDialog && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-100 p-4 backdrop-blur-sm">
           <div className="bg-zinc-900 rounded-3xl p-6 w-full max-w-sm border border-white/10 shadow-2xl">
             <h3 className="text-xl font-bold mb-2">End Workout?</h3>
             <p className="text-gray-400 text-sm mb-8 leading-relaxed">

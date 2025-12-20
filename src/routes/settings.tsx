@@ -15,7 +15,8 @@ import {
   Palette,
   Check,
   ChevronLeft,
-  Type
+  Type,
+  Timer
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -66,6 +67,13 @@ const attendanceVariants = [
   },
 ]
 
+const restTimerOptions = [
+  { label: '30s', value: 30 },
+  { label: '1m', value: 60 },
+  { label: '3m', value: 180 },
+  { label: '5m', value: 300 },
+]
+
 type SettingsView = 'main' | 'appearance'
 
 function SettingsPage() {
@@ -76,7 +84,9 @@ function SettingsPage() {
     fontTheme,
     setFontTheme,
     attendanceVariant,
-    setAttendanceVariant
+    setAttendanceVariant,
+    restTimerDuration,
+    setRestTimerDuration
   } = useAppearance()
 
   const handleLogout = async () => {
@@ -226,6 +236,34 @@ function SettingsPage() {
                   </motion.div>
                 )}
               </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <div className="h-px bg-white/10" />
+
+      {/* Rest Timer Selector */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Timer size={20} className="text-orange-400" />
+          Rest Timer
+        </h3>
+        <p className="text-sm text-zinc-400">Default rest duration between sets.</p>
+        <div className="grid grid-cols-4 gap-2">
+          {restTimerOptions.map((option) => (
+            <motion.button
+              key={option.value}
+              onClick={() => setRestTimerDuration(option.value)}
+              className={cn(
+                "py-3 rounded-xl border font-bold transition-all",
+                restTimerDuration === option.value
+                  ? "bg-orange-900/20 border-orange-500/50 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                  : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"
+              )}
+              whileTap={{ scale: 0.95 }}
+            >
+              {option.label}
             </motion.button>
           ))}
         </div>

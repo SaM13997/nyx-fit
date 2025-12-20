@@ -21,15 +21,19 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const { data: sessionData, isPending: isAuthPending } = authClient.useSession();
+  const { data: sessionData, isPending: isAuthPending } =
+    authClient.useSession();
   const session = sessionData?.session;
 
-  const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } = useWorkouts({
-    enabled: !!session,
-  });
-  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout({
-    enabled: !!session,
-  });
+  const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } =
+    useWorkouts({
+      enabled: !!session,
+    });
+  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout(
+    {
+      enabled: !!session,
+    }
+  );
   const { profile } = useCurrentProfile({ enabled: !!session });
   const { startWorkout } = useStartWorkout();
 
@@ -57,7 +61,7 @@ function HomePage() {
     return (
       <div className="bg-black px-4 py-6 min-h-screen text-white flex flex-col items-center justify-center gap-8">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
             Nyx Fitness
           </h1>
           <p className="text-zinc-400">
@@ -82,9 +86,14 @@ function HomePage() {
       >
         <HomeHeader
           userName={profile?.name ?? sessionData?.user.name ?? "User"}
-          profilePicture={profile?.profilePicture ?? sessionData?.user.image ?? undefined}
+          profilePicture={
+            profile?.profilePicture ?? sessionData?.user.image ?? undefined
+          }
         />
-        <WeeklyAttendance workouts={allWorkouts} isLoading={isLoadingAllWorkouts} />
+        <WeeklyAttendance
+          workouts={allWorkouts}
+          isLoading={isLoadingAllWorkouts}
+        />
         <WorkoutStatusCard
           activeWorkout={activeWorkout}
           isLoading={isLoadingActiveWorkout}
