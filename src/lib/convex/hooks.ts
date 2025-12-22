@@ -48,6 +48,13 @@ export const useCurrentProfile = (options?: { enabled?: boolean }) => {
   };
 };
 
+export const useUpsertCurrentProfile = () => {
+  const upsertCurrentProfile = useMutation(api.profiles.upsertCurrentProfile);
+  return {
+    upsertCurrentProfile,
+  };
+};
+
 export const useStartWorkout = () => {
   const startWorkout = useMutation(api.workouts.startWorkout);
   return {

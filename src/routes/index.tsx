@@ -8,6 +8,7 @@ import {
   useStartWorkout,
   useWorkouts,
 } from "@/lib/convex/hooks";
+import { getEffectiveProfile } from "@/lib/profile";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { WeeklyAttendance } from "@/components/home/WeeklyAttendance";
 import { QuickActions } from "@/components/home/QuickActions";
@@ -34,8 +35,11 @@ function HomePage() {
       enabled: !!session,
     }
   );
-  const { profile } = useCurrentProfile({ enabled: !!session });
+  const { profile, isLoading: isLoadingProfile } = useCurrentProfile({
+    enabled: !!session,
+  });
   const { startWorkout } = useStartWorkout();
+  const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
 
   const [isStarting, setIsStarting] = useState(false);
 
@@ -85,10 +89,9 @@ function HomePage() {
         className={cn("flex flex-col gap-6")}
       >
         <HomeHeader
-          userName={profile?.name ?? sessionData?.user.name ?? "User"}
-          profilePicture={
-            profile?.profilePicture ?? sessionData?.user.image ?? undefined
-          }
+          userName={effectiveProfile.name}
+          email={effectiveProfile.email}
+          profilePicture={effectiveProfile.profilePicture}
         />
         <WeeklyAttendance
           workouts={allWorkouts}

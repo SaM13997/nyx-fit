@@ -6,6 +6,8 @@ import {
   type AttendanceVariant,
 } from "@/lib/AppearanceContext";
 import { authClient } from "@/lib/auth-client";
+import { useCurrentProfile } from "@/lib/convex/hooks";
+import { getEffectiveProfile } from "@/lib/profile";
 import {
   ChevronRight,
   User,
@@ -83,6 +85,9 @@ type SettingsView = "main" | "appearance";
 function SettingsPage() {
   const navigate = useNavigate();
   const { data: sessionData } = authClient.useSession();
+  const session = sessionData?.session ?? null;
+  const { profile } = useCurrentProfile({ enabled: !!session });
+  const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
   const [currentView, setCurrentView] = useState<SettingsView>("main");
   const {
     fontTheme,
@@ -152,24 +157,30 @@ function SettingsPage() {
       className="flex flex-col gap-6"
     >
       {/* User Profile Card */}
-      <div className="flex items-center gap-4 p-4 bg-white/10 rounded-2xl border border-white/10">
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        onClick={() => navigate({ to: "/settings/profile" })}
+        className="w-full flex items-center gap-4 p-4 bg-white/10 rounded-2xl border border-white/10 text-left"
+      >
         <div className="h-14 w-14 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 overflow-hidden">
-          {sessionData?.user.image && (
+          {effectiveProfile.profilePicture && (
             <img
-              src={sessionData.user.image}
+              src={effectiveProfile.profilePicture}
               alt="Profile"
               className="h-full w-full object-cover"
             />
           )}
         </div>
-        <div className="flex-1">
-          <h2 className="font-bold text-lg text-white">
-            {sessionData?.user.name}
+        <div className="flex-1 min-w-0">
+          <h2 className="font-bold text-lg text-white truncate">
+            {effectiveProfile.name}
           </h2>
-          <p className="text-sm text-zinc-400">Fitness Enthusiast</p>
+          <p className="text-sm text-zinc-400 truncate">
+            {effectiveProfile.email || "Fitness Enthusiast"}
+          </p>
         </div>
         <ChevronRight className="text-zinc-500" />
-      </div>
+      </motion.button>
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
@@ -186,7 +197,11 @@ function SettingsPage() {
         <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
           Account
         </h3>
-        <SettingsItem icon={User} label="Profile details" />
+        <SettingsItem
+          icon={User}
+          label="Profile details"
+          onClick={() => navigate({ to: "/settings/profile" })}
+        />
         <SettingsItem icon={Lock} label="Password" />
         <SettingsItem icon={Bell} label="Notifications" />
       </div>

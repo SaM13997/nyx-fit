@@ -30,13 +30,17 @@ export type WeightEntry = {
   note?: string;
 };
 
+export type Gender = "male" | "female";
+
+export type FitnessLevel = "beginner" | "intermediary" | "advanced" | "pro";
+
 export type Profile = {
   id: string;
   name: string;
   email: string;
-  gender?: "male" | "female";
+  gender?: Gender;
   profilePicture?: string; // URL of the profile picture uploaded to the convex storage
-  fitnessLevel?: string; // beginner, intermediary, advanced, pro
+  fitnessLevel?: FitnessLevel;
   notificationsEnabled: boolean;
   createdAt: string;
 };

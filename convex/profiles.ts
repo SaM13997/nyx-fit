@@ -30,6 +30,14 @@ const profileUpdateValidator = v.object({
   createdAt: v.optional(profileFieldsValidator.createdAt),
 });
 
+const profileUpsertValidator = v.object({
+  name: v.optional(profileFieldsValidator.name),
+  gender: profileFieldsValidator.gender,
+  profilePicture: profileFieldsValidator.profilePicture,
+  fitnessLevel: profileFieldsValidator.fitnessLevel,
+  notificationsEnabled: v.optional(profileFieldsValidator.notificationsEnabled),
+});
+
 const mapProfile = (doc: ProfileDoc): Profile => {
   const { _id, _creationTime, ...rest } = doc;
   return {
@@ -112,6 +120,74 @@ export const updateProfile = mutation({
   },
 });
 
+/**
+ * Create or update the current user's profile.
+ *
+ * - Seeds name/email/image from the auth provider on first save.
+ * - Keeps provider email in sync.
+ * - Backfills provider image if a profile exists but is missing profilePicture.
+ */
+export const upsertCurrentProfile = mutation({
+  args: {
+    updates: profileUpsertValidator,
+  },
+  handler: async (ctx, args): Promise<Profile> => {
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    const existing = await ctx.db
+      .query("profiles")
+      .withIndex("byUserId", (q) => q.eq("userId", user._id))
+      .first();
+
+    const providerName =
+      (user.name && user.name.trim()) ||
+      (user.email && user.email.trim()) ||
+      "User";
+    const providerEmail = user.email;
+    const providerImage = user.image ?? undefined;
+
+    const rawUpdates = args.updates as Partial<ProfileDoc>;
+    const normalizedName =
+      typeof rawUpdates.name === "string" ? rawUpdates.name.trim() : undefined;
+    const updates = sanitizeUpdates({
+      ...rawUpdates,
+      name: normalizedName || undefined,
+    });
+
+    if (!existing) {
+      const now = new Date().toISOString();
+      const insertedId = await ctx.db.insert("profiles", {
+        userId: user._id,
+        name: updates.name ?? providerName,
+        email: providerEmail,
+        gender: updates.gender,
+        profilePicture: updates.profilePicture ?? providerImage,
+        fitnessLevel: updates.fitnessLevel,
+        notificationsEnabled: updates.notificationsEnabled ?? true,
+        createdAt: now,
+      });
+
+      const doc = (await ctx.db.get(insertedId)) as ProfileDoc;
+      return mapProfile(doc);
+    }
+
+    if (existing.email !== providerEmail) {
+      updates.email = providerEmail;
+    }
+
+    if (!existing.profilePicture && providerImage) {
+      updates.profilePicture = updates.profilePicture ?? providerImage;
+    }
+
+    await ctx.db.patch(existing._id, updates);
+    const updated = (await ctx.db.get(existing._id)) as ProfileDoc;
+    return mapProfile(updated);
+  },
+});
+
 export const deleteProfile = mutation({
   args: { id: v.id("profiles") },
   handler: async (ctx, args): Promise<Id<"profiles">> => {
@@ -153,4 +229,3 @@ export const getCurrentProfile = query({
     }
   },
 });
-
