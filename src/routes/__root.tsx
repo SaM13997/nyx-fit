@@ -22,6 +22,7 @@ import {
 } from "@convex-dev/better-auth/react-start";
 import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
+import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import appCss from "../styles.css?url";
 
@@ -122,10 +123,12 @@ function RootComponent() {
       authClient={authClient}
     >
       <AppearanceProvider>
-        <RootDocument>
-          <Outlet />
-          <InstallPrompt />
-        </RootDocument>
+        <ToastProvider>
+          <RootDocument>
+            <Outlet />
+            <InstallPrompt />
+          </RootDocument>
+        </ToastProvider>
       </AppearanceProvider>
     </ConvexBetterAuthProvider>
   );
