@@ -1,19 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useConvex } from "convex/react";
 
 import { authClient } from "@/lib/auth-client";
 import {
   useCurrentProfile,
   useUpsertCurrentProfile,
+  useUploadUrl,
 } from "@/lib/convex/hooks";
+import { api } from "../../convex/_generated/api";
 import type { FitnessLevel, Gender } from "@/lib/types";
-import {
-  getProfileFormDefaults,
-  type ProfileFormValues,
-} from "@/lib/profile";
+import { getProfileFormDefaults, type ProfileFormValues } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ChevronLeft, Camera, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/settings_/profile")({
   component: ProfileDetailsPage,
@@ -21,8 +22,14 @@ export const Route = createFileRoute("/settings_/profile")({
 
 function ProfileDetailsPage() {
   const navigate = useNavigate();
-  const { data: sessionData, isPending: isAuthPending, error } =
-    authClient.useSession();
+  const convex = useConvex();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    data: sessionData,
+    isPending: isAuthPending,
+    error,
+  } = authClient.useSession();
   const session = sessionData?.session ?? null;
   const authUser = sessionData?.user ?? null;
 
@@ -30,9 +37,11 @@ function ProfileDetailsPage() {
     enabled: !!session,
   });
   const { upsertCurrentProfile } = useUpsertCurrentProfile();
+  const { generateUploadUrl } = useUploadUrl();
 
   const [form, setForm] = useState<ProfileFormValues | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const readyToInit = !!session && !!authUser && !isProfileLoading;
@@ -48,12 +57,52 @@ function ProfileDetailsPage() {
 
   const setField = <K extends keyof ProfileFormValues>(
     key: K,
-    value: ProfileFormValues[K],
+    value: ProfileFormValues[K]
   ) => {
     setForm((prev) => {
       if (!prev) return prev;
       return { ...prev, [key]: value };
     });
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setStatusMessage(null);
+
+    try {
+      // 1. Get upload URL
+      const postUrl = await generateUploadUrl();
+
+      // 2. Upload the file
+      const result = await fetch(postUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!result.ok) throw new Error("Upload failed");
+
+      const { storageId } = await result.json();
+
+      // 3. Get the public URL for the storage ID
+      const publicUrl = await convex.query(api.profiles.getStorageUrl, {
+        storageId,
+      });
+
+      if (publicUrl) {
+        setField("profilePicture", publicUrl);
+        setStatusMessage("Image uploaded successfully.");
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setStatusMessage(err?.message ?? "Failed to upload image.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const canSubmit = useMemo(() => {
@@ -119,39 +168,59 @@ function ProfileDetailsPage() {
 
   return (
     <div className="px-4 py-6 pb-24 min-h-screen text-white">
-      <div className="flex items-center justify-between mb-6">
+      <div className="text-2xl font-bold flex items-center gap-2">
         <button
           type="button"
           onClick={() => navigate({ to: "/settings" })}
           className="text-zinc-400 hover:text-white transition-colors"
         >
-          Back
+          <ChevronLeft />
         </button>
-        <Link to="/settings" className="text-sm text-zinc-500 hover:text-white">
-          Settings
-        </Link>
+        Profile details
       </div>
-
-      <h1 className="text-2xl font-bold">Profile details</h1>
-      <p className="text-sm text-zinc-400 mt-1">
-        Your profile is stored in Nyx so you can override provider defaults
-        safely.
-      </p>
-
       <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 overflow-hidden">
-            {form.profilePicture ? (
-              <img
-                src={form.profilePicture}
-                alt="Profile"
-                className="h-full w-full object-cover"
-              />
-            ) : null}
+          <div className="relative group">
+            <div className="h-16 w-16 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 overflow-hidden border-2 border-white/10">
+              {form.profilePicture ? (
+                <img
+                  src={form.profilePicture}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-zinc-800 text-zinc-500">
+                  {form.name?.[0]?.toUpperCase() ?? "?"}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full disabled:opacity-100 disabled:bg-black/20"
+            >
+              {isUploading ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleUpload}
+              accept="image/*"
+              className="hidden"
+            />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold truncate">{form.name}</div>
-            <div className="text-sm text-zinc-400 truncate">{form.email}</div>
+            <div className="font-semibold text-lg truncate">
+              {form.name || "Your Name"}
+            </div>
+            <div className="text-sm text-zinc-400 truncate">
+              {form.email || "No email provided"}
+            </div>
           </div>
         </div>
       </div>
@@ -167,20 +236,35 @@ function ProfileDetailsPage() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm text-zinc-400">Email (from provider)</label>
+          <label className="text-sm text-zinc-400">Email</label>
           <Input value={form.email} disabled />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm text-zinc-400">Profile picture URL</label>
-          <Input
-            value={form.profilePicture ?? ""}
-            onChange={(e) => setField("profilePicture", e.target.value)}
-            placeholder="https://..."
-          />
+          <div className="flex gap-2">
+            <Input
+              value={form.profilePicture ?? ""}
+              onChange={(e) => setField("profilePicture", e.target.value)}
+              placeholder="https://..."
+              className="flex-1"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              title="Upload image"
+            >
+              {isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
           <p className="text-xs text-zinc-500">
-            If you leave this blank, we’ll keep your provider image when saving
-            for the first time.
+            You can paste a URL or upload an image using the camera icon.
           </p>
         </div>
 
@@ -193,7 +277,7 @@ function ProfileDetailsPage() {
               onChange={(e) =>
                 setField(
                   "gender",
-                  (e.target.value || undefined) as Gender | undefined,
+                  (e.target.value || undefined) as Gender | undefined
                 )
               }
             >
@@ -211,7 +295,7 @@ function ProfileDetailsPage() {
               onChange={(e) =>
                 setField(
                   "fitnessLevel",
-                  (e.target.value || undefined) as FitnessLevel | undefined,
+                  (e.target.value || undefined) as FitnessLevel | undefined
                 )
               }
             >
@@ -243,7 +327,7 @@ function ProfileDetailsPage() {
           <p
             className={cn(
               "text-sm",
-              statusMessage === "Saved." ? "text-emerald-300" : "text-red-300",
+              statusMessage === "Saved." ? "text-emerald-300" : "text-red-300"
             )}
           >
             {statusMessage}

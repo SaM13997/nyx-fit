@@ -55,6 +55,24 @@ export const useUpsertCurrentProfile = () => {
   };
 };
 
+export const useUploadUrl = () => {
+  const generateUploadUrl = useMutation(api.profiles.generateUploadUrl);
+  return {
+    generateUploadUrl,
+  };
+};
+
+export const useStorageUrl = (storageId?: string) => {
+  const url = useQuery(
+    api.profiles.getStorageUrl,
+    storageId ? { storageId } : "skip"
+  );
+  return {
+    url,
+    isLoading: storageId ? url === undefined : false,
+  };
+};
+
 export const useStartWorkout = () => {
   const startWorkout = useMutation(api.workouts.startWorkout);
   return {
