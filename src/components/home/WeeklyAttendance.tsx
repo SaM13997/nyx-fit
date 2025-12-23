@@ -51,33 +51,68 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
           : "border-white/10 bg-zinc-900/50"
       )}
     >
-      {/* Target Section: Header (Fixed) */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className={cn(
-          "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
-          isSuccess ? "text-amber-500" : "text-zinc-400"
-        )}>
-          {viewMode === "week" ? "This Week" : "Last 4 Weeks"}
-        </h3>
-        <span className={cn(
-          "text-xs font-medium px-2 py-0.5 rounded-full transition-colors duration-500",
-          isSuccess
-            ? "text-amber-300 bg-amber-500/20"
-            : viewMode === "week" ? "text-emerald-500 bg-emerald-500/10" : "text-zinc-400 bg-zinc-800"
-        )}>
-          {viewMode === "week" ? `${workoutsThisWeek} Workouts` : "Contribution"}
-        </span>
+      {/* Header (Stable Shell, Crossfading Content) */}
+      <div className="flex items-center justify-between mb-4 relative h-5">
+        <AnimatePresence mode="popLayout" initial={false}>
+          {viewMode === "week" ? (
+            <motion.h3
+              key={viewMode}
+              initial={{ opacity: 0, y: 5, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -5, filter: "blur(10px)" }}
+              transition={{ duration: 0.5, }}
+              className={cn(
+                "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
+                isSuccess ? "text-amber-500" : "text-zinc-400"
+              )}
+            >
+              This Week
+            </motion.h3>
+          ) : (
+            <motion.h3
+              key={viewMode}
+              initial={{ opacity: 0, y: 5, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -5, filter: "blur(10px)" }}
+              transition={{ duration: 0.5, }}
+              className={cn(
+                "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
+                isSuccess ? "text-amber-500" : "text-zinc-400"
+              )}
+            >
+              Last 4 Weeks
+            </motion.h3>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            className={cn(
+              "text-xs font-medium px-2 py-0.5 rounded-full transition-colors duration-500",
+              isSuccess
+                ? "text-amber-300 bg-amber-500/20"
+                : "text-emerald-500 bg-emerald-500/10"
+            )}
+          >
+            {workoutsThisWeek} Workouts
+          </motion.span>
+        </AnimatePresence>
       </div>
 
-      {/* Target Section: Content (Swappable with Animation) */}
+      {/* Content (Swappable with Animation) */}
       <div className="relative">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={viewMode + attendanceVariant}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            initial={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+              opacity: { duration: 0.2 }
+            }}
             className="w-full flex"
           >
             {viewMode === "month" ? (
