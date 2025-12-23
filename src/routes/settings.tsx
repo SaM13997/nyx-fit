@@ -13,11 +13,9 @@ import {
   User,
   Lock,
   Bell,
-  Moon,
   Info,
   HelpCircle,
   Trash2,
-  LogOut,
   Palette,
   Check,
   ChevronLeft,
@@ -96,6 +94,8 @@ function SettingsPage() {
     setAttendanceVariant,
     restTimerDuration,
     setRestTimerDuration,
+    attendanceSuccessThreshold,
+    setAttendanceSuccessThreshold,
   } = useAppearance();
 
   const handleLogout = async () => {
@@ -296,6 +296,26 @@ function SettingsPage() {
               </div>
             </motion.button>
           ))}
+        </div>
+
+        {/* Weekly Goal Threshold */}
+        <div className="mt-4 p-4 rounded-xl border border-white/10 bg-white/5">
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-sm font-medium text-zinc-300">Weekly Goal</label>
+            <span className="text-sm font-bold text-amber-500">{attendanceSuccessThreshold} Days</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="7"
+            step="1"
+            value={attendanceSuccessThreshold}
+            onChange={(e) => setAttendanceSuccessThreshold(parseInt(e.target.value))}
+            className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+          />
+          <p className="text-xs text-zinc-500 mt-2">
+            Work out {attendanceSuccessThreshold} days a week to unlock the success state.
+          </p>
         </div>
       </div>
 

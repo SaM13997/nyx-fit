@@ -16,6 +16,8 @@ interface AppearanceContextValue {
   setAttendanceVariant: (variant: AttendanceVariant) => void;
   restTimerDuration: number;
   setRestTimerDuration: (duration: number) => void;
+  attendanceSuccessThreshold: number;
+  setAttendanceSuccessThreshold: (threshold: number) => void;
 }
 
 const AppearanceContext = createContext<AppearanceContextValue | undefined>(
@@ -25,12 +27,14 @@ const AppearanceContext = createContext<AppearanceContextValue | undefined>(
 const FONT_STORAGE_KEY = "nyx-font-theme";
 const ATTENDANCE_STORAGE_KEY = "nyx-attendance-variant";
 const REST_TIMER_STORAGE_KEY = "nyx-rest-timer-duration";
+const ATTENDANCE_THRESHOLD_STORAGE_KEY = "nyx-attendance-success-threshold";
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const [fontTheme, setFontThemeState] = useState<FontTheme>("night-runner");
   const [attendanceVariant, setAttendanceVariantState] =
     useState<AttendanceVariant>("pill");
   const [restTimerDuration, setRestTimerDurationState] = useState<number>(180);
+  const [attendanceSuccessThreshold, setAttendanceSuccessThreshold] = useState<number>(5);
 
   useEffect(() => {
     // Load from localStorage
@@ -58,6 +62,11 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     if (storedRestTimer) {
       setRestTimerDurationState(parseInt(storedRestTimer, 10));
     }
+
+    const storedThreshold = localStorage.getItem(ATTENDANCE_THRESHOLD_STORAGE_KEY);
+    if (storedThreshold) {
+      setAttendanceSuccessThreshold(parseInt(storedThreshold, 10));
+    }
   }, []);
 
   useEffect(() => {
@@ -82,6 +91,10 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(REST_TIMER_STORAGE_KEY, restTimerDuration.toString());
   }, [restTimerDuration]);
 
+  useEffect(() => {
+    localStorage.setItem(ATTENDANCE_THRESHOLD_STORAGE_KEY, attendanceSuccessThreshold.toString());
+  }, [attendanceSuccessThreshold]);
+
   return (
     <AppearanceContext.Provider
       value={{
@@ -91,6 +104,8 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         setAttendanceVariant: setAttendanceVariantState,
         restTimerDuration,
         setRestTimerDuration: setRestTimerDurationState,
+        attendanceSuccessThreshold,
+        setAttendanceSuccessThreshold,
       }}
     >
       {children}
