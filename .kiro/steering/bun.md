@@ -1,0 +1,12 @@
+---
+inclusion: always
+---
+# Bun Usage Rule
+
+Always use `bun` or `bunx` instead of `npm`, `npx`, `yarn`, or `pnpm` for all package management and execution tasks.
+
+## Examples
+
+- Instead of `npm install`, use `bun install`
+- Instead of `npx shadcn add`, use `bunx shadcn add`
+- Instead of `npm run dev`, use `bun run dev` or `bun dev`
