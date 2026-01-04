@@ -57,7 +57,16 @@ export default defineSchema({
     date: v.string(),
     weight: v.number(),
     note: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
   })
     .index("byUserId", ["userId"])
     .index("byDate", ["date"]),
+
+  weightGoals: defineTable({
+    userId: v.string(),
+    targetWeight: v.number(),
+    weeklyGoal: v.number(), // positive for gain, negative for loss
+    startDate: v.string(),
+    startWeight: v.number(),
+  }).index("byUserId", ["userId"]),
 });

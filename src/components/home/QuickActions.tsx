@@ -29,7 +29,7 @@ export function QuickActions() {
       </Link>
 
       <Link
-        to="/weight"
+        to="/weights"
         className={cn(
           "relative overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
           "flex flex-col items-center text-center cursor-pointer",

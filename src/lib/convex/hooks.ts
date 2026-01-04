@@ -79,3 +79,53 @@ export const useStartWorkout = () => {
     startWorkout,
   };
 };
+
+export const useWeights = (limit?: number, options?: { enabled?: boolean }) => {
+  const weights = useQuery(
+    api.weights.getWeights,
+    options?.enabled === false ? "skip" : { limit }
+  );
+  return {
+    weights: weights ?? [],
+    isLoading: weights === undefined,
+  };
+};
+
+export const useLogWeight = () => {
+  const logWeight = useMutation(api.weights.logWeight);
+  return {
+    logWeight,
+  };
+};
+
+export const useUpdateWeight = () => {
+  const updateWeight = useMutation(api.weights.updateWeight);
+  return {
+    updateWeight,
+  };
+};
+
+export const useDeleteWeight = () => {
+  const deleteWeight = useMutation(api.weights.deleteWeight);
+  return {
+    deleteWeight,
+  };
+};
+
+export const useWeightGoal = (options?: { enabled?: boolean }) => {
+  const goal = useQuery(
+    api.weights.getWeightGoal,
+    options?.enabled === false ? "skip" : {}
+  );
+  return {
+    goal,
+    isLoading: goal === undefined,
+  };
+};
+
+export const useSetWeightGoal = () => {
+  const setWeightGoal = useMutation(api.weights.setWeightGoal);
+  return {
+    setWeightGoal,
+  };
+};

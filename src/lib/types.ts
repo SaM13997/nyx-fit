@@ -28,6 +28,15 @@ export type WeightEntry = {
   date: string;
   weight: number;
   note?: string;
+  photoUrl?: string;
+};
+
+export type WeightGoal = {
+  id: string;
+  targetWeight: number;
+  weeklyGoal: number;
+  startDate: string;
+  startWeight: number;
 };
 
 export type Gender = "male" | "female";

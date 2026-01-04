@@ -26,4 +26,6 @@ builds/app-release-signed.apk
 builds/app-release-signed.apk.idsig
 builds/app-release-unsigned-aligned.apk
 
+expo-app
+expo-app/*
 

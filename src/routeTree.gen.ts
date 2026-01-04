@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkoutsRouteImport } from './routes/workouts'
-import { Route as WeightRouteImport } from './routes/weight'
+import { Route as WeightsRouteImport } from './routes/weights'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as LoginRouteImport } from './routes/login'
@@ -24,9 +24,9 @@ const WorkoutsRoute = WorkoutsRouteImport.update({
   path: '/workouts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WeightRoute = WeightRouteImport.update({
-  id: '/weight',
-  path: '/weight',
+const WeightsRoute = WeightsRouteImport.update({
+  id: '/weights',
+  path: '/weights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatsRoute = StatsRouteImport.update({
@@ -70,7 +70,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
-  '/weight': typeof WeightRoute
+  '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -81,7 +81,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
-  '/weight': typeof WeightRoute
+  '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -93,7 +93,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
-  '/weight': typeof WeightRoute
+  '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
   '/settings_/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -106,7 +106,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/settings'
     | '/stats'
-    | '/weight'
+    | '/weights'
     | '/workouts'
     | '/settings/profile'
     | '/workout/$id'
@@ -117,7 +117,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/settings'
     | '/stats'
-    | '/weight'
+    | '/weights'
     | '/workouts'
     | '/settings/profile'
     | '/workout/$id'
@@ -128,7 +128,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/settings'
     | '/stats'
-    | '/weight'
+    | '/weights'
     | '/workouts'
     | '/settings_/profile'
     | '/workout/$id'
@@ -140,7 +140,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
-  WeightRoute: typeof WeightRoute
+  WeightsRoute: typeof WeightsRoute
   WorkoutsRoute: typeof WorkoutsRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   WorkoutIdRoute: typeof WorkoutIdRoute
@@ -156,11 +156,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkoutsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/weight': {
-      id: '/weight'
-      path: '/weight'
-      fullPath: '/weight'
-      preLoaderRoute: typeof WeightRouteImport
+    '/weights': {
+      id: '/weights'
+      path: '/weights'
+      fullPath: '/weights'
+      preLoaderRoute: typeof WeightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stats': {
@@ -220,7 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
-  WeightRoute: WeightRoute,
+  WeightsRoute: WeightsRoute,
   WorkoutsRoute: WorkoutsRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   WorkoutIdRoute: WorkoutIdRoute,
