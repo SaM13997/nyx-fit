@@ -55,7 +55,7 @@ This implementation plan breaks down the migration of the existing TanStack Star
   - _Requirements: 2.5, 2.4_
 
 - [-] 4. Authentication System Integration
-  - [-] 4.1 Set up Better Auth for mobile
+  - [ ] 4.1 Set up Better Auth for mobile
     - Configure Better Auth client for React Native
     - Set up secure token storage using Expo SecureStore
     - Implement basic login/logout functionality
