@@ -95,7 +95,7 @@ export function ContentContainer({ children, className }: ContentContainerProps)
 
 interface SectionBlockProps {
   children: ReactNode;
-  title?: string;
+  title?: ReactNode;
   className?: string;
 }
 

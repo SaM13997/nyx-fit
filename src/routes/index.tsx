@@ -16,6 +16,7 @@ import { WorkoutStatusCard } from "@/components/home/WorkoutStatusCard";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
+import { AlertCircle, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
@@ -42,6 +43,8 @@ function HomePage() {
   const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
 
   const [isStarting, setIsStarting] = useState(false);
+
+  const isModeComplete = !!profile?.fitnessLevel;
 
   const handleStartWorkout = async (bodyParts: string[]) => {
     try {
@@ -93,6 +96,25 @@ function HomePage() {
           email={effectiveProfile.email}
           profilePicture={effectiveProfile.profilePicture}
         />
+
+        {!isModeComplete && !isLoadingProfile && (
+          <motion.button
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => window.location.href = "/settings"}
+            className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition-colors text-left"
+          >
+            <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+              <AlertCircle size={20} />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-200">Complete your profile</h3>
+              <p className="text-xs text-amber-300/70">Set your training mode to get personalized experience</p>
+            </div>
+            <ChevronRight size={18} className="text-amber-400" />
+          </motion.button>
+        )}
+
         <WeeklyAttendance
           workouts={allWorkouts}
           isLoading={isLoadingAllWorkouts}
