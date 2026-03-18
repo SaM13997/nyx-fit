@@ -62,7 +62,7 @@ export function PageHero({
       />
       <div className="absolute inset-0 backdrop-blur-sm" />
       <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-16 to-transparent" />
 
       <div className="relative flex flex-col justify-end h-full px-4 pt-12">
         <div className="max-w-md mx-auto w-full">
@@ -85,7 +85,7 @@ interface ContentContainerProps {
 
 export function ContentContainer({ children, className }: ContentContainerProps) {
   return (
-    <div className={cn("relative px-4", className)}>
+    <div className={cn("relative px-4 pt-6", className)}>
       <div className="mx-auto max-w-md space-y-6">
         {children}
       </div>
