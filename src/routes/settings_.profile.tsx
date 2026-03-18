@@ -315,14 +315,14 @@ function ProfileDetailsPage() {
                   <option value="beginner" className="bg-zinc-900">
                     Beginner
                   </option>
-                  <option value="intermediary" className="bg-zinc-900">
-                    Intermediary
+                  <option value="intermediate" className="bg-zinc-900">
+                    Intermediate
                   </option>
                   <option value="advanced" className="bg-zinc-900">
                     Advanced
                   </option>
-                  <option value="pro" className="bg-zinc-900">
-                    Pro
+                  <option value="coach" className="bg-zinc-900">
+                    Coach
                   </option>
                 </select>
               </div>
