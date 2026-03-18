@@ -14,6 +14,7 @@ import type * as profiles from "../profiles.js";
 import type * as users from "../users.js";
 import type * as weightEntries from "../weightEntries.js";
 import type * as weights from "../weights.js";
+import type * as workoutStats from "../workoutStats.js";
 import type * as workouts from "../workouts.js";
 
 import type {
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   weightEntries: typeof weightEntries;
   weights: typeof weights;
+  workoutStats: typeof workoutStats;
   workouts: typeof workouts;
 }>;
 

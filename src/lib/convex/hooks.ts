@@ -129,3 +129,72 @@ export const useSetWeightGoal = () => {
     setWeightGoal,
   };
 };
+
+// ============== Stats Hooks ==============
+
+export const useExerciseStats = (options?: { enabled?: boolean }) => {
+  const stats = useQuery(
+    api.workoutStats.getExerciseStats,
+    options?.enabled === false ? "skip" : {}
+  );
+  return {
+    stats: stats ?? [],
+    isLoading: stats === undefined,
+  };
+};
+
+export const useExerciseStatByName = (
+  exerciseName: string,
+  options?: { enabled?: boolean }
+) => {
+  const stat = useQuery(
+    api.workoutStats.getExerciseStatByName,
+    options?.enabled === false ? "skip" : { exerciseName }
+  );
+  return {
+    stat,
+    isLoading: stat === undefined,
+  };
+};
+
+export const useWorkoutSummary = (options?: { enabled?: boolean }) => {
+  const summary = useQuery(
+    api.workoutStats.getWorkoutSummary,
+    options?.enabled === false ? "skip" : {}
+  );
+  return {
+    summary,
+    isLoading: summary === undefined,
+  };
+};
+
+export const useExerciseProgression = (
+  exerciseName: string,
+  weeks?: number,
+  options?: { enabled?: boolean }
+) => {
+  const progression = useQuery(
+    api.workoutStats.getExerciseProgression,
+    options?.enabled === false ? "skip" : { exerciseName, weeks }
+  );
+  return {
+    progression,
+    isLoading: progression === undefined,
+  };
+};
+
+export const useUpdateExerciseStats = () => {
+  const updateExerciseStats = useMutation(
+    api.workoutStats.updateExerciseStatsOnSet
+  );
+  return {
+    updateExerciseStats,
+  };
+};
+
+export const useRecalculateStats = () => {
+  const recalculateStats = useMutation(api.workoutStats.recalculateAllStats);
+  return {
+    recalculateStats,
+  };
+};

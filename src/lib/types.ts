@@ -53,3 +53,41 @@ export type Profile = {
   notificationsEnabled: boolean;
   createdAt: string;
 };
+
+// Stats types for exercise tracking
+export type WeeklyExerciseData = {
+  weekStart: string;
+  sets: number;
+  reps: number;
+  volume: number;
+  maxWeight: number;
+};
+
+export type ExerciseStat = {
+  id: string;
+  exerciseName: string;
+  totalSets: number;
+  totalReps: number;
+  totalVolume: number;
+  maxWeight: number;
+  maxWeightReps: number;
+  lastPerformedAt: string;
+  weeklyHistory: WeeklyExerciseData[];
+};
+
+export type WorkoutSummary = {
+  totalWorkouts: number;
+  averageDuration: number;
+  totalExercises: number;
+  totalSets: number;
+  currentStreak: number;
+  longestStreak: number;
+  workoutsThisWeek: number;
+  workoutsThisMonth: number;
+};
+
+export type ExerciseProgression = {
+  exerciseName: string;
+  currentMaxWeight: number;
+  progression: WeeklyExerciseData[];
+};

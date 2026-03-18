@@ -69,4 +69,28 @@ export default defineSchema({
     startDate: v.string(),
     startWeight: v.number(),
   }).index("byUserId", ["userId"]),
+
+  // Pre-aggregated exercise stats for efficient stats page queries
+  exerciseStats: defineTable({
+    userId: v.string(),
+    exerciseName: v.string(), // Matches exercise.name from workouts
+    totalSets: v.number(), // All-time set count
+    totalReps: v.number(), // All-time rep count
+    totalVolume: v.number(), // Sum of (weight × reps) across all sets
+    maxWeight: v.number(), // Personal record weight
+    maxWeightReps: v.number(), // Reps achieved at max weight
+    lastPerformedAt: v.string(), // ISO date string
+    // Rolling weekly history for progression charts (up to 12 weeks)
+    weeklyHistory: v.array(
+      v.object({
+        weekStart: v.string(), // ISO date (Monday of that week)
+        sets: v.number(),
+        reps: v.number(),
+        volume: v.number(),
+        maxWeight: v.number(),
+      })
+    ),
+  })
+    .index("byUserId", ["userId"])
+    .index("byUserExercise", ["userId", "exerciseName"]),
 });
