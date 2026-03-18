@@ -1,8 +1,15 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
-import { useState } from "react";
+import { X, Search, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
 import { WheelPicker } from "./wheel-picker";
 import { Exercise } from "@/lib/types";
+import { 
+  EXERCISES_BY_CATEGORY, 
+  EXERCISE_CATEGORIES, 
+  ALL_EXERCISES,
+  getCategoryForExercise,
+  type ExerciseCategory 
+} from "@/lib/exercises";
 
 interface AddExerciseDrawerProps {
   isOpen: boolean;
@@ -11,23 +18,10 @@ interface AddExerciseDrawerProps {
   exercises: Exercise[];
 }
 
-const COMMON_EXERCISES = [
-  "Bench Press",
-  "Squat",
-  "Deadlift",
-  "Overhead Press",
-  "Pull Up",
-  "Dumbbell Row",
-  "Lateral Raise",
-  "Bicep Curl",
-  "Tricep Extension",
-  "Leg Press",
-];
-
 const WEIGHT_OPTIONS = Array.from({ length: 80 }, (_, i) =>
   ((i + 1) * 5).toString()
-); // 5 to 400
-const REP_OPTIONS = Array.from({ length: 15 }, (_, i) => (i + 2).toString()); // 2 to 16
+);
+const REP_OPTIONS = Array.from({ length: 15 }, (_, i) => (i + 2).toString());
 
 export function AddExerciseDrawer({
   isOpen,
@@ -36,9 +30,19 @@ export function AddExerciseDrawer({
   exercises,
 }: AddExerciseDrawerProps) {
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
-  const [pickerExercise, setPickerExercise] = useState(COMMON_EXERCISES[0]);
+  const [pickerExercise, setPickerExercise] = useState(ALL_EXERCISES[0]);
   const [weight, setWeight] = useState("45");
   const [reps, setReps] = useState("8");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>("chest");
+
+  const filteredExercises = useMemo(() => {
+    if (!searchQuery.trim()) return null;
+    const query = searchQuery.toLowerCase();
+    return ALL_EXERCISES.filter(ex => 
+      ex.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   const handleAddSet = () => {
     if (selectedExercise) {
@@ -52,9 +56,20 @@ export function AddExerciseDrawer({
 
   const resetState = () => {
     setSelectedExercise(null);
-    setPickerExercise(COMMON_EXERCISES[0]);
+    setPickerExercise(ALL_EXERCISES[0]);
     setWeight("45");
     setReps("8");
+    setSearchQuery("");
+    setExpandedCategory("chest");
+  };
+
+  const handleCategorySelect = (category: ExerciseCategory) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
+
+  const handleExerciseSelect = (exerciseName: string) => {
+    setSelectedExercise(exerciseName);
+    setPickerExercise(exerciseName);
   };
 
   return (
@@ -75,7 +90,6 @@ export function AddExerciseDrawer({
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed bottom-0 left-0 right-0 bg-zinc-900 rounded-t-3xl z-[100] max-h-[85vh] flex flex-col border-t border-white/10"
           >
-            {/* Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
                 <AnimatePresence mode="popLayout" initial={false}>
@@ -125,17 +139,90 @@ export function AddExerciseDrawer({
               </div>
             </div>
 
-            <div className="p-6 flex flex-col items-center gap-8">
+            <div className="p-6 flex flex-col items-center gap-6 overflow-y-auto flex-1">
               {!selectedExercise ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="w-full flex flex-col items-center gap-6"
+                  className="w-full flex flex-col items-center gap-4"
                 >
-                  <div className="relative h-48 w-full overflow-hidden">
+                  <div className="relative w-full">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                    <input
+                      type="text"
+                      placeholder="Search exercises..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-500 outline-none focus:border-purple-500"
+                    />
+                  </div>
+
+                  {filteredExercises ? (
+                    <div className="w-full max-h-64 overflow-y-auto space-y-2">
+                      {filteredExercises.length === 0 ? (
+                        <p className="text-center text-zinc-500 py-4">No exercises found</p>
+                      ) : (
+                        filteredExercises.slice(0, 10).map((exercise) => (
+                          <button
+                            key={exercise}
+                            onClick={() => handleExerciseSelect(exercise)}
+                            className="w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center justify-between transition-colors"
+                          >
+                            <span className="font-medium">{exercise}</span>
+                            <span className="text-xs text-zinc-500 capitalize">
+                              {getCategoryForExercise(exercise)}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full space-y-2">
+                      {EXERCISE_CATEGORIES.map((category) => (
+                        <div key={category.id}>
+                          <button
+                            onClick={() => handleCategorySelect(category.id)}
+                            className="w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-between transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{category.icon}</span>
+                              <span className="font-medium">{category.label}</span>
+                            </div>
+                            <ChevronDown 
+                              className={`h-5 w-5 text-zinc-500 transition-transform ${
+                                expandedCategory === category.id ? "rotate-180" : ""
+                              }`} 
+                            />
+                          </button>
+                          {expandedCategory === category.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pt-2 pb-2 pl-4 space-y-1">
+                                {EXERCISES_BY_CATEGORY[category.id].map((exercise) => (
+                                  <button
+                                    key={exercise}
+                                    onClick={() => handleExerciseSelect(exercise)}
+                                    className="w-full p-2 hover:bg-white/5 rounded-lg text-left text-sm text-zinc-300 hover:text-white transition-colors"
+                                  >
+                                    {exercise}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="relative h-32 w-full overflow-hidden mt-2">
                     <WheelPicker
-                      options={COMMON_EXERCISES.map((ex) => ({
+                      options={ALL_EXERCISES.map((ex) => ({
                         value: ex,
                         label: ex,
                       }))}
@@ -146,7 +233,7 @@ export function AddExerciseDrawer({
                   </div>
 
                   <motion.button
-                    onClick={() => setSelectedExercise(pickerExercise)}
+                    onClick={() => handleExerciseSelect(pickerExercise)}
                     className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20"
                   >
                     Select {pickerExercise}
@@ -156,7 +243,7 @@ export function AddExerciseDrawer({
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="w-full flex flex-col gap-8"
+                  className="w-full flex flex-col gap-6"
                 >
                   <div className="flex justify-center gap-4">
                     <div className="flex flex-col items-center gap-2">

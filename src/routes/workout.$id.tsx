@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "convex/react";
 
 import { Exercise, WorkoutSet } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
-import { ArrowLeft, MoreHorizontal, Plus, Share2, Square } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Plus, Share2, Square, Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ExerciseItem } from "@/components/ExerciseItem";
@@ -29,6 +29,7 @@ function WorkoutPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showEndWorkoutDialog, setShowEndWorkoutDialog] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (workout?.isActive && workout.startTime) {
@@ -120,8 +121,20 @@ function WorkoutPage() {
   };
 
   const handleExerciseClick = (exerciseId: string) => {
+    if (!workout?.isActive && !isEditMode) return;
     setSelectedExercise(exerciseId);
     setIsDrawerOpen(true);
+  };
+
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (!workout) return;
+    const updatedExercises = workout.exercises.filter((ex) => ex.id !== exerciseId);
+    await updateWorkout({
+      id: workout.id as Id<"workouts">,
+      updates: {
+        exercises: updatedExercises,
+      },
+    });
   };
 
   if (!workout) {
@@ -157,6 +170,27 @@ function WorkoutPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          {!workout.isActive && !isEditMode && (
+            <button 
+              onClick={() => setIsEditMode(true)}
+              className="bg-zinc-900/50 hover:bg-zinc-800 p-2.5 rounded-full transition-colors border border-white/5"
+            >
+              <Pencil className="h-5 w-5 text-gray-400" />
+            </button>
+          )}
+          {isEditMode && (
+            <>
+              <button 
+                onClick={() => setIsEditMode(false)}
+                className="bg-zinc-900/50 hover:bg-zinc-800 p-2.5 rounded-full transition-colors border border-white/5"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+              <button className="bg-purple-600/50 hover:bg-purple-600 p-2.5 rounded-full transition-colors border border-purple-500/20">
+                <Save className="h-5 w-5 text-white" />
+              </button>
+            </>
+          )}
           <button className="bg-zinc-900/50 hover:bg-zinc-800 p-2.5 rounded-full transition-colors border border-white/5">
             <Share2 className="h-5 w-5 text-gray-400" />
           </button>
@@ -266,13 +300,15 @@ function WorkoutPage() {
               {workout.exercises.length}
             </span>
           </div>
-          <button
-            onClick={() => setShowAddExercise(true)}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-lg shadow-purple-900/20"
-          >
-            <Plus className="h-4 w-4" />
-            Add Exercise
-          </button>
+          {(workout.isActive || isEditMode) && (
+            <button
+              onClick={() => setShowAddExercise(true)}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-lg shadow-purple-900/20"
+            >
+              <Plus className="h-4 w-4" />
+              Add Exercise
+            </button>
+          )}
         </div>
 
         {workout.exercises.length === 0 ? (
@@ -300,6 +336,8 @@ function WorkoutPage() {
                 key={exercise.id}
                 exercise={exercise}
                 onClick={() => handleExerciseClick(exercise.id)}
+                onDelete={() => handleDeleteExercise(exercise.id)}
+                isEditMode={isEditMode}
               />
             ))}
           </div>

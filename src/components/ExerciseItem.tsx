@@ -1,17 +1,30 @@
 import { Exercise } from "@/lib/types";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trash2 } from "lucide-react";
 
 interface ExerciseItemProps {
   exercise: Exercise;
   onClick: () => void;
+  onDelete?: () => void;
+  isEditMode?: boolean;
 }
 
-export function ExerciseItem({ exercise, onClick }: ExerciseItemProps) {
+export function ExerciseItem({ exercise, onClick, onDelete, isEditMode }: ExerciseItemProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-2xl p-4 transition-colors text-left group"
+      className="w-full bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-2xl p-4 transition-colors text-left group relative"
     >
+      {isEditMode && onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-2 right-2 p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors z-10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-bold text-lg">{exercise.name}</h3>
@@ -19,7 +32,9 @@ export function ExerciseItem({ exercise, onClick }: ExerciseItemProps) {
             {exercise.sets.length} {exercise.sets.length === 1 ? "Set" : "Sets"}
           </p>
         </div>
-        <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-white transition-colors" />
+        {!isEditMode && (
+          <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-white transition-colors" />
+        )}
       </div>
 
       {/* Mini preview of sets */}

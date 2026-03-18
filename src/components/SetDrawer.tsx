@@ -1,6 +1,6 @@
 import { WorkoutSet, Workout } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
-import { Minus, Plus, Trash2, X } from "lucide-react";
+import { Minus, Plus, Trash2, X, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
@@ -42,12 +42,38 @@ export function SetDrawer({
     onUpdate(exerciseId, newSets);
   };
 
+  const handleDuplicateSet = (setId: string) => {
+    const setToDuplicate = sets.find((s) => s.id === setId);
+    if (!setToDuplicate) return;
+    
+    const newSet: WorkoutSet = {
+      id: uuidv4(),
+      weight: setToDuplicate.weight,
+      reps: setToDuplicate.reps,
+    };
+    
+    const setIndex = sets.findIndex((s) => s.id === setId);
+    const newSets = [
+      ...sets.slice(0, setIndex + 1),
+      newSet,
+      ...sets.slice(setIndex + 1),
+    ];
+    setSets(newSets);
+    onUpdate(exerciseId, newSets);
+  };
+
   const handleUpdateSet = (setId: string, field: keyof WorkoutSet, value: number) => {
     const newSets = sets.map((set) =>
       set.id === setId ? { ...set, [field]: value } : set
     );
     setSets(newSets);
     onUpdate(exerciseId, newSets);
+  };
+
+  const handleQuickAdjust = (setId: string, field: keyof WorkoutSet, delta: number) => {
+    const set = sets.find((s) => s.id === setId);
+    if (!set) return;
+    handleUpdateSet(setId, field, (set[field] as number) + delta);
   };
 
   const handleDeleteSet = (setId: string) => {
@@ -101,18 +127,12 @@ export function SetDrawer({
                     {index + 1}
                   </div>
                   <div className="col-span-4">
-                    <div className="flex items-center bg-black/40 rounded-lg p-1">
+                    <div className="flex items-center bg-black/40 rounded-lg">
                       <button
-                        onClick={() =>
-                          handleUpdateSet(
-                            set.id,
-                            "weight",
-                            Math.max(0, set.weight - 5)
-                          )
-                        }
+                        onClick={() => handleQuickAdjust(set.id, "weight", -5)}
                         className="p-2 hover:bg-white/10 rounded-md transition-colors"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3 w-3" />
                       </button>
                       <input
                         type="number"
@@ -124,31 +144,23 @@ export function SetDrawer({
                             Number(e.target.value)
                           )
                         }
-                        className="w-full bg-transparent text-center font-bold outline-none"
+                        className="w-full bg-transparent text-center font-bold outline-none text-sm"
                       />
                       <button
-                        onClick={() =>
-                          handleUpdateSet(set.id, "weight", set.weight + 5)
-                        }
+                        onClick={() => handleQuickAdjust(set.id, "weight", 5)}
                         className="p-2 hover:bg-white/10 rounded-md transition-colors"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
-                  <div className="col-span-4">
-                    <div className="flex items-center bg-black/40 rounded-lg p-1">
+                  <div className="col-span-3">
+                    <div className="flex items-center bg-black/40 rounded-lg">
                       <button
-                        onClick={() =>
-                          handleUpdateSet(
-                            set.id,
-                            "reps",
-                            Math.max(0, set.reps - 1)
-                          )
-                        }
+                        onClick={() => handleQuickAdjust(set.id, "reps", -1)}
                         className="p-2 hover:bg-white/10 rounded-md transition-colors"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3 w-3" />
                       </button>
                       <input
                         type="number"
@@ -156,19 +168,24 @@ export function SetDrawer({
                         onChange={(e) =>
                           handleUpdateSet(set.id, "reps", Number(e.target.value))
                         }
-                        className="w-full bg-transparent text-center font-bold outline-none"
+                        className="w-full bg-transparent text-center font-bold outline-none text-sm"
                       />
                       <button
-                        onClick={() =>
-                          handleUpdateSet(set.id, "reps", set.reps + 1)
-                        }
+                        onClick={() => handleQuickAdjust(set.id, "reps", 1)}
                         className="p-2 hover:bg-white/10 rounded-md transition-colors"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
-                  <div className="col-span-1 flex justify-center">
+                  <div className="col-span-2 flex justify-center gap-1">
+                    <button
+                      onClick={() => handleDuplicateSet(set.id)}
+                      className="p-2 text-purple-400 hover:bg-purple-400/10 rounded-lg transition-colors"
+                      title="Duplicate set"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDeleteSet(set.id)}
                       className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
