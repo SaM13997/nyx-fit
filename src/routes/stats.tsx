@@ -3,18 +3,24 @@ import { useWorkoutSummary, useExerciseStats } from "@/lib/convex/hooks";
 import {
   Dumbbell,
   Flame,
-  Target,
   TrendingUp,
-  Calendar,
-  Clock,
   Trophy,
-  Activity,
 } from "lucide-react";
-import { PageShell, PageHero, ContentContainer, SectionBlock, StateBlock } from "@/components/page-shell";
+import { PageShell, PageHero, ContentContainer, StateBlock } from "@/components/page-shell";
 
 export const Route = createFileRoute("/stats")({
   component: StatsPage,
 });
+
+const BODY_PART_COLORS: Record<string, string> = {
+  chest: "#f97316",
+  back: "#a855f7",
+  shoulders: "#06b6d4",
+  arms: "#ec4899",
+  legs: "#10b981",
+  core: "#f59e0b",
+  cardio: "#ef4444",
+};
 
 function StatsPage() {
   const { summary, isLoading: summaryLoading } = useWorkoutSummary();
@@ -36,97 +42,87 @@ function StatsPage() {
           <StateBlock variant="loading" />
         ) : summary ? (
           <>
-            <SectionBlock>
-              <div className="grid grid-cols-2 gap-3">
-                <StatCard
-                  icon={<Dumbbell className="w-5 h-5" />}
-                  label="Total Workouts"
-                  value={summary.totalWorkouts}
-                  color="orange"
-                />
-                <StatCard
-                  icon={<Clock className="w-5 h-5" />}
-                  label="Avg Duration"
-                  value={`${summary.averageDuration}m`}
-                  color="rose"
-                />
-                <StatCard
-                  icon={<Target className="w-5 h-5" />}
-                  label="Total Sets"
-                  value={summary.totalSets}
-                  color="emerald"
-                />
-                <StatCard
-                  icon={<Activity className="w-5 h-5" />}
-                  label="Total Exercises"
-                  value={summary.totalExercises}
-                  color="blue"
+            <div className="space-y-8">
+              <div className="relative">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-5xl font-bold text-white tracking-tight">
+                    {summary.totalWorkouts}
+                  </span>
+                  <span className="text-zinc-500 font-medium">workouts</span>
+                </div>
+                <p className="text-zinc-500 text-sm">
+                  {summary.currentStreak > 0 ? (
+                    <span className="flex items-center gap-1">
+                      <Flame className="w-4 h-4 text-orange-500" />
+                      {summary.currentStreak} day streak
+                    </span>
+                  ) : (
+                    "Start a streak today!"
+                  )}
+                </p>
+              </div>
+
+              <div className="relative h-24 -mx-2">
+                <AreaSparkline
+                  data={getWeeklyData(summary)}
+                  color="#f97316"
+                  height={96}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <StatCard
-                  icon={<Flame className="w-5 h-5" />}
-                  label="Current Streak"
-                  value={`${summary.currentStreak} days`}
-                  color="orange"
-                  highlighted
-                />
-                <StatCard
-                  icon={<Trophy className="w-5 h-5" />}
-                  label="Longest Streak"
-                  value={`${summary.longestStreak} days`}
-                  color="amber"
-                  highlighted
-                />
+              <div className="grid grid-cols-3 gap-6">
+                <Metric label="Avg Duration" value={`${summary.averageDuration}m`} />
+                <Metric label="Total Sets" value={summary.totalSets.toString()} />
+                <Metric label="This Week" value={summary.workoutsThisWeek.toString()} />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <StatCard
-                  icon={<Calendar className="w-5 h-5" />}
-                  label="This Week"
-                  value={summary.workoutsThisWeek}
-                  color="purple"
-                />
-                <StatCard
-                  icon={<Calendar className="w-5 h-5" />}
-                  label="This Month"
-                  value={summary.workoutsThisMonth}
-                  color="cyan"
-                />
-              </div>
-            </SectionBlock>
+            <div className="h-px bg-white/[0.06] my-8" />
 
-            <SectionBlock title={<><TrendingUp className="w-5 h-5 text-orange-500" />Exercise Records</>}>
-              {exerciseStats.length > 0 ? (
+            {exerciseStats.length > 0 && (
+              <>
+                <div className="flex items-center gap-2 mb-6">
+                  <TrendingUp className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-lg font-bold text-white">Volume Trend</h2>
+                </div>
+
+                <div className="relative h-40 -mx-2 mb-8">
+                  <VolumeAreaChart stats={exerciseStats} />
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <Dumbbell className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-lg font-bold text-white">By Muscle Group</h2>
+                </div>
+
                 <div className="space-y-3">
+                  {getBodyPartStats(exerciseStats)
+                    .sort((a, b) => b.volume - a.volume)
+                    .map((bp) => (
+                      <BodyPartRow key={bp.name} name={bp.name} volume={bp.volume} color={bp.color} />
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 mt-10 mb-4">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <h2 className="text-lg font-bold text-white">Top Exercises</h2>
+                </div>
+
+                <div className="space-y-4">
                   {exerciseStats
                     .sort((a, b) => b.totalSets - a.totalSets)
-                    .slice(0, 10)
-                    .map((stat) => (
-                      <ExerciseStatCard
+                    .slice(0, 8)
+                    .map((stat, idx) => (
+                      <ExerciseRow
                         key={stat.id}
+                        rank={idx + 1}
                         name={stat.exerciseName}
-                        totalSets={stat.totalSets}
+                        sets={stat.totalSets}
                         maxWeight={stat.maxWeight}
-                        totalVolume={stat.totalVolume}
-                        lastPerformed={stat.lastPerformedAt}
                       />
                     ))}
                 </div>
-              ) : (
-                <StateBlock
-                  variant="empty"
-                  title="No exercise data yet"
-                  message="Complete workouts to see your stats"
-                />
-              )}
-            </SectionBlock>
-
-            {exerciseStats.length > 0 && (
-              <SectionBlock title="Weekly Volume Trend">
-                <WeeklyVolumeChart stats={exerciseStats} />
-              </SectionBlock>
+              </>
             )}
           </>
         ) : (
@@ -142,105 +138,97 @@ function StatsPage() {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  color,
-  highlighted,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  color: "orange" | "rose" | "emerald" | "blue" | "purple" | "cyan" | "amber";
-  highlighted?: boolean;
-}) {
-  const colors = {
-    orange: "from-orange-500/20 to-orange-600/10 border-orange-500/30 text-orange-400",
-    rose: "from-rose-500/20 to-rose-600/10 border-rose-500/30 text-rose-400",
-    emerald: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 text-emerald-400",
-    blue: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400",
-    purple: "from-purple-500/20 to-purple-600/10 border-purple-500/30 text-purple-400",
-    cyan: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30 text-cyan-400",
-    amber: "from-amber-500/20 to-amber-600/10 border-amber-500/30 text-amber-400",
-  };
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">{label}</div>
+    </div>
+  );
+}
 
-  const colorValue = colors[color];
+function BodyPartRow({ name, volume, color }: { name: string; volume: number; color: string }) {
+  const maxVolume = 50000;
+  const width = Math.min((volume / maxVolume) * 100, 100);
 
   return (
-    <div
-      className={`p-4 rounded-2xl bg-linear-to-br ${colorValue} ${
-        highlighted ? "border-2" : "border"
-      } backdrop-blur-xs relative overflow-hidden`}
-    >
-      <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-1 opacity-80">
-          {icon}
-          <span className="text-xs uppercase tracking-wider font-bold">{label}</span>
-        </div>
-        <div className="text-2xl font-bold">{value}</div>
+    <div className="group">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-zinc-300 capitalize">{name}</span>
+        <span className="text-xs text-zinc-500">{(volume / 1000).toFixed(1)}K vol</span>
+      </div>
+      <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${width}%`,
+            background: `linear-gradient(90deg, ${color}40, ${color})`,
+          }}
+        />
       </div>
     </div>
   );
 }
 
-function ExerciseStatCard({
-  name,
-  totalSets,
-  maxWeight,
-  totalVolume,
-  lastPerformed,
-}: {
-  name: string;
-  totalSets: number;
-  maxWeight: number;
-  totalVolume: number;
-  lastPerformed: string;
-}) {
-  const formatVolume = (vol: number) => {
-    if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
-    if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
-    return vol.toString();
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-    return date.toLocaleDateString();
-  };
-
+function ExerciseRow({ rank, name, sets, maxWeight }: { rank: number; name: string; sets: number; maxWeight: number }) {
   return (
-    <div className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
-      <div className="flex items-start justify-between mb-3">
-        <h3 className="font-bold text-white truncate pr-4">{name}</h3>
-        <span className="text-xs text-zinc-500">{formatDate(lastPerformed)}</span>
-      </div>
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-orange-400">{totalSets}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Sets</div>
-        </div>
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-emerald-400">{maxWeight}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Max lbs</div>
-        </div>
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-blue-400">{formatVolume(totalVolume)}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Volume</div>
+    <div className="flex items-center gap-4 py-2 border-b border-white/[0.04] last:border-0">
+      <span className={cn(
+        "text-lg font-bold w-6",
+        rank <= 3 ? "text-amber-400" : "text-zinc-600"
+      )}>
+        #{rank}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-white font-medium truncate">{name}</div>
+        <div className="text-xs text-zinc-500">
+          {sets} sets · {maxWeight} lbs max
         </div>
       </div>
     </div>
   );
 }
 
-function WeeklyVolumeChart({ stats }: { stats: any[] }) {
+function AreaSparkline({ data, color, height }: { data: number[]; color: string; height: number }) {
+  if (data.length < 2) return null;
+
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+
+  const points = data.map((value, i) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = height - ((value - min) / range) * height;
+    return `${x},${y}`;
+  }).join(" ");
+
+  const areaPoints = `0,${height} ${points} 100,${height}`;
+
+  return (
+    <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="0.5"
+        points={points}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <polygon
+        fill="url(#areaGradient)"
+        points={areaPoints}
+      />
+    </svg>
+  );
+}
+
+function VolumeAreaChart({ stats }: { stats: any[] }) {
   const weeks: { weekStart: string; totalVolume: number }[] = [];
   const weekMap = new Map<string, number>();
 
@@ -256,42 +244,57 @@ function WeeklyVolumeChart({ stats }: { stats: any[] }) {
   });
 
   weeks.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+  const last12Weeks = weeks.slice(-12);
 
-  const last8Weeks = weeks.slice(-8);
+  if (last12Weeks.length < 2) return null;
 
-  if (last8Weeks.length === 0) {
-    return null;
+  const volumes = last12Weeks.map(w => w.totalVolume);
+
+  return <AreaSparkline data={volumes} color="#f97316" height={160} />;
+}
+
+function getWeeklyData(summary: any): number[] {
+  return [
+    Math.max(0, summary.workoutsThisWeek * 45),
+    Math.max(0, summary.workoutsThisMonth / 4 * 45),
+    summary.totalSets,
+  ];
+}
+
+function getBodyPartStats(stats: any[]): { name: string; volume: number; sets: number; color: string }[] {
+  const bodyPartMap = new Map<string, { volume: number; sets: number }>();
+
+  for (const stat of stats) {
+    const category = getBodyPartCategory(stat.exerciseName);
+    const current = bodyPartMap.get(category) || { volume: 0, sets: 0 };
+    bodyPartMap.set(category, {
+      volume: current.volume + stat.totalVolume,
+      sets: current.sets + stat.totalSets,
+    });
   }
 
-  const maxVolume = Math.max(...last8Weeks.map((w) => w.totalVolume));
+  return Array.from(bodyPartMap.entries()).map(([name, data]) => ({
+    name,
+    volume: data.volume,
+    sets: data.sets,
+    color: BODY_PART_COLORS[name] || "#6b7280",
+  }));
+}
 
-  const formatWeek = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
+function getBodyPartCategory(exerciseName: string): string {
+  const name = exerciseName.toLowerCase();
+  
+  if (name.includes("bench") || name.includes("chest") || name.includes("push") || name.includes("fly")) return "chest";
+  if (name.includes("row") || name.includes("pull") || name.includes("lat") || name.includes("back") || name.includes("deadlift")) return "back";
+  if (name.includes("shoulder") || name.includes("press") || name.includes("raise") || name.includes("arnold")) return "shoulders";
+  if (name.includes("curl") || name.includes("tricep") || name.includes("bicep") || name.includes("arm")) return "arms";
+  if (name.includes("squat") || name.includes("leg") || name.includes("lunge") || name.includes("calf") || name.includes("thrust")) return "legs";
+  if (name.includes("plank") || name.includes("crunch") || name.includes("core") || name.includes("ab")) return "core";
+  if (name.includes("cardio") || name.includes("run") || name.includes("cycle") || name.includes("row")) return "cardio";
+  
+  return "other";
+}
 
-  return (
-    <div className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
-      <div className="flex items-end gap-1 h-32">
-        {last8Weeks.map((week, i) => {
-          const height = maxVolume > 0 ? (week.totalVolume / maxVolume) * 100 : 0;
-          return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div
-                className="w-full bg-gradient-to-t from-orange-600 to-orange-500 rounded-t-sm relative group"
-                style={{ height: `${height}%`, minHeight: "4px" }}
-              >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  {(week.totalVolume / 1000).toFixed(1)}K
-                </div>
-              </div>
-              <span className="text-[8px] text-zinc-600 truncate w-full text-center">
-                {formatWeek(week.weekStart)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+function cn(...classes: (string | undefined | null | false)[]) {
+  return classes.filter(Boolean).join(" ");
 }
