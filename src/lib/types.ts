@@ -41,7 +41,7 @@ export type WeightGoal = {
 
 export type Gender = "male" | "female";
 
-export type FitnessLevel = "beginner" | "intermediary" | "advanced" | "pro";
+export type FitnessLevel = "beginner" | "intermediate" | "advanced" | "coach";
 
 export type Profile = {
   id: string;

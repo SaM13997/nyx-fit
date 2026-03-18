@@ -9,8 +9,8 @@ import {
   Clock,
   Trophy,
   Activity,
-  Loader2,
 } from "lucide-react";
+import { PageShell, PageHero, ContentContainer, SectionBlock, StateBlock } from "@/components/page-shell";
 
 export const Route = createFileRoute("/stats")({
   component: StatsPage,
@@ -23,152 +23,122 @@ function StatsPage() {
   const isLoading = summaryLoading || statsLoading;
 
   return (
-    <div className="bg-black text-white font-sans min-h-screen pb-20">
-      <div className="relative h-[30vh] pointer-events-none overflow-hidden">
-        <div
-          className="absolute inset-0 animated-hex-bg opacity-50"
-          style={{ "--c": "#f97316" } as any}
-        />
-        <div className="absolute inset-0 backdrop-blur-sm" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+    <PageShell>
+      <PageHero
+        title="Stats"
+        description="Your fitness journey at a glance"
+        accentColor="orange"
+        height="medium"
+      />
 
-        <div className="relative flex flex-col justify-end h-full px-4 pt-12">
-          <div className="max-w-md mx-auto w-full">
-            <h1 className="text-5xl font-bold tracking-tighter text-orange-500">
-              Stats
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative px-4">
-        <div className="mx-auto max-w-md space-y-6">
-          {isLoading ? (
-            <div className="text-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500" />
-              <p className="text-zinc-500 mt-2">Loading stats...</p>
-            </div>
-          ) : summary ? (
-            <>
-              <div className="space-y-3">
-                <p className="text-sm text-zinc-400 font-medium px-1">
-                  Your fitness journey at a glance
-                </p>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <StatCard
-                    icon={<Dumbbell className="w-5 h-5" />}
-                    label="Total Workouts"
-                    value={summary.totalWorkouts}
-                    color="orange"
-                  />
-                  <StatCard
-                    icon={<Clock className="w-5 h-5" />}
-                    label="Avg Duration"
-                    value={`${summary.averageDuration}m`}
-                    color="rose"
-                  />
-                  <StatCard
-                    icon={<Target className="w-5 h-5" />}
-                    label="Total Sets"
-                    value={summary.totalSets}
-                    color="emerald"
-                  />
-                  <StatCard
-                    icon={<Activity className="w-5 h-5" />}
-                    label="Total Exercises"
-                    value={summary.totalExercises}
-                    color="blue"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <StatCard
-                    icon={<Flame className="w-5 h-5" />}
-                    label="Current Streak"
-                    value={`${summary.currentStreak} days`}
-                    color="orange"
-                    highlighted
-                  />
-                  <StatCard
-                    icon={<Trophy className="w-5 h-5" />}
-                    label="Longest Streak"
-                    value={`${summary.longestStreak} days`}
-                    color="amber"
-                    highlighted
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <StatCard
-                    icon={<Calendar className="w-5 h-5" />}
-                    label="This Week"
-                    value={summary.workoutsThisWeek}
-                    color="purple"
-                  />
-                  <StatCard
-                    icon={<Calendar className="w-5 h-5" />}
-                    label="This Month"
-                    value={summary.workoutsThisMonth}
-                    color="cyan"
-                  />
-                </div>
+      <ContentContainer>
+        {isLoading ? (
+          <StateBlock variant="loading" />
+        ) : summary ? (
+          <>
+            <SectionBlock>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  icon={<Dumbbell className="w-5 h-5" />}
+                  label="Total Workouts"
+                  value={summary.totalWorkouts}
+                  color="orange"
+                />
+                <StatCard
+                  icon={<Clock className="w-5 h-5" />}
+                  label="Avg Duration"
+                  value={`${summary.averageDuration}m`}
+                  color="rose"
+                />
+                <StatCard
+                  icon={<Target className="w-5 h-5" />}
+                  label="Total Sets"
+                  value={summary.totalSets}
+                  color="emerald"
+                />
+                <StatCard
+                  icon={<Activity className="w-5 h-5" />}
+                  label="Total Exercises"
+                  value={summary.totalExercises}
+                  color="blue"
+                />
               </div>
 
-              <div className="pt-4">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  Exercise Records
-                </h2>
-
-                {exerciseStats.length > 0 ? (
-                  <div className="space-y-3">
-                    {exerciseStats
-                      .sort((a, b) => b.totalSets - a.totalSets)
-                      .slice(0, 10)
-                      .map((stat) => (
-                        <ExerciseStatCard
-                          key={stat.id}
-                          name={stat.exerciseName}
-                          totalSets={stat.totalSets}
-                          maxWeight={stat.maxWeight}
-                          totalVolume={stat.totalVolume}
-                          lastPerformed={stat.lastPerformedAt}
-                        />
-                      ))}
-                  </div>
-                ) : (
-                  <div className="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50 text-center">
-                    <p className="text-zinc-500">No exercise data yet</p>
-                    <p className="text-zinc-600 text-sm mt-1">
-                      Complete workouts to see your stats
-                    </p>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  icon={<Flame className="w-5 h-5" />}
+                  label="Current Streak"
+                  value={`${summary.currentStreak} days`}
+                  color="orange"
+                  highlighted
+                />
+                <StatCard
+                  icon={<Trophy className="w-5 h-5" />}
+                  label="Longest Streak"
+                  value={`${summary.longestStreak} days`}
+                  color="amber"
+                  highlighted
+                />
               </div>
 
-              {exerciseStats.length > 0 && (
-                <div className="pt-4">
-                  <h2 className="text-xl font-bold text-white mb-4">
-                    Weekly Volume Trend
-                  </h2>
-                  <WeeklyVolumeChart stats={exerciseStats} />
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard
+                  icon={<Calendar className="w-5 h-5" />}
+                  label="This Week"
+                  value={summary.workoutsThisWeek}
+                  color="purple"
+                />
+                <StatCard
+                  icon={<Calendar className="w-5 h-5" />}
+                  label="This Month"
+                  value={summary.workoutsThisMonth}
+                  color="cyan"
+                />
+              </div>
+            </SectionBlock>
+
+            <SectionBlock title={<><TrendingUp className="w-5 h-5 text-orange-500" />Exercise Records</>}>
+              {exerciseStats.length > 0 ? (
+                <div className="space-y-3">
+                  {exerciseStats
+                    .sort((a, b) => b.totalSets - a.totalSets)
+                    .slice(0, 10)
+                    .map((stat) => (
+                      <ExerciseStatCard
+                        key={stat.id}
+                        name={stat.exerciseName}
+                        totalSets={stat.totalSets}
+                        maxWeight={stat.maxWeight}
+                        totalVolume={stat.totalVolume}
+                        lastPerformed={stat.lastPerformedAt}
+                      />
+                    ))}
                 </div>
+              ) : (
+                <StateBlock
+                  variant="empty"
+                  title="No exercise data yet"
+                  message="Complete workouts to see your stats"
+                />
               )}
-            </>
-          ) : (
-            <div className="p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800/50 text-center">
-              <Dumbbell className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-              <p className="text-zinc-400 font-medium">No workout data yet</p>
-              <p className="text-zinc-500 text-sm mt-1">
-                Complete your first workout to see stats
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+            </SectionBlock>
+
+            {exerciseStats.length > 0 && (
+              <SectionBlock title="Weekly Volume Trend">
+                <WeeklyVolumeChart stats={exerciseStats} />
+              </SectionBlock>
+            )}
+          </>
+        ) : (
+          <StateBlock
+            variant="empty"
+            icon={<Dumbbell className="w-12 h-12" />}
+            title="No workout data yet"
+            message="Complete your first workout to see stats"
+          />
+        )}
+      </ContentContainer>
+    </PageShell>
   );
 }
 

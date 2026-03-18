@@ -5,6 +5,7 @@ import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/convex/hoo
 import { WorkoutStatusCard } from "@/components/home";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { useState } from "react";
+import { PageShell, PageHero, ContentContainer, StateBlock } from "@/components/page-shell";
 
 export const Route = createFileRoute("/workouts")({
   component: WorkoutsPage,
@@ -68,53 +69,28 @@ function WorkoutsPage() {
   };
 
   return (
-    <div className=" bg-black text-white font-sans relative">
-      {/* Visual Design Element - Top 35% */}
-      <div className="relative h-[35vh] pointer-events-none overflow-hidden">
-        {/* Animated hexagonal pattern background */}
-        <div className="absolute inset-0 animated-hex-bg opacity-50" />
+    <PageShell>
+      <PageHero
+        title="Workouts"
+        description="Your training history and progress."
+        accentColor="purple"
+        height="large"
+      />
 
-        {/* Backdrop blur layer */}
-        <div className="absolute inset-0 backdrop-blur-sm" />
+      <ContentContainer>
+        <WorkoutStatusCard
+          activeWorkout={activeWorkout ?? null}
+          isStarting={isStarting}
+          onStartWorkout={handleStartWorkout}
+        />
 
-        {/* Gradient fade from black (top-left) to transparent (bottom-right) */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
-
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
-
-        {/* Content */}
-        <div className="relative flex flex-col justify-end  h-full px-4 pt-12">
-          <div className=" max-w-md">
-            <h1 className="text-6xl font-bold tracking-tighter ">
-              Workouts
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="relative px-4 pb-24">
-        <div className="mx-auto max-w-md space-y-6">
-          <div className="px-1">
-            <p className="text-sm text-zinc-400">
-              Your training history and progress.
-            </p>
-          </div>
-
-          <WorkoutStatusCard
-            activeWorkout={activeWorkout ?? null}
-            isStarting={isStarting}
-            onStartWorkout={handleStartWorkout}
-          />
-
-          {isLoading ? (
-            <div className="text-zinc-500 px-1">Loading workouts...</div>
-          ) : (
-            <WorkoutList workouts={workouts} />
-          )}
-        </div>
-      </div>
-    </div>
+        {isLoading ? (
+          <StateBlock variant="loading" />
+        ) : (
+          <WorkoutList workouts={workouts} />
+        )}
+      </ContentContainer>
+    </PageShell>
   );
 }
 

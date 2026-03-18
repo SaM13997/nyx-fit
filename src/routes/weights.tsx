@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   useWeights,
   useLogWeight,
@@ -12,6 +12,7 @@ import { WeightChart } from "@/components/weights/WeightChart";
 import { WeightStatsCard } from "@/components/weights/WeightStatsCard";
 import { WeightHistoryList } from "@/components/weights/WeightHistoryList";
 import { LogWeightDrawer } from "@/components/weights/LogWeightDrawer";
+import { PageShell, PageHero, ContentContainer, StateBlock } from "@/components/page-shell";
 import type { WeightEntry } from "@/lib/types";
 
 export const Route = createFileRoute("/weights")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/weights")({
 
 function WeightsPage() {
   const { weights, isLoading } = useWeights();
-  const { goal } = useWeightGoal(); // For chart reference
+  const { goal } = useWeightGoal();
   const { logWeight } = useLogWeight();
   const { updateWeight } = useUpdateWeight();
   const { deleteWeight } = useDeleteWeight();
@@ -83,67 +84,35 @@ function WeightsPage() {
   const oldestWeight = weights.length > 0 ? weights[weights.length - 1].weight : undefined;
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-screen pb-24">
-      {/* Visual Design Element - Top 35% */}
-      <div className="relative h-[35vh] pointer-events-none overflow-hidden">
-        {/* Animated hexagonal pattern background with ORANGE override */}
-        <div
-          className="absolute inset-0 animated-hex-bg opacity-50"
-          style={{ "--c": "#f97316" } as any}
+    <PageShell>
+      <PageHero
+        title="Weights"
+        description="Track your body weight and progress."
+        accentColor="orange"
+        height="large"
+      />
+
+      <ContentContainer>
+        <WeightStatsCard
+          currentWeight={latestWeight}
+          startWeight={oldestWeight}
         />
 
-        {/* Backdrop blur layer */}
-        <div className="absolute inset-0 backdrop-blur-sm" />
-
-        {/* Gradient fade from black (top-left) to transparent (bottom-right) */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
-
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
-
-        {/* Content */}
-        <div className="relative flex flex-col justify-end h-full px-4 pt-12">
-          <div className="max-w-md mx-auto w-full">
-            <h1 className="text-6xl font-bold tracking-tighter text-orange-500">
-              Weights
-            </h1>
-          </div>
+        <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
+          <WeightChart weights={weights} goal={goal} />
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="relative px-4">
-        <div className="mx-auto max-w-md space-y-6">
-          <div className="px-1">
-            <p className="text-sm text-zinc-400 font-medium">
-              Track your body weight and progress.
-            </p>
-          </div>
+        <WeightHistoryList
+          weights={weights}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
 
-          <WeightStatsCard
-            currentWeight={latestWeight}
-            startWeight={oldestWeight}
-          />
+        {isLoading && (
+          <StateBlock variant="loading" />
+        )}
+      </ContentContainer>
 
-          <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
-            <WeightChart weights={weights} goal={goal} />
-          </div>
-
-          <WeightHistoryList
-            weights={weights}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-
-          {isLoading && (
-            <div className="text-center text-zinc-500 py-10">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 opacity-50" />
-              Loading history...
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* FAB for Log Weight - ORANGE */}
       <button
         onClick={handleOpenLog}
         className="fixed bottom-6 right-6 h-16 w-16 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-50 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
@@ -163,6 +132,6 @@ function WeightsPage() {
           photoUrl: editingEntry.photoUrl
         } : undefined}
       />
-    </div>
+    </PageShell>
   );
 }

@@ -6,8 +6,9 @@ import {
   type AttendanceVariant,
 } from "@/lib/AppearanceContext";
 import { authClient } from "@/lib/auth-client";
-import { useCurrentProfile } from "@/lib/convex/hooks";
+import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/convex/hooks";
 import { getEffectiveProfile } from "@/lib/profile";
+import type { FitnessLevel } from "@/lib/types";
 import {
   ChevronRight,
   User,
@@ -21,9 +22,12 @@ import {
   ChevronLeft,
   Type,
   Timer,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { PageShell, PageHero, ContentContainer, SectionBlock } from "@/components/page-shell";
+import { useToast } from "@/lib/toast";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -78,15 +82,25 @@ const restTimerOptions = [
   { label: "5m", value: 300 },
 ];
 
-type SettingsView = "main" | "appearance";
+const fitnessModes: { value: FitnessLevel; label: string; description: string }[] = [
+  { value: "beginner", label: "Beginner", description: "New to lifting, learning fundamentals" },
+  { value: "intermediate", label: "Intermediate", description: "Consistent training, building routine" },
+  { value: "advanced", label: "Advanced", description: "Experienced lifter, performance-focused" },
+  { value: "coach", label: "Coach", description: "Training others or managing clients" },
+];
+
+type SettingsView = "main" | "appearance" | "mode";
 
 function SettingsPage() {
   const navigate = useNavigate();
+  const { success, error: toastError } = useToast();
   const { data: sessionData } = authClient.useSession();
   const session = sessionData?.session ?? null;
   const { profile } = useCurrentProfile({ enabled: !!session });
   const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
+  const { upsertCurrentProfile } = useUpsertCurrentProfile();
   const [currentView, setCurrentView] = useState<SettingsView>("main");
+  const [isSavingMode, setIsSavingMode] = useState(false);
   const {
     fontTheme,
     setFontTheme,
@@ -98,12 +112,28 @@ function SettingsPage() {
     setAttendanceSuccessThreshold,
   } = useAppearance();
 
+  const isModeComplete = !!profile?.fitnessLevel;
+
   const handleLogout = async () => {
     await authClient.signOut();
     navigate({ to: "/login" });
   };
 
-  // Sub-components for cleaner render
+  const handleModeChange = async (newMode: FitnessLevel) => {
+    setIsSavingMode(true);
+    try {
+      await upsertCurrentProfile({
+        updates: { fitnessLevel: newMode },
+      });
+      success("Training mode updated");
+      setCurrentView("main");
+    } catch (err: any) {
+      toastError(err?.message ?? "Failed to update mode");
+    } finally {
+      setIsSavingMode(false);
+    }
+  };
+
   const SettingsItem = ({
     icon: Icon,
     label,
@@ -111,7 +141,7 @@ function SettingsPage() {
     value,
     isDestructive = false,
   }: {
-    icon: any;
+    icon: React.ElementType;
     label: string;
     onClick?: () => void;
     value?: string;
@@ -156,7 +186,6 @@ function SettingsPage() {
       exit={{ opacity: 0, x: -20 }}
       className="flex flex-col gap-6"
     >
-      {/* User Profile Card */}
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={() => navigate({ to: "/settings/profile" })}
@@ -182,21 +211,24 @@ function SettingsPage() {
         <ChevronRight className="text-zinc-500" />
       </motion.button>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
-          App Settings
-        </h3>
+      <SectionBlock>
+        <SettingsItem
+          icon={User}
+          label="Training Mode"
+          value={isModeComplete ? profile?.fitnessLevel : "Not set"}
+          onClick={() => setCurrentView("mode")}
+        />
+      </SectionBlock>
+
+      <SectionBlock>
         <SettingsItem
           icon={Palette}
           label="Appearance"
           onClick={() => setCurrentView("appearance")}
         />
-      </div>
+      </SectionBlock>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
-          Account
-        </h3>
+      <SectionBlock title="Account">
         <SettingsItem
           icon={User}
           label="Profile details"
@@ -204,12 +236,9 @@ function SettingsPage() {
         />
         <SettingsItem icon={Lock} label="Password" />
         <SettingsItem icon={Bell} label="Notifications" />
-      </div>
+      </SectionBlock>
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
-          Support
-        </h3>
+      <SectionBlock title="Support">
         <SettingsItem icon={Info} label="About application" />
         <SettingsItem icon={HelpCircle} label="Help/FAQ" />
         <SettingsItem
@@ -217,7 +246,7 @@ function SettingsPage() {
           label="Deactivate my account"
           isDestructive
         />
-      </div>
+      </SectionBlock>
 
       <motion.button
         whileTap={{ scale: 0.96 }}
@@ -248,7 +277,6 @@ function SettingsPage() {
         Appearance
       </h2>
 
-      {/* Weekly Attendance Selector */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Palette size={20} className="text-purple-400" />
@@ -298,7 +326,6 @@ function SettingsPage() {
           ))}
         </div>
 
-        {/* Weekly Goal Threshold */}
         <div className="mt-4 p-4 rounded-xl border border-white/10 bg-white/5">
           <div className="flex justify-between items-center mb-2">
             <label className="text-sm font-medium text-zinc-300">Weekly Goal</label>
@@ -321,7 +348,6 @@ function SettingsPage() {
 
       <div className="h-px bg-white/10" />
 
-      {/* Rest Timer Selector */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Timer size={20} className="text-violet-400" />
@@ -351,7 +377,6 @@ function SettingsPage() {
 
       <div className="h-px bg-white/10" />
 
-      {/* Font Theme Selector */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Type size={20} className="text-cyan-400" />
@@ -406,19 +431,95 @@ function SettingsPage() {
     </motion.div>
   );
 
-  return (
-    <div className="px-4 py-6 pb-24 min-h-screen text-white">
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
+  const ModeSettings = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      className="flex flex-col gap-6"
+    >
+      <button
+        onClick={() => setCurrentView("main")}
+        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
+      >
+        <ChevronLeft size={20} />
+        <span className="font-medium">Back</span>
+      </button>
+
+      <h2 className="text-2xl font-bold text-white">
+        Training Mode
+      </h2>
+
+      <p className="text-sm text-zinc-400">
+        Your training mode helps us personalize your experience. You can change this anytime.
+      </p>
+
+      <div className="grid gap-3">
+        {fitnessModes.map((mode) => (
+          <motion.button
+            key={mode.value}
+            onClick={() => handleModeChange(mode.value)}
+            disabled={isSavingMode}
+            className={cn(
+              "relative p-4 rounded-xl border text-left transition-all",
+              profile?.fitnessLevel === mode.value
+                ? "bg-purple-900/20 border-purple-500/50"
+                : "bg-white/5 border-white/10 hover:bg-white/10",
+              isSavingMode && "opacity-50 cursor-not-allowed"
+            )}
+            whileTap={{ scale: 0.99 }}
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <h4
+                  className={cn(
+                    "font-semibold",
+                    profile?.fitnessLevel === mode.value
+                      ? "text-purple-300"
+                      : "text-zinc-200"
+                  )}
+                >
+                  {mode.label}
+                </h4>
+                <p className="text-xs text-zinc-500 mt-1">{mode.description}</p>
+              </div>
+              {profile?.fitnessLevel === mode.value && (
+                <motion.div
+                  layoutId="check-mode"
+                  className="bg-purple-500 rounded-full p-1"
+                >
+                  <Check size={14} className="text-black" />
+                </motion.div>
+              )}
+            </div>
+          </motion.button>
+        ))}
       </div>
 
-      <AnimatePresence mode="wait">
-        {currentView === "main" ? (
-          <MainSettings key="main" />
-        ) : (
-          <AppearanceSettings key="appearance" />
-        )}
-      </AnimatePresence>
-    </div>
+      {isSavingMode && (
+        <div className="flex items-center justify-center gap-2 py-4">
+          <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
+          <span className="text-zinc-400">Saving...</span>
+        </div>
+      )}
+    </motion.div>
+  );
+
+  return (
+    <PageShell>
+      <PageHero
+        title="Settings"
+        accentColor="purple"
+        height="small"
+      />
+
+      <ContentContainer>
+        <AnimatePresence mode="wait">
+          {currentView === "main" && <MainSettings key="main" />}
+          {currentView === "appearance" && <AppearanceSettings key="appearance" />}
+          {currentView === "mode" && <ModeSettings key="mode" />}
+        </AnimatePresence>
+      </ContentContainer>
+    </PageShell>
   );
 }

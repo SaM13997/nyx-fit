@@ -18,9 +18,9 @@ export const genderValidator = v.union(v.literal("male"), v.literal("female"));
 
 export const fitnessLevelValidator = v.union(
   v.literal("beginner"),
-  v.literal("intermediary"),
+  v.literal("intermediate"),
   v.literal("advanced"),
-  v.literal("pro")
+  v.literal("coach")
 );
 
 export default defineSchema({

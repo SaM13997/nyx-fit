@@ -14,7 +14,7 @@ import { getProfileFormDefaults, type ProfileFormValues } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, Camera, Loader2, Save, User, Mail } from "lucide-react";
+import { ChevronLeft, Camera, Loader2, Save, User, Mail, Check, AlertCircle } from "lucide-react";
 import { useToast } from "@/lib/toast";
 
 export const Route = createFileRoute("/settings_/profile")({
@@ -165,6 +165,8 @@ function ProfileDetailsPage() {
     );
   }
 
+  const isModeComplete = !!form?.fitnessLevel;
+
   return (
     <div className="min-h-screen text-white pb-24 relative overflow-hidden">
       {/* Background Gradient */}
@@ -182,9 +184,22 @@ function ProfileDetailsPage() {
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-zinc-400">
-            Profile Details
-          </h1>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-zinc-400">
+              Profile Details
+            </h1>
+            {isModeComplete ? (
+              <div className="flex items-center gap-1.5 mt-1 text-emerald-400 text-xs">
+                <Check className="w-3.5 h-3.5" />
+                <span>Setup complete</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 mt-1 text-amber-400 text-xs">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>Training mode not set</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -315,14 +330,14 @@ function ProfileDetailsPage() {
                   <option value="beginner" className="bg-zinc-900">
                     Beginner
                   </option>
-                  <option value="intermediary" className="bg-zinc-900">
-                    Intermediary
+                  <option value="intermediate" className="bg-zinc-900">
+                    Intermediate
                   </option>
                   <option value="advanced" className="bg-zinc-900">
                     Advanced
                   </option>
-                  <option value="pro" className="bg-zinc-900">
-                    Pro
+                  <option value="coach" className="bg-zinc-900">
+                    Coach
                   </option>
                 </select>
               </div>
