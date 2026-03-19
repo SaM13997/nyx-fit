@@ -57,9 +57,9 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
           {viewMode === "week" ? (
             <motion.h3
               key={viewMode}
-              initial={{ opacity: 0, y: 5, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -5, filter: "blur(10px)" }}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.5, }}
               className={cn(
                 "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
@@ -71,9 +71,9 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
           ) : (
             <motion.h3
               key={viewMode}
-              initial={{ opacity: 0, y: 5, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -5, filter: "blur(10px)" }}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
               transition={{ duration: 0.5, }}
               className={cn(
                 "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
@@ -104,9 +104,9 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={viewMode + attendanceVariant}
-            initial={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{
               type: "spring",
               stiffness: 400,

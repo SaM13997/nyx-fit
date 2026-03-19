@@ -39,6 +39,8 @@ export type WeightGoal = {
   startWeight: number;
 };
 
+export type WeightUnit = "lbs" | "kgs";
+
 export type Gender = "male" | "female";
 
 export type FitnessLevel = "beginner" | "intermediary" | "advanced" | "pro";
@@ -51,5 +53,6 @@ export type Profile = {
   profilePicture?: string; // URL of the profile picture uploaded to the convex storage
   fitnessLevel?: FitnessLevel;
   notificationsEnabled: boolean;
+  weightUnit: WeightUnit;
   createdAt: string;
 };

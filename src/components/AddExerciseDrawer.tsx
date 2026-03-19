@@ -2,12 +2,25 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { WheelPicker } from "./wheel-picker";
-import { Exercise } from "@/lib/types";
+import { Exercise, type WeightUnit } from "@/lib/types";
+import {
+  EXERCISE_CATEGORIES,
+  formatExerciseCategory,
+  inferExerciseCategory,
+  type ExerciseCategory,
+} from "@/lib/exerciseCategories";
+import { convertWeightToLbs, formatWeightUnit, getWeightStep } from "@/lib/units";
 
 interface AddExerciseDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddSet: (exerciseName: string, weight: number, reps: number) => void;
+  onAddSet: (
+    exerciseName: string,
+    category: ExerciseCategory,
+    weight: number,
+    reps: number
+  ) => void;
+  unit: WeightUnit;
   exercises: Exercise[];
 }
 
@@ -24,25 +37,33 @@ const COMMON_EXERCISES = [
   "Leg Press",
 ];
 
-const WEIGHT_OPTIONS = Array.from({ length: 80 }, (_, i) =>
-  ((i + 1) * 5).toString()
-); // 5 to 400
 const REP_OPTIONS = Array.from({ length: 15 }, (_, i) => (i + 2).toString()); // 2 to 16
 
 export function AddExerciseDrawer({
   isOpen,
   onClose,
   onAddSet,
+  unit,
   exercises,
 }: AddExerciseDrawerProps) {
+  const weightStep = getWeightStep(unit);
+  const weightOptions = Array.from({ length: 80 }, (_, i) =>
+    Math.round((i + 1) * weightStep * 10) / 10
+  );
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [pickerExercise, setPickerExercise] = useState(COMMON_EXERCISES[0]);
-  const [weight, setWeight] = useState("45");
+  const [category, setCategory] = useState<ExerciseCategory>(inferExerciseCategory(COMMON_EXERCISES[0]));
+  const [weight, setWeight] = useState(weightOptions[8].toString());
   const [reps, setReps] = useState("8");
 
   const handleAddSet = () => {
     if (selectedExercise) {
-      onAddSet(selectedExercise, parseInt(weight), parseInt(reps));
+      onAddSet(
+        selectedExercise,
+        category,
+        convertWeightToLbs(parseFloat(weight), unit),
+        parseInt(reps)
+      );
     }
   };
 
@@ -53,7 +74,8 @@ export function AddExerciseDrawer({
   const resetState = () => {
     setSelectedExercise(null);
     setPickerExercise(COMMON_EXERCISES[0]);
-    setWeight("45");
+    setCategory(inferExerciseCategory(COMMON_EXERCISES[0]));
+    setWeight(weightOptions[8].toString());
     setReps("8");
   };
 
@@ -140,9 +162,36 @@ export function AddExerciseDrawer({
                         label: ex,
                       }))}
                       value={pickerExercise}
-                      onValueChange={(val) => setPickerExercise(val)}
+                      onValueChange={(val) => {
+                        setPickerExercise(val);
+                        setCategory(inferExerciseCategory(val));
+                      }}
                     />
                     <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+                  </div>
+
+                  <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                          Category
+                        </p>
+                        <p className="text-sm text-zinc-300">
+                          Auto-selected from the exercise name.
+                        </p>
+                      </div>
+                    </div>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as ExerciseCategory)}
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-purple-400"
+                    >
+                      {EXERCISE_CATEGORIES.map((option) => (
+                        <option key={option} value={option}>
+                          {formatExerciseCategory(option)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <motion.button
@@ -160,10 +209,13 @@ export function AddExerciseDrawer({
                 >
                   <div className="flex justify-center gap-4">
                     <div className="flex flex-col items-center gap-2">
-                      <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lbs</span>
+                      <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{formatWeightUnit(unit)}</span>
                       <div className="relative h-40 w-32 overflow-hidden">
                         <WheelPicker
-                          options={WEIGHT_OPTIONS.map((w) => ({ value: w, label: w }))}
+                          options={weightOptions.map((w) => ({
+                            value: w.toString(),
+                            label: formatWeight(convertWeightToLbs(w, unit), unit, unit === "kgs" ? 1 : 0),
+                          }))}
                           value={weight}
                           onValueChange={(val) => setWeight(val)}
                         />

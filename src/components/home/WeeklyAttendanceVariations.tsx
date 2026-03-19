@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { Workout } from "@/lib/types";
 
@@ -18,18 +19,14 @@ export const getWeekData = (workouts: Workout[]) => {
   startOfWeek.setDate(today.getDate() - currentDayMondayStart);
   startOfWeek.setHours(0, 0, 0, 0);
 
+  const workoutDays = new Set(
+    workouts.map((workout) => new Date(workout.date).toDateString())
+  );
+
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(startOfWeek);
     date.setDate(startOfWeek.getDate() + i);
-
-    const hasWorkout = workouts.some((w) => {
-      const wDate = new Date(w.date);
-      return (
-        wDate.getDate() === date.getDate() &&
-        wDate.getMonth() === date.getMonth() &&
-        wDate.getFullYear() === date.getFullYear()
-      );
-    });
+    const hasWorkout = workoutDays.has(date.toDateString());
 
     const isToday =
       date.getDate() === today.getDate() &&
@@ -161,24 +158,31 @@ export function IndicatorsV3({ workouts, isSuccess }: IndicatorProps) {
 
 export function MonthlyIndicators({ workouts }: { workouts: Workout[] }) {
   // Generate last 28 days for a neat 4x7 grid
-  const days = Array.from({ length: 28 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (27 - i));
-    return d;
-  });
+  const days = useMemo(
+    () =>
+      Array.from({ length: 28 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (27 - i));
+        return d;
+      }),
+    []
+  );
 
-  const getIntensity = (date: Date) => {
-    const count = workouts.filter(w => {
-      const wDate = new Date(w.date);
-      return wDate.toDateString() === date.toDateString();
-    }).length;
-    return count;
-  };
+  const workoutIntensityByDay = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    workouts.forEach((workout) => {
+      const key = new Date(workout.date).toDateString();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+
+    return counts;
+  }, [workouts]);
 
   return (
     <div className="grid grid-cols-7 gap-2 w-full">
       {days.map((date, i) => {
-        const intensity = getIntensity(date);
+        const intensity = workoutIntensityByDay.get(date.toDateString()) ?? 0;
         const isToday = new Date().toDateString() === date.toDateString();
 
         return (

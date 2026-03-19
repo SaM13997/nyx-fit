@@ -1,9 +1,10 @@
 import { useNavigate, Link } from "@tanstack/react-router";
 import { LogOut, Settings, User } from "lucide-react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
+import { cn, getInitialCharacter } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,17 +21,13 @@ export type UserButtonProps = {
   className?: string;
 };
 
-function getInitial(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) return "?";
-  return trimmed[0]?.toUpperCase() ?? "?";
-}
-
 export function UserButton({ name, email, image, className }: UserButtonProps) {
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       await authClient.signOut();
     } finally {
       navigate({ to: "/login" });
@@ -43,13 +40,14 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
+            aria-label="Open account menu"
             className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 transition-transform active:scale-95"
           >
             <Avatar className="size-10 border border-white/10">
               {image ? <AvatarImage src={image} alt={name} /> : null}
               <AvatarFallback className="bg-white/10 text-white">
                 <span className="text-sm font-semibold">
-                  {getInitial(name)}
+                  {getInitialCharacter(name)}
                 </span>
               </AvatarFallback>
             </Avatar>
@@ -72,12 +70,12 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
                 {image ? <AvatarImage src={image} alt={name} /> : null}
                 <AvatarFallback className="bg-white/10 text-white">
                   <span className="text-base font-semibold">
-                    {getInitial(name)}
+                    {getInitialCharacter(name)}
                   </span>
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <div className="truncate font-semibold text-white">{name}</div>
+                <div className="truncate font-semibold text-white">{name || "Athlete"}</div>
                 {email ? (
                   <div className="truncate text-sm text-zinc-400">{email}</div>
                 ) : null}
@@ -114,10 +112,11 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
             <div className="p-2">
               <DropdownMenuItem
                 onClick={handleLogout}
+                disabled={isLoggingOut}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-300 hover:bg-red-500/10 focus:bg-red-500/10 outline-none cursor-pointer"
               >
                 <LogOut size={16} className="text-red-300" />
-                Log out
+                {isLoggingOut ? "Logging out..." : "Log out"}
               </DropdownMenuItem>
             </div>
           </motion.div>

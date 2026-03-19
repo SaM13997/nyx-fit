@@ -16,6 +16,8 @@ export const exerciseValidator = v.object({
 
 export const genderValidator = v.union(v.literal("male"), v.literal("female"));
 
+export const weightUnitValidator = v.union(v.literal("lbs"), v.literal("kgs"));
+
 export const fitnessLevelValidator = v.union(
   v.literal("beginner"),
   v.literal("intermediary"),
@@ -32,6 +34,7 @@ export default defineSchema({
     profilePicture: v.optional(v.string()),
     fitnessLevel: v.optional(fitnessLevelValidator),
     notificationsEnabled: v.boolean(),
+    weightUnit: weightUnitValidator,
     createdAt: v.string(),
   })
     .index("byUserId", ["userId"])

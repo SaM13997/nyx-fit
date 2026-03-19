@@ -7,8 +7,6 @@ import {
   Scripts,
   useRouteContext,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import { BottomNav } from "../components/BottomNav";
 import { createServerFn } from "@tanstack/react-start";
 import { QueryClient } from "@tanstack/react-query";
@@ -25,6 +23,34 @@ import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import appCss from "../styles.css?url";
+
+const Devtools = import.meta.env.DEV
+  ? React.lazy(async () => {
+      const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] =
+        await Promise.all([
+          import("@tanstack/react-devtools"),
+          import("@tanstack/react-router-devtools"),
+        ]);
+
+      return {
+        default: function DevtoolsComponent() {
+          return (
+            <TanStackDevtools
+              config={{
+                position: "bottom-right",
+              }}
+              plugins={[
+                {
+                  name: "Tanstack Router",
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+          );
+        },
+      };
+    })
+  : null;
 
 // Get auth information for SSR using available cookies
 const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
@@ -71,7 +97,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Titillium+Web:wght@400;600;700&display=swap",
       },
       {
         rel: "icon",
@@ -145,17 +171,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
           <div className="flex-1 flex flex-col">{children}</div>
           <BottomNav />
-          <TanStackDevtools
-            config={{
-              position: "bottom-right",
-            }}
-            plugins={[
-              {
-                name: "Tanstack Router",
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
+          {Devtools ? (
+            <React.Suspense fallback={null}>
+              <Devtools />
+            </React.Suspense>
+          ) : null}
           <Scripts />
         </div>
       </body>
