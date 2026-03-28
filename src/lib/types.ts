@@ -29,14 +29,44 @@ export type WeightEntry = {
   weight: number;
   note?: string;
   photoUrl?: string;
+  time?: string;
+  source?: "manual" | "scale" | "import";
 };
 
 export type WeightGoal = {
   id: string;
+  goalType: "loss" | "gain" | "maintenance";
   targetWeight: number;
-  weeklyGoal: number;
-  startDate: string;
   startWeight: number;
+  startDate: string;
+  targetDate?: string;
+  weeklyRate?: number;
+  acceptableVariance?: number;
+  isActive: boolean;
+};
+
+export type WeightInsight = {
+  id: string;
+  type: "milestone" | "trend" | "warning" | "achievement";
+  title: string;
+  description: string;
+  severity: "info" | "success" | "warning" | "alert";
+  date: string;
+  isRead: boolean;
+};
+
+export type WeightStats = {
+  currentWeight: number;
+  startWeight: number;
+  totalChange: number;
+  weeklyChange: number;
+  minWeight: number;
+  maxWeight: number;
+  avgWeight: number;
+  consistency: number;
+  streak: number;
+  entries: number;
+  movingAverage: number;
 };
 
 export type Gender = "male" | "female";

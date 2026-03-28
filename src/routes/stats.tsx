@@ -3,8 +3,13 @@ import { useWorkoutSummary, useExerciseStats } from "@/lib/convex/hooks";
 import {
   Dumbbell,
   Flame,
+  Target,
   TrendingUp,
+  Calendar,
+  Clock,
   Trophy,
+  Activity,
+  Zap,
 } from "lucide-react";
 import { PageShell, PageHero, ContentContainer, StateBlock } from "@/components/page-shell";
 
@@ -13,13 +18,13 @@ export const Route = createFileRoute("/stats")({
 });
 
 const BODY_PART_COLORS: Record<string, string> = {
-  chest: "#f97316",
-  back: "#a855f7",
-  shoulders: "#06b6d4",
-  arms: "#ec4899",
-  legs: "#10b981",
-  core: "#f59e0b",
-  cardio: "#ef4444",
+  chest: "#f97316", // orange
+  back: "#a855f7", // purple
+  shoulders: "#06b6d4", // cyan
+  arms: "#ec4899", // pink
+  legs: "#10b981", // emerald
+  core: "#f59e0b", // amber
+  cardio: "#ef4444", // red
 };
 
 function StatsPage() {
@@ -41,90 +46,99 @@ function StatsPage() {
         {isLoading ? (
           <StateBlock variant="loading" />
         ) : summary ? (
-          <>
-            <div className="space-y-8">
-              <div className="relative">
-                <div className="flex items-baseline gap-2 mb-1">
-                  <span className="text-5xl font-bold text-white tracking-tight">
-                    {summary.totalWorkouts}
-                  </span>
-                  <span className="text-zinc-500 font-medium">workouts</span>
-                </div>
-                <p className="text-zinc-500 text-sm">
-                  {summary.currentStreak > 0 ? (
-                    <span className="flex items-center gap-1">
-                      <Flame className="w-4 h-4 text-orange-500" />
-                      {summary.currentStreak} day streak
-                    </span>
-                  ) : (
-                    "Start a streak today!"
-                  )}
-                </p>
-              </div>
-
-              <div className="relative h-24 -mx-2">
-                <AreaSparkline
-                  data={getWeeklyData(summary)}
-                  color="#f97316"
-                  height={96}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-6">
-                <Metric label="Avg Duration" value={`${summary.averageDuration}m`} />
-                <Metric label="Total Sets" value={summary.totalSets.toString()} />
-                <Metric label="This Week" value={summary.workoutsThisWeek.toString()} />
-              </div>
+          <div className="space-y-6 pb-8">
+            {/* Hero Stats (Bento Top) */}
+            <div className="grid grid-cols-2 gap-3">
+              <HeroStatCard
+                icon={<Dumbbell className="w-5 h-5" />}
+                label="Total Workouts"
+                value={summary.totalWorkouts}
+                accent="orange"
+              />
+              <HeroStatCard
+                icon={<Flame className="w-5 h-5" />}
+                label="Current Streak"
+                value={`${summary.currentStreak} days`}
+                accent="amber"
+              />
             </div>
 
-            <div className="h-px bg-white/[0.06] my-8" />
+            {/* Secondary Stats (Bento Middle) */}
+            <div className="grid grid-cols-2 gap-3">
+              <MiniStatCard
+                icon={<Clock className="w-4 h-4 text-rose-500" />}
+                label="Avg Duration"
+                value={`${Math.ceil(summary.averageDuration / 60000)}m`}
+              />
+              <MiniStatCard
+                icon={<Target className="w-4 h-4 text-emerald-500" />}
+                label="Total Sets"
+                value={summary.totalSets}
+              />
+              <MiniStatCard
+                icon={<Calendar className="w-4 h-4 text-purple-500" />}
+                label="This Week"
+                value={summary.workoutsThisWeek}
+              />
+              <MiniStatCard
+                icon={<Calendar className="w-4 h-4 text-cyan-500" />}
+                label="This Month"
+                value={summary.workoutsThisMonth}
+              />
+            </div>
 
+            {/* Charts & Deep Dives */}
             {exerciseStats.length > 0 && (
               <>
-                <div className="flex items-center gap-2 mb-6">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  <h2 className="text-lg font-bold text-white">Volume Trend</h2>
+                <div className="pt-2">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-3 px-1">
+                    <TrendingUp className="w-5 h-5 text-orange-500" />
+                    Volume Trend
+                  </h2>
+                  <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 relative">
+                    <div className="h-40 -mx-2 -mb-2">
+                      <VolumeAreaChart stats={exerciseStats} />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="relative h-40 -mx-2 mb-8">
-                  <VolumeAreaChart stats={exerciseStats} />
+                <div className="pt-2">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-3 px-1">
+                    <Activity className="w-5 h-5 text-orange-500" />
+                    By Muscle Group
+                  </h2>
+                  <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-5">
+                    {getBodyPartStats(exerciseStats)
+                      .sort((a, b) => b.volume - a.volume)
+                      .map((bp) => (
+                        <BodyPartRow key={bp.name} name={bp.name} volume={bp.volume} color={bp.color} />
+                      ))}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 mb-4">
-                  <Dumbbell className="w-5 h-5 text-orange-500" />
-                  <h2 className="text-lg font-bold text-white">By Muscle Group</h2>
-                </div>
-
-                <div className="space-y-3">
-                  {getBodyPartStats(exerciseStats)
-                    .sort((a, b) => b.volume - a.volume)
-                    .map((bp) => (
-                      <BodyPartRow key={bp.name} name={bp.name} volume={bp.volume} color={bp.color} />
-                    ))}
-                </div>
-
-                <div className="flex items-center gap-2 mt-10 mb-4">
-                  <Trophy className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-lg font-bold text-white">Top Exercises</h2>
-                </div>
-
-                <div className="space-y-4">
-                  {exerciseStats
-                    .sort((a, b) => b.totalSets - a.totalSets)
-                    .slice(0, 8)
-                    .map((stat, idx) => (
-                      <ExerciseRow
-                        key={stat.id}
-                        rank={idx + 1}
-                        name={stat.exerciseName}
-                        sets={stat.totalSets}
-                        maxWeight={stat.maxWeight}
-                      />
-                    ))}
+                <div className="pt-2">
+                  <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-3 px-1">
+                    <Trophy className="w-5 h-5 text-amber-500" />
+                    Top Exercises
+                  </h2>
+                  <div className="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col gap-4">
+                    {exerciseStats
+                      .sort((a, b) => b.totalSets - a.totalSets)
+                      .slice(0, 8)
+                      .map((stat, idx) => (
+                        <ExerciseRow
+                          key={stat.id}
+                          rank={idx + 1}
+                          name={stat.exerciseName}
+                          sets={stat.totalSets}
+                          maxWeight={stat.maxWeight}
+                        />
+                      ))}
+                  </div>
                 </div>
               </>
             )}
-          </>
+          </div>
         ) : (
           <StateBlock
             variant="empty"
@@ -138,11 +152,52 @@ function StatsPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+// Subcomponents
+
+function HeroStatCard({
+  icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  accent: "orange" | "amber";
+}) {
+  const isOrange = accent === "orange";
   return (
-    <div className="text-center">
+    <div className={`p-5 rounded-2xl border relative overflow-hidden bg-zinc-900 ${isOrange ? "border-orange-500/20" : "border-amber-500/20"}`}>
+      {/* Subtle background glow */}
+      <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 rounded-full -mr-10 -mt-10 pointer-events-none ${isOrange ? "bg-orange-500" : "bg-amber-500"}`} />
+      
+      <div className="relative z-10 flex flex-col">
+        <div className={`flex items-center gap-2 mb-3 ${isOrange ? "text-orange-500" : "text-amber-500"}`}>
+          {icon}
+          <span className="text-xs uppercase tracking-wider font-bold opacity-80">{label}</span>
+        </div>
+        <div className="text-4xl font-bold text-white tracking-tight">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function MiniStatCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex flex-col">
+      <div className="flex items-center gap-2 mb-2">
+        {icon}
+        <span className="text-xs uppercase tracking-wider font-bold text-zinc-500">{label}</span>
+      </div>
       <div className="text-2xl font-bold text-white">{value}</div>
-      <div className="text-xs text-zinc-500 uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
 }
@@ -154,15 +209,16 @@ function BodyPartRow({ name, volume, color }: { name: string; volume: number; co
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-zinc-300 capitalize">{name}</span>
-        <span className="text-xs text-zinc-500">{(volume / 1000).toFixed(1)}K vol</span>
+        <span className="text-sm font-semibold text-zinc-200 capitalize">{name}</span>
+        <span className="text-xs font-medium text-zinc-500">{(volume / 1000).toFixed(1)}K vol</span>
       </div>
-      <div className="h-2 bg-zinc-900 rounded-full overflow-hidden">
+      <div className="h-2 bg-zinc-950 rounded-full overflow-hidden border border-zinc-800/50">
         <div
-          className="h-full rounded-full transition-all duration-500"
+          className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{
             width: `${width}%`,
             background: `linear-gradient(90deg, ${color}40, ${color})`,
+            boxShadow: `0 0 10px ${color}40`
           }}
         />
       </div>
@@ -172,59 +228,20 @@ function BodyPartRow({ name, volume, color }: { name: string; volume: number; co
 
 function ExerciseRow({ rank, name, sets, maxWeight }: { rank: number; name: string; sets: number; maxWeight: number }) {
   return (
-    <div className="flex items-center gap-4 py-2 border-b border-white/[0.04] last:border-0">
-      <span className={cn(
-        "text-lg font-bold w-6",
-        rank <= 3 ? "text-amber-400" : "text-zinc-600"
+    <div className="flex items-center gap-4">
+      <div className={cn(
+        "flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold bg-zinc-950 border",
+        rank <= 3 ? "text-amber-400 border-amber-500/30" : "text-zinc-500 border-zinc-800"
       )}>
-        #{rank}
-      </span>
+        {rank}
+      </div>
       <div className="flex-1 min-w-0">
         <div className="text-white font-medium truncate">{name}</div>
-        <div className="text-xs text-zinc-500">
+        <div className="text-xs text-zinc-500 mt-0.5">
           {sets} sets · {maxWeight} lbs max
         </div>
       </div>
     </div>
-  );
-}
-
-function AreaSparkline({ data, color, height }: { data: number[]; color: string; height: number }) {
-  if (data.length < 2) return null;
-
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-
-  const points = data.map((value, i) => {
-    const x = (i / (data.length - 1)) * 100;
-    const y = height - ((value - min) / range) * height;
-    return `${x},${y}`;
-  }).join(" ");
-
-  const areaPoints = `0,${height} ${points} 100,${height}`;
-
-  return (
-    <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-      <defs>
-        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="0.5"
-        points={points}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <polygon
-        fill="url(#areaGradient)"
-        points={areaPoints}
-      />
-    </svg>
   );
 }
 
@@ -246,19 +263,60 @@ function VolumeAreaChart({ stats }: { stats: any[] }) {
   weeks.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
   const last12Weeks = weeks.slice(-12);
 
-  if (last12Weeks.length < 2) return null;
+  // If there's barely any data, return a placeholder text
+  if (last12Weeks.length < 2) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 text-sm">
+        <Zap className="w-8 h-8 text-zinc-700 mb-2 opacity-50" />
+        Log more weeks to see your volume trend
+      </div>
+    );
+  }
 
   const volumes = last12Weeks.map(w => w.totalVolume);
 
   return <AreaSparkline data={volumes} color="#f97316" height={160} />;
 }
 
-function getWeeklyData(summary: any): number[] {
-  return [
-    Math.max(0, summary.workoutsThisWeek * 45),
-    Math.max(0, summary.workoutsThisMonth / 4 * 45),
-    summary.totalSets,
-  ];
+function AreaSparkline({ data, color, height }: { data: number[]; color: string; height: number }) {
+  if (data.length < 2) return null;
+
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  // Add a little padding to the range so lines don't clip the very top/bottom
+  const range = (max - min) * 1.2 || 1; 
+
+  const points = data.map((value, i) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = height - (((value - min) + (range * 0.1)) / range) * height;
+    return `${x},${y}`;
+  }).join(" ");
+
+  const areaPoints = `0,${height} ${points} 100,${height}`;
+
+  return (
+    <svg className="w-full h-full drop-shadow-md" preserveAspectRatio="none" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        points={points}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="opacity-90"
+      />
+      <polygon
+        fill="url(#areaGradient)"
+        points={areaPoints}
+      />
+    </svg>
+  );
 }
 
 function getBodyPartStats(stats: any[]): { name: string; volume: number; sets: number; color: string }[] {

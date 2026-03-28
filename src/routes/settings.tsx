@@ -198,8 +198,9 @@ function SettingsPage() {
     </h3>
   );
 
-  const MainSettings = () => (
+  const renderMainSettings = () => (
     <motion.div
+      key="main"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
@@ -276,8 +277,9 @@ function SettingsPage() {
     </motion.div>
   );
 
-  const AppearanceSettings = () => (
+  const renderAppearanceSettings = () => (
     <motion.div
+      key="appearance"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -444,8 +446,9 @@ function SettingsPage() {
     </motion.div>
   );
 
-  const ModeSettings = () => (
+  const renderModeSettings = () => (
     <motion.div
+      key="mode"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -524,9 +527,9 @@ function SettingsPage() {
 
       <ContentContainer>
         <AnimatePresence mode="wait">
-          {currentView === "main" && <MainSettings key="main" />}
-          {currentView === "appearance" && <AppearanceSettings key="appearance" />}
-          {currentView === "mode" && <ModeSettings key="mode" />}
+          {currentView === "main" && renderMainSettings()}
+          {currentView === "appearance" && renderAppearanceSettings()}
+          {currentView === "mode" && renderModeSettings()}
         </AnimatePresence>
       </ContentContainer>
     </PageShell>

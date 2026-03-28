@@ -130,6 +130,53 @@ export const useSetWeightGoal = () => {
   };
 };
 
+export const useArchiveWeightGoal = () => {
+  const archiveWeightGoal = useMutation(api.weights.archiveWeightGoal);
+  return {
+    archiveWeightGoal,
+  };
+};
+
+export const useWeightStats = (period?: "1w" | "1m" | "3m" | "6m" | "1y" | "all", options?: { enabled?: boolean }) => {
+  const stats = useQuery(
+    api.weights.getWeightStats,
+    options?.enabled === false ? "skip" : { period }
+  );
+  return {
+    stats,
+    isLoading: stats === undefined,
+  };
+};
+
+export const useWeightChartData = (period?: "1w" | "1m" | "3m" | "6m" | "1y" | "all", options?: { enabled?: boolean }) => {
+  const data = useQuery(
+    api.weights.getWeightChartData,
+    options?.enabled === false ? "skip" : { period }
+  );
+  return {
+    data: data ?? [],
+    isLoading: data === undefined,
+  };
+};
+
+export const useWeightInsights = (limit?: number, options?: { enabled?: boolean }) => {
+  const insights = useQuery(
+    api.weights.getWeightInsights,
+    options?.enabled === false ? "skip" : { limit }
+  );
+  return {
+    insights: insights ?? [],
+    isLoading: insights === undefined,
+  };
+};
+
+export const useMarkInsightRead = () => {
+  const markInsightRead = useMutation(api.weights.markInsightRead);
+  return {
+    markInsightRead,
+  };
+};
+
 // ============== Stats Hooks ==============
 
 export const useExerciseStats = (options?: { enabled?: boolean }) => {

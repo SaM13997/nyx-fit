@@ -5,6 +5,7 @@ export const setValidator = v.object({
   id: v.string(),
   weight: v.number(),
   reps: v.number(),
+  completed: v.optional(v.boolean()),
 });
 
 export const exerciseValidator = v.object({
@@ -54,21 +55,30 @@ export default defineSchema({
 
   weightEntries: defineTable({
     userId: v.string(),
-    date: v.string(),
-    weight: v.number(),
+    date: v.string(), // YYYY-MM-DD format
+    weight: v.number(), // stored in kg
     note: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
+    time: v.optional(v.string()), // HH:MM format
+    source: v.optional(v.union(v.literal("manual"), v.literal("scale"), v.literal("import"))),
   })
     .index("byUserId", ["userId"])
+    .index("byUserDate", ["userId", "date"])
     .index("byDate", ["date"]),
 
   weightGoals: defineTable({
     userId: v.string(),
+    goalType: v.union(v.literal("loss"), v.literal("gain"), v.literal("maintenance")),
     targetWeight: v.number(),
-    weeklyGoal: v.number(), // positive for gain, negative for loss
-    startDate: v.string(),
     startWeight: v.number(),
-  }).index("byUserId", ["userId"]),
+    startDate: v.string(),
+    targetDate: v.optional(v.string()),
+    weeklyRate: v.optional(v.number()), // positive for gain, negative for loss
+    acceptableVariance: v.optional(v.number()), // for maintenance mode
+    isActive: v.boolean(),
+  })
+    .index("byUserId", ["userId"])
+    .index("byActive", ["userId", "isActive"]),
 
   // Pre-aggregated exercise stats for efficient stats page queries
   exerciseStats: defineTable({
@@ -93,4 +103,134 @@ export default defineSchema({
   })
     .index("byUserId", ["userId"])
     .index("byUserExercise", ["userId", "exerciseName"]),
+
+  // Daily aggregated workout stats
+  userStatsDaily: defineTable({
+    userId: v.string(),
+    date: v.string(), // "2026-03-18" format
+    
+    // Volume Metrics
+    totalVolume: v.number(), // sum(sets × reps × weight)
+    totalSets: v.number(),
+    totalReps: v.number(),
+    exerciseCount: v.number(),
+    
+    // Time Metrics
+    durationMinutes: v.number(),
+    
+    // Personal Records
+    prCount: v.number(),
+    
+    // Muscle Group Distribution
+    muscleVolumes: v.object({
+      chest: v.number(),
+      back: v.number(),
+      shoulders: v.number(),
+      legs: v.number(),
+      arms: v.number(),
+      core: v.number(),
+    }),
+    
+    // Computed at insert time
+    computedAt: v.number(),
+  })
+    .index("byUserId", ["userId"])
+    .index("byUserDate", ["userId", "date"]),
+
+  // Periodic (1/3/6 month) aggregated stats
+  userStatsPeriodic: defineTable({
+    userId: v.string(),
+    periodType: v.union(v.literal("1m"), v.literal("3m"), v.literal("6m")),
+    periodStart: v.string(), // "2026-03-01"
+    periodEnd: v.string(), // "2026-03-31"
+    
+    // Aggregate Volume
+    totalVolume: v.number(),
+    totalSets: v.number(),
+    totalReps: v.number(),
+    workoutCount: v.number(),
+    
+    // Averages
+    avgVolumePerWorkout: v.number(),
+    avgSetsPerWorkout: v.number(),
+    avgDurationMinutes: v.number(),
+    avgWorkoutsPerWeek: v.number(),
+    
+    // Consistency
+    consistencyScore: v.number(), // 0-100 (actual/planned workouts)
+    longestStreak: v.number(), // days
+    
+    // Progress Tracking
+    volumeGrowthRate: v.number(), // % vs previous period
+    prCount: v.number(),
+    
+    // Muscle Balance
+    muscleDistribution: v.object({
+      chest: v.number(), // % of total volume
+      back: v.number(),
+      shoulders: v.number(),
+      legs: v.number(),
+      arms: v.number(),
+      core: v.number(),
+    }),
+    
+    // Exercise-Specific Progress
+    topExercises: v.array(
+      v.object({
+        exerciseId: v.string(),
+        name: v.string(),
+        totalVolume: v.number(),
+        bestSet: v.object({ weight: v.number(), reps: v.number() }),
+        volumeGrowth: v.number(), // % vs previous period
+      })
+    ),
+    
+    computedAt: v.number(),
+  })
+    .index("byUserId", ["userId"])
+    .index("byUserPeriodType", ["userId", "periodType"])
+    .index("byUserPeriod", ["userId", "periodType", "periodStart"]),
+
+  // Weight insights and notifications
+  weightInsights: defineTable({
+    userId: v.string(),
+    type: v.union(v.literal("milestone"), v.literal("trend"), v.literal("warning"), v.literal("achievement")),
+    title: v.string(),
+    description: v.string(),
+    severity: v.union(v.literal("info"), v.literal("success"), v.literal("warning"), v.literal("alert")),
+    date: v.string(),
+    isRead: v.boolean(),
+  })
+    .index("byUserId", ["userId"])
+    .index("byUserUnread", ["userId", "isRead"]),
+
+  // Personal Records history per exercise
+  userPRHistory: defineTable({
+    userId: v.string(),
+    exerciseId: v.string(),
+    
+    // Current PRs by rep range (using rep1, rep3, etc. instead of "1", "3" for Convex compatibility)
+    prs: v.object({
+      rep1: v.object({ weight: v.number(), date: v.string() }),
+      rep3: v.object({ weight: v.number(), date: v.string() }),
+      rep5: v.object({ weight: v.number(), date: v.string() }),
+      rep8: v.object({ weight: v.number(), date: v.string() }),
+      rep10: v.object({ weight: v.number(), date: v.string() }),
+      rep12: v.object({ weight: v.number(), date: v.string() }),
+    }),
+    
+    // History for trends
+    history: v.array(
+      v.object({
+        date: v.string(),
+        weight: v.number(),
+        reps: v.number(),
+        estimated1RM: v.number(), // using Brzycki formula
+      })
+    ),
+    
+    lastUpdated: v.number(),
+  })
+    .index("byUserId", ["userId"])
+    .index("byUserExercise", ["userId", "exerciseId"]),
 });
