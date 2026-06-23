@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download } from "lucide-react";
 import {
@@ -93,6 +94,23 @@ export function InstallPrompt() {
                 Install
               </button>
             </div>
+            <p className="mt-3 text-center text-[11px] leading-relaxed text-zinc-500">
+              By installing, you agree to our{" "}
+              <Link
+                to="/terms"
+                className="text-zinc-400 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+              >
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/privacy"
+                className="text-zinc-400 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </motion.div>
       )}
