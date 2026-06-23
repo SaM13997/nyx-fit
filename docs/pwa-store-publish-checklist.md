@@ -23,30 +23,30 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.1 Single manifest source (`vite.config.ts`)
 
-- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `cursor/nyx-fit-pwa-checklist-4023`
-- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible)
-- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand
+- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `325bc05`
+- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible) — `325bc05`
+- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand — `325bc05`
 
 ### 1.2 Icons (192 + 512, any + maskable)
 
-- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512`
-- [x] Both `any` and `maskable` purposes declared
-- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`)
+- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512` — `325bc05`
+- [x] Both `any` and `maskable` purposes declared — `325bc05`
+- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`) — `325bc05`
 
 ### 1.3 Apple touch icon
 
-- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180)
+- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180) — `325bc05`
 
 ### 1.4 Apple meta tags
 
-- [x] `apple-mobile-web-app-title` = Nyx Fitness
-- [x] `apple-mobile-web-app-capable` = yes
-- [x] `apple-mobile-web-app-status-bar-style` = black-translucent
-- [x] `theme-color` = `#000000` (dark-first)
+- [x] `apple-mobile-web-app-title` = Nyx Fitness — `325bc05`
+- [x] `apple-mobile-web-app-capable` = yes — `325bc05`
+- [x] `apple-mobile-web-app-status-bar-style` = black-translucent — `325bc05`
+- [x] `theme-color` = `#000000` (dark-first) — `325bc05`
 
 ### 1.5 Head manifest link
 
-- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build)
+- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build) — `325bc05`
 
 ### 1.6 Splash screens _(Batch B)_
 
