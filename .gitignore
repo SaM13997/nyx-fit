@@ -12,7 +12,15 @@ count.txt
 .vinxi
 todos.json
 
+# iOS / Capacitor (Xcode user state; keep ios/ scaffold in git)
+ios/App/App/public/
+ios/App/Pods/
+ios/DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+
 #Android
+builds/android.keystore
 builds/.gradle
 builds/app
 builds/build
