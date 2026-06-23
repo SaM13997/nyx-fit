@@ -14,6 +14,7 @@ count.txt
 todos.json
 
 #Android
+builds/android.keystore
 builds/.gradle
 builds/app
 builds/build

@@ -7,7 +7,8 @@
     "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
     "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
-    "test": "vitest run"
+    "test": "vitest run",
+    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.6",
