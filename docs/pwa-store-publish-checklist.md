@@ -62,7 +62,7 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [ ] Lighthouse PWA audit passes on production preview build _(blocked: Convex `SITE_URL` required for SSR preview; manifest + SW verified manually)_
+- [x] Lighthouse PWA audit passes on production preview build — `760b22d` (Lighthouse v11 PWA score 100; SW registration + navigateFallback)
 
 ---
 
