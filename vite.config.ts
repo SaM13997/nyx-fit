@@ -5,6 +5,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
+import { nyxServiceWorkerPlugin } from './scripts/nyx-service-worker-plugin'
 
 const config = defineConfig({
 	plugins: [
@@ -16,6 +17,7 @@ const config = defineConfig({
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
+		nyxServiceWorkerPlugin(),
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifestFilename: 'manifest.json',
