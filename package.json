@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
+    "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
     "test": "vitest run"
   },
   "dependencies": {
