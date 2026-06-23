@@ -15,6 +15,8 @@ import {
   Bell,
   Info,
   HelpCircle,
+  FileText,
+  Shield,
   Trash2,
   Palette,
   Check,
@@ -204,6 +206,22 @@ function SettingsPage() {
         />
         <SettingsItem icon={Lock} label="Password" />
         <SettingsItem icon={Bell} label="Notifications" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
+          Legal
+        </h3>
+        <SettingsItem
+          icon={Shield}
+          label="Privacy Policy"
+          onClick={() => navigate({ to: "/privacy" })}
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Terms of Service"
+          onClick={() => navigate({ to: "/terms" })}
+        />
       </div>
 
       <div className="space-y-2">
