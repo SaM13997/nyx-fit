@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B — `2cad463` (2026-06-23)
+**Last completed batch:** B — PR [#17](https://github.com/SaM13997/nyx-fit/pull/17) / `2cad463` (2026-06-23)
 
 ---
 
