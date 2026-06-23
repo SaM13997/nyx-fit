@@ -1,17 +1,22 @@
+/**
+ * Generate service worker for TanStack Start + Nitro.
+ * vite-plugin-pwa skips SW generation when build.ssr === true (TanStack Start).
+ */
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type { Plugin } from "vite";
+import { fileURLToPath } from "node:url";
 import { generateSW } from "workbox-build";
 
-const workboxOptions = {
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+const workboxConfig = {
   globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2,json}"],
   navigateFallback: "/index.html",
   navigateFallbackDenylist: [/^\/api/, /^\/convex/],
   runtimeCaching: [
     {
-      urlPattern: ({ request }: { request: Request }) =>
-        request.mode === "navigate",
-      handler: "NetworkFirst" as const,
+      urlPattern: ({ request }) => request.mode === "navigate",
+      handler: "NetworkFirst",
       options: {
         cacheName: "nyx-pages",
         networkTimeoutSeconds: 5,
@@ -24,7 +29,7 @@ const workboxOptions = {
     },
     {
       urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-      handler: "CacheFirst" as const,
+      handler: "CacheFirst",
       options: {
         cacheName: "google-fonts-stylesheets",
         expiration: {
@@ -36,7 +41,7 @@ const workboxOptions = {
     },
     {
       urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-      handler: "CacheFirst" as const,
+      handler: "CacheFirst",
       options: {
         cacheName: "google-fonts-webfonts",
         expiration: {
@@ -49,28 +54,26 @@ const workboxOptions = {
   ],
 };
 
-/** Generate SW in dist/client before Nitro copies static assets. */
-export function nyxServiceWorkerPlugin(): Plugin {
-  return {
-    name: "nyx-service-worker",
-    apply: "build",
-    enforce: "post",
-    applyToEnvironment(environment) {
-      return environment.name === "client";
-    },
-    async closeBundle() {
-      const globDirectory = path.resolve("dist/client");
-      if (!existsSync(globDirectory)) return;
+async function generateForDirectory(relativeDir) {
+  const globDirectory = path.join(root, relativeDir);
+  if (!existsSync(globDirectory)) {
+    console.log(`Skipping ${relativeDir} (not found)`);
+    return;
+  }
 
-      const { count, size } = await generateSW({
-        ...workboxOptions,
-        globDirectory,
-        swDest: path.join(globDirectory, "sw.js"),
-      });
+  const { count, size, warnings } = await generateSW({
+    ...workboxConfig,
+    globDirectory,
+    swDest: path.join(globDirectory, "sw.js"),
+  });
 
-      console.log(
-        `[nyx-service-worker] dist/client/sw.js — ${count} files, ${size} bytes precached`
-      );
-    },
-  };
+  console.log(
+    `Generated ${relativeDir}/sw.js — ${count} files, ${size} bytes precached`
+  );
+  for (const warning of warnings) {
+    console.warn(warning);
+  }
 }
+
+await generateForDirectory(".output/public");
+await generateForDirectory("dist/client");
