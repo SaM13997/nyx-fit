@@ -23,6 +23,7 @@ import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { IOS_SPLASH_LINKS } from "@/lib/iosSplashLinks";
 import appCss from "../styles.css?url";
 
@@ -170,6 +171,7 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <ServiceWorkerRegistration />
             <OfflineBanner />
             <Outlet />
             <InstallPrompt />

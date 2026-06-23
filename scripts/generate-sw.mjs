@@ -11,6 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const workboxConfig = {
   globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2,json}"],
+  navigateFallback: "/index.html",
   navigateFallbackDenylist: [/^\/api/, /^\/convex/],
   runtimeCaching: [
     {

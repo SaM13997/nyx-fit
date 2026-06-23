@@ -5,6 +5,7 @@ import { generateSW } from "workbox-build";
 
 const workboxOptions = {
   globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2,json}"],
+  navigateFallback: "/index.html",
   navigateFallbackDenylist: [/^\/api/, /^\/convex/],
   runtimeCaching: [
     {

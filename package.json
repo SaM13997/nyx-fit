@@ -6,6 +6,7 @@
     "dev": "vite dev --port 3000",
     "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
+    "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
     "test": "vitest run",
     "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs",
     "ios:sync-assets": "node scripts/sync-ios-assets.mjs",
