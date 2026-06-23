@@ -22,6 +22,8 @@ import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { IOS_SPLASH_LINKS } from "@/lib/iosSplashLinks";
 import appCss from "../styles.css?url";
 
 const Devtools = import.meta.env.DEV
@@ -83,6 +85,18 @@ export const Route = createRootRouteWithContext<{
         content: "#000000",
       },
       {
+        name: "mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
+      {
         name: "apple-mobile-web-app-title",
         content: "Nyx Fitness",
       },
@@ -121,8 +135,13 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
+      ...IOS_SPLASH_LINKS.map((splash) => ({
+        rel: "apple-touch-startup-image" as const,
+        href: splash.href,
+        media: splash.media,
+      })),
     ],
   }),
   beforeLoad: async (ctx) => {
@@ -151,6 +170,7 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <OfflineBanner />
             <Outlet />
             <InstallPrompt />
           </RootDocument>
