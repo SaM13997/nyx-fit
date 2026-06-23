@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** A — PR [#16](https://github.com/SaM13997/nyx-fit/pull/16) / `325bc05` (2026-06-23)
+**Last completed batch:** B — `2cad463` (2026-06-23)
 
 ---
 
@@ -50,19 +50,19 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.6 Splash screens _(Batch B)_
 
-- [ ] iOS / Android splash assets or meta where applicable
+- [x] iOS / Android splash assets or meta where applicable — `cc1d4ba`
 
 ### 1.7 Offline shell _(Batch B)_
 
-- [ ] Service worker caches app shell; offline UX acceptable
+- [x] Service worker caches app shell; offline UX acceptable — `60cd4f5`, `50a9152`
 
 ### 1.8 Install prompt _(Batch B)_
 
-- [ ] `InstallPrompt` styled on-brand; dismiss + install flows work
+- [x] `InstallPrompt` styled on-brand; dismiss + install flows work — `cc1d4ba`
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [ ] Lighthouse PWA audit passes on production preview build
+- [x] Lighthouse PWA audit passes on production preview build — `2cad463` (Lighthouse v11 PWA score 100)
 
 ---
 
