@@ -24,8 +24,11 @@ const args = [
   "--quiet",
 ];
 
+// Lighthouse 12+ removed the PWA category; pin v11 for installability audits.
+const LIGHTHOUSE_PKG = "lighthouse@11.7.1";
+
 const exitCode = await new Promise((resolve) => {
-  const child = spawn("npx", ["lighthouse", ...args], {
+  const child = spawn("npx", [LIGHTHOUSE_PKG, ...args], {
     cwd: root,
     stdio: "inherit",
     env: process.env,
@@ -39,11 +42,20 @@ if (exitCode !== 0) {
 }
 
 const report = JSON.parse(await import("node:fs").then((fs) => fs.promises.readFile(reportPath, "utf8")));
-const pwaScore = report.categories?.pwa?.score ?? 0;
+const pwaScore = report.categories?.pwa?.score ?? null;
 const audits = report.audits ?? {};
 
-const failed = Object.entries(audits)
-  .filter(([, audit]) => audit.score !== null && audit.score < 1)
+if (pwaScore === null) {
+  console.error(
+    "Lighthouse report has no PWA category (use lighthouse@11; v12+ removed it)."
+  );
+  process.exit(1);
+}
+
+const pwaAuditIds = report.categories?.pwa?.auditRefs?.map((ref) => ref.id) ?? [];
+const failed = pwaAuditIds
+  .map((id) => [id, audits[id]])
+  .filter(([, audit]) => audit && audit.score !== null && audit.score < 1)
   .map(([id, audit]) => ({ id, title: audit.title, score: audit.score }));
 
 const summary = {
