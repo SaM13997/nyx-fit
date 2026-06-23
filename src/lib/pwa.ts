@@ -29,3 +29,15 @@ export function isInstallPromptDismissed(): boolean {
 export function dismissInstallPrompt(): void {
   localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
 }
+
+/** Register the Workbox-generated service worker (production / preview builds). */
+export function registerServiceWorker(): void {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  if (import.meta.env.DEV) return;
+
+  window.addEventListener("load", () => {
+    void navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error) => {
+      console.warn("[pwa] service worker registration failed", error);
+    });
+  });
+}
