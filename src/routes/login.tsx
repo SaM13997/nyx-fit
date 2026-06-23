@@ -1,11 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { LoginForm } from "@/components/login-form";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dumbbell, LineChart, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === "string" && search.redirect.length > 0
+        ? search.redirect
+        : undefined,
+  }),
   component: RouteComponent,
 });
 
@@ -44,6 +51,32 @@ const STEPS = [
 
 function RouteComponent() {
   const [currentStep, setCurrentStep] = useState(0);
+  const navigate = useNavigate();
+  const router = useRouter();
+  const { redirect } = useSearch({ from: "/login" });
+  const { data: sessionData, isPending: isAuthPending } =
+    authClient.useSession();
+
+  useEffect(() => {
+    if (isAuthPending || !sessionData?.session) {
+      return;
+    }
+
+    if (redirect) {
+      router.history.push(redirect);
+      return;
+    }
+
+    void navigate({ to: "/" });
+  }, [isAuthPending, navigate, redirect, router.history, sessionData?.session]);
+
+  if (isAuthPending || sessionData?.session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        <div className="animate-pulse text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -130,7 +163,7 @@ function RouteComponent() {
       {/* Bottom Action Area */}
       {!isLastStep && (
         <motion.div
-          className="w-full max-w-md z-10 pb-8"
+          className="w-full max-w-md z-10 pb-[max(2rem,env(safe-area-inset-bottom))]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
