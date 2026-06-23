@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** E — `a2764cd` (2026-06-24)
+**Last completed batch:** F — pending commit (2026-06-24)
 
 ---
 
@@ -105,8 +105,8 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 5 — iOS wrapper _(Batch F)_
 
-- [ ] Capacitor chosen over PWABuilder — document in `docs/ios-capacitor.md`
-- [ ] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons)
+- [x] Capacitor chosen over PWABuilder — `docs/ios-capacitor.md`
+- [x] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons via `npm run ios:sync-assets`) — pending commit
 
 ---
 
