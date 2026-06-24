@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** C — (2026-06-24)
+**Last completed batch:** D — (2026-06-24)
 
 ---
 
@@ -91,19 +91,21 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 4.1 Digital Asset Links
 
-- [ ] `/.well-known/assetlinks.json` matches release signing key
+- [x] `/.well-known/assetlinks.json` matches release signing key — _pending commit_
+- [x] `npm run twa:validate-assetlinks` verifies structure + CI fingerprint — _pending commit_
 
 ### 4.2 Keystore documentation
 
-- [ ] Keystore generation + CI secrets documented (no secrets in repo)
+- [x] Keystore generation + CI secrets documented (no secrets in repo) — `docs/android-twa-keystore.md`
+- [x] `builds/android.keystore` removed from git; gitignored — _pending commit_
 
 ### 4.3 Bubblewrap / TWA manifest
 
-- [ ] `builds/twa-manifest.json` aligned with live manifest URL and theme
+- [x] `builds/twa-manifest.json` aligned with live manifest URL and theme (`#000000`, no Play Billing) — _pending commit_
 
 ### 4.4 CI build APK/AAB
 
-- [ ] Workflow builds signed bundle (secrets in CI only)
+- [x] Workflow builds signed bundle (secrets in CI only) — `.github/workflows/twa-android.yml`
 
 ---
 

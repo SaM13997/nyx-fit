@@ -13,6 +13,10 @@ count.txt
 .lighthouse
 todos.json
 
+# Android TWA — never commit signing keys
+builds/android.keystore
+builds/*.keystore
+
 #Android
 builds/.gradle
 builds/app
