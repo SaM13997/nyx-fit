@@ -6,9 +6,13 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ios:icons": "bash scripts/ios/sync-icons.sh",
+    "ios:sync": "npx cap sync ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@convex-dev/better-auth": "^0.9.6",
     "@convex-dev/react-query": "^0.0.0-alpha.11",
     "@ncdai/react-wheel-picker": "^1.0.19",
@@ -46,6 +50,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.10.2",
