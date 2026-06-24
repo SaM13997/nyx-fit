@@ -12,15 +12,11 @@ count.txt
 .vinxi
 todos.json
 
-#Android
+# Android TWA — commit scaffold; ignore secrets and build outputs
+builds/android.keystore
 builds/.gradle
-builds/app
 builds/build
-builds/gradle
-builds/build.gradle
-builds/gradlew
-builds/gradlew.bat
-builds/settings.gradle
+builds/app/build
 builds/app-release-bundle.aab
 builds/app-release-signed.apk
 builds/app-release-signed.apk.idsig
