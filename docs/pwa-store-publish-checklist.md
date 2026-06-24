@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** C
+**Last completed batch:** D
 
 ---
 
@@ -87,19 +87,19 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 4.1 Digital Asset Links
 
-- [ ] `/.well-known/assetlinks.json` matches release signing key
+- [x] `/.well-known/assetlinks.json` matches release signing key — `c1542ad`
 
 ### 4.2 Keystore documentation
 
-- [ ] Keystore generation + CI secrets documented (no secrets in repo)
+- [x] Keystore generation + CI secrets documented (no secrets in repo) — `c1542ad`
 
 ### 4.3 Bubblewrap / TWA manifest
 
-- [ ] `builds/twa-manifest.json` aligned with live manifest URL and theme
+- [x] `builds/twa-manifest.json` aligned with live manifest URL and theme — `c1542ad`
 
 ### 4.4 CI build APK/AAB
 
-- [ ] Workflow builds signed bundle (secrets in CI only)
+- [x] Workflow builds signed bundle (secrets in CI only) — `c1542ad`
 
 ---
 
@@ -114,3 +114,4 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 - Do **not** enable Play Billing or web push unless a batch explicitly covers them.
 - Convex production deploy, keystore secrets, and store developer accounts are **stop conditions** — report in Slack, do not mark items complete.
+- TWA CI requires GitHub secrets: `TWA_KEYSTORE_BASE64`, `TWA_KEYSTORE_PASSWORD`, `TWA_KEY_ALIAS`, `TWA_KEY_PASSWORD` (see `docs/android-twa-signing.md`).
