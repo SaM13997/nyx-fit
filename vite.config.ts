@@ -9,7 +9,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 const config = defineConfig({
 	plugins: [
 		nitroV2Plugin(),
-		// this is the plugin that enables path aliases
 		viteTsConfigPaths({
 			projects: ['./tsconfig.json'],
 		}),
@@ -18,35 +17,51 @@ const config = defineConfig({
 		viteReact(),
 		VitePWA({
 			registerType: 'autoUpdate',
+			manifestFilename: 'manifest.json',
+			devOptions: {
+				enabled: true,
+			},
+			includeAssets: ['favicon/**/*'],
 			manifest: {
-				name: 'Nyx Fit',
+				id: '/',
+				name: 'Nyx Fitness',
 				short_name: 'Nyx Fit',
-				description: 'Your personal fitness companion',
+				description: 'Your personal fitness tracking app',
+				start_url: '/',
+				scope: '/',
 				theme_color: '#000000',
-				background_color: '#ffffff',
+				background_color: '#000000',
 				display: 'standalone',
 				orientation: 'portrait',
 				icons: [
 					{
-						src: 'logo192.png',
+						src: '/favicon/web-app-manifest-192x192.png',
 						sizes: '192x192',
 						type: 'image/png',
+						purpose: 'maskable',
 					},
 					{
-						src: 'logo512.png',
+						src: '/favicon/web-app-manifest-512x512.png',
 						sizes: '512x512',
 						type: 'image/png',
+						purpose: 'maskable',
 					},
 					{
-						src: 'logo512.png',
+						src: '/favicon/web-app-manifest-192x192.png',
+						sizes: '192x192',
+						type: 'image/png',
+						purpose: 'any',
+					},
+					{
+						src: '/favicon/web-app-manifest-512x512.png',
 						sizes: '512x512',
 						type: 'image/png',
-						purpose: 'any maskable',
+						purpose: 'any',
 					},
 				],
 			},
 			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
 			},
 		}),
 	],
