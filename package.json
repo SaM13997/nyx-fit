@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
-    "test": "vitest run"
+    "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
+    "test": "vitest run",
+    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.6",
@@ -60,6 +62,7 @@
     "vite": "^7.1.7",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.0.5",
+    "workbox-build": "^7.3.0",
     "web-vitals": "^5.1.0"
   }
 }
