@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { X, Download } from "lucide-react";
 
 const DISMISS_KEY = "nyx-fit-install-prompt-dismissed";
@@ -117,6 +118,23 @@ export function InstallPrompt() {
                 Install
               </button>
             </div>
+            <p className="mt-3 text-center text-[11px] leading-relaxed text-zinc-500">
+              By installing, you agree to our{" "}
+              <Link
+                to="/terms"
+                className="text-zinc-400 underline-offset-2 hover:text-orange-400 hover:underline"
+              >
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/privacy"
+                className="text-zinc-400 underline-offset-2 hover:text-orange-400 hover:underline"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </motion.div>
       ) : null}
