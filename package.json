@@ -10,9 +10,15 @@
     "twa:fingerprint": "node scripts/twa-fingerprint.mjs",
     "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs",
     "twa:validate-assetlinks": "node scripts/validate-assetlinks.mjs",
+    "ios:sync-assets": "node scripts/sync-ios-assets.mjs",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios",
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@convex-dev/better-auth": "^0.9.6",
     "@convex-dev/react-query": "^0.0.0-alpha.11",
     "@ncdai/react-wheel-picker": "^1.0.19",
@@ -64,7 +70,7 @@
     "vite": "^7.1.7",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.0.5",
-    "workbox-build": "^7.3.0",
-    "web-vitals": "^5.1.0"
+    "web-vitals": "^5.1.0",
+    "workbox-build": "^7.3.0"
   }
 }
