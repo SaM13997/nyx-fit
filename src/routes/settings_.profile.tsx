@@ -220,7 +220,7 @@ function ProfileDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen text-white pb-24 relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden pb-nav-safe text-white">
       {/* Background Gradient */}
       <div className="fixed inset-0 z-0 bg-black pointer-events-none">
         <div className="absolute top-0 right-0 w-3/4 h-3/4 bg-purple-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
