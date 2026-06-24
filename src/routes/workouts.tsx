@@ -68,7 +68,7 @@ function WorkoutsPage() {
   };
 
   return (
-    <div className=" bg-black text-white font-sans relative">
+    <div className="overflow-x-clip bg-black text-white font-sans relative min-h-screen">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background */}
