@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download } from 'lucide-react'
 
@@ -79,6 +80,17 @@ export function InstallPrompt() {
                 Install App
               </button>
             </div>
+            <p className="mt-3 text-center text-[10px] leading-relaxed text-zinc-500">
+              By installing, you agree to our{' '}
+              <Link to="/terms" className="underline hover:text-zinc-300">
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="underline hover:text-zinc-300">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </motion.div>
       )}

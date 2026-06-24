@@ -1,11 +1,11 @@
-
-import { useState, type FormEvent } from "react";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
 
 const EMAIL_MAX_LENGTH = 254;
 
@@ -44,10 +44,9 @@ export function LoginForm({
     const search = router.state.location.search as
       | { redirect?: unknown }
       | undefined;
-    const redirect =
-      typeof search?.redirect === "string" && search.redirect.length > 0
-        ? search.redirect
-        : undefined;
+    const redirect = getSafeRedirectPath(
+      typeof search?.redirect === "string" ? search.redirect : undefined
+    );
 
     if (redirect) {
       router.history.push(redirect);
@@ -206,7 +205,15 @@ export function LoginForm({
         </div>
       </form>
       <div className="text-center text-xs text-gray-500 break-words">
-        By clicking continue, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a> and <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>.
+        By clicking continue, you agree to our{" "}
+        <Link to="/terms" className="underline hover:text-white transition-colors">
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link to="/privacy" className="underline hover:text-white transition-colors">
+          Privacy Policy
+        </Link>
+        .
       </div>
     </div>
   );

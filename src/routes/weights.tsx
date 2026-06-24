@@ -103,7 +103,7 @@ function WeightsPage() {
   const oldestWeight = weights.length > 0 ? weights[weights.length - 1].weight : undefined;
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-screen pb-24">
+    <div className="bg-black text-white font-sans relative min-h-screen overflow-x-hidden pb-page">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background with ORANGE override */}
@@ -123,7 +123,7 @@ function WeightsPage() {
         {/* Content */}
         <div className="relative flex flex-col justify-end h-full px-4 pt-12">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-6xl font-bold tracking-tighter text-orange-500">
+            <h1 className="text-4xl font-bold tracking-tighter break-words text-orange-500 sm:text-5xl">
               Weights
             </h1>
           </div>
@@ -184,7 +184,7 @@ function WeightsPage() {
       <button
         onClick={handleOpenLog}
         aria-label="Log weight entry"
-        className="fixed bottom-6 right-6 h-16 w-16 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-50 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
+        className="fixed fab-offset right-4 flex h-14 w-14 min-h-11 min-w-11 items-center justify-center rounded-full bg-linear-to-tr from-orange-500 to-rose-600 text-white shadow-lg shadow-orange-900/40 z-50 outline-hidden ring-4 ring-orange-500/10 transition-all hover:scale-105 active:scale-95 sm:right-6 sm:h-16 sm:w-16"
       >
         <Plus className="w-8 h-8" strokeWidth={3} />
       </button>

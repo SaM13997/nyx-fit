@@ -30,7 +30,7 @@ export function BottomNav() {
   };
 
   return (
-    <div className="sticky bottom-6 left-0 right-0 z-50 mt-auto flex justify-center px-4 pointer-events-none">
+    <div className="sticky bottom-nav-offset left-0 right-0 z-50 mt-auto flex justify-center px-4 pb-safe pointer-events-none">
       <div className="flex items-center gap-2 pointer-events-auto rounded-full border border-white/10 bg-white/10 p-2 backdrop-blur-[80px]">
         {bottomNavItems.map((item) => {
           const Icon = item.icon;
@@ -42,7 +42,7 @@ export function BottomNav() {
               to={item.href}
               viewTransition
               className={cn(
-                "p-3 transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
+                "flex min-h-11 min-w-11 items-center justify-center p-3 transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900",
                 active ? item.color : "hover:bg-white/10"
               )}
             >
