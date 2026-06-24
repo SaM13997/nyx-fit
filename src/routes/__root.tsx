@@ -83,6 +83,18 @@ export const Route = createRootRouteWithContext<{
         content: "#000000",
       },
       {
+        name: "mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
+      {
         name: "apple-mobile-web-app-title",
         content: "Nyx Fitness",
       },
@@ -121,7 +133,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
     ],
   }),
