@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** F (`05e0e1f`)
+**Last completed batch:** F (`05e0e1f`) — synced to `cursor/nyx-fit-pwa-checklist-d1b3` (`e1a2339`)
 
 ---
 
@@ -107,6 +107,15 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 - [x] Capacitor or PWABuilder iOS scaffold decision recorded — `05e0e1f`; `docs/ios-wrapper.md` (Capacitor 7 chosen over PWABuilder)
 - [x] Minimal wrapper project with shared manifest / icons — `05e0e1f`; `capacitor.config.ts`, `ios/`, `builds/ios-capacitor.json`, `scripts/sync-ios-assets.mjs`
+
+---
+
+## Phase 6 — Store submission _(human / accounts required — not agent batches)_
+
+- [ ] Google Play Console app created; TWA CI secrets configured (`TWA_KEYSTORE_*`)
+- [ ] Play Store listing: screenshots, description, privacy policy URL
+- [ ] Apple Developer account; `npx cap sync ios` on macOS; App Store Connect listing
+- [ ] Production Convex deploy + `SITE_URL` / OAuth redirect URIs for store builds
 
 ---
 
