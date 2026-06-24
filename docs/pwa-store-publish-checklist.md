@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** D — `9b6e4c6` (2026-06-24)
+**Last completed batch:** E — `f42a330` (2026-06-24)
 
 ---
 
@@ -72,10 +72,10 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 2 — Mobile QA _(Batch E)_
 
-- [ ] 390×844 viewport: home, workouts, weights, settings — no overflow
-- [ ] Bottom nav safe area; tap targets ≥ 44px
-- [ ] Auth: login, session persist, logout
-- [ ] Settings: profile, appearance, rest timer
+- [x] 390×844 viewport: home, workouts, weights, settings — no overflow — `f42a330`
+- [x] Bottom nav safe area; tap targets ≥ 44px — `f42a330`
+- [x] Auth: login, session persist, logout — `f42a330`
+- [x] Settings: profile, appearance, rest timer — `f42a330`
 
 ---
 
