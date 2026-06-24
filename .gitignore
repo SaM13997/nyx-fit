@@ -10,9 +10,11 @@ count.txt
 .wrangler
 .output
 .vinxi
+.lighthouse
 todos.json
 
 #Android
+builds/android.keystore
 builds/.gradle
 builds/app
 builds/build
