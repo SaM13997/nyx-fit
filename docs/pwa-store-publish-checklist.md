@@ -23,7 +23,7 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.1 Single manifest source (`vite.config.ts`)
 
-- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — pending commit
+- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `0d65685`
 - [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible)
 - [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand
 
