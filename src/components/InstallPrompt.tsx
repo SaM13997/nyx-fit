@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from '@tanstack/react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Download } from 'lucide-react'
 
@@ -72,6 +73,7 @@ export function InstallPrompt() {
             </div>
             <div className="mt-4 flex gap-3">
               <button
+                type="button"
                 onClick={handleInstallClick}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-purple-500 active:scale-95"
               >
@@ -79,6 +81,23 @@ export function InstallPrompt() {
                 Install App
               </button>
             </div>
+            <p className="mt-3 text-center text-[11px] leading-relaxed text-zinc-500">
+              By installing, you agree to our{' '}
+              <Link
+                to="/terms"
+                className="text-zinc-400 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+              >
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/privacy"
+                className="text-zinc-400 underline decoration-white/20 underline-offset-2 transition-colors hover:text-white"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </motion.div>
       )}
