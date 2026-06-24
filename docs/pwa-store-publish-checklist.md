@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** D — (2026-06-24)
+**Last completed batch:** D — `9b6e4c6` (2026-06-24)
 
 ---
 
