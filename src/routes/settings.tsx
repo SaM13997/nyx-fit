@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Type,
   Timer,
+  Scale,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -204,6 +205,22 @@ function SettingsPage() {
         />
         <SettingsItem icon={Lock} label="Password" />
         <SettingsItem icon={Bell} label="Notifications" />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
+          Legal
+        </h3>
+        <SettingsItem
+          icon={Scale}
+          label="Terms of Service"
+          onClick={() => navigate({ to: "/terms" })}
+        />
+        <SettingsItem
+          icon={Scale}
+          label="Privacy Policy"
+          onClick={() => navigate({ to: "/privacy" })}
+        />
       </div>
 
       <div className="space-y-2">

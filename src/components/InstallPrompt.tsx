@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download } from "lucide-react";
+import { LegalFooterLinks } from "@/components/LegalFooterLinks";
 
 const DISMISS_KEY = "nyx-fit-install-prompt-dismissed";
 const DISMISS_DAYS = 7;
@@ -117,6 +118,7 @@ export function InstallPrompt() {
                 Install
               </button>
             </div>
+            <LegalFooterLinks className="mt-3 text-center" />
           </div>
         </motion.div>
       ) : null}
