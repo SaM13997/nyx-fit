@@ -5,6 +5,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
+import { nyxPwaSwPlugin } from './vite-pwa-sw-plugin.js'
 
 const config = defineConfig({
 	plugins: [
@@ -16,6 +17,7 @@ const config = defineConfig({
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
+		nyxPwaSwPlugin(),
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifestFilename: 'manifest.json',
@@ -24,6 +26,9 @@ const config = defineConfig({
 				'favicon/favicon.svg',
 				'favicon/favicon-96x96.png',
 				'favicon/apple-touch-icon.png',
+				'splash/apple-splash-1170x2532.png',
+				'splash/apple-splash-1290x2796.png',
+				'splash/apple-splash-750x1334.png',
 			],
 			manifest: {
 				name: 'Nyx Fitness',
@@ -62,9 +67,9 @@ const config = defineConfig({
 					},
 				],
 			},
-			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-			},
+			// Service worker is generated post-build via scripts/generate-sw.mjs
+			// (vite-plugin-pwa skips SW for TanStack Start SSR client builds).
+			selfDestroying: false,
 		}),
 	],
 })
