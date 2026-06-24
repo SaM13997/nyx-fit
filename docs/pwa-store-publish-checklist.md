@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B — pending verification (2026-06-24)
+**Last completed batch:** B — verified (2026-06-24)
 
 ---
 
@@ -50,19 +50,19 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.6 Splash screens _(Batch B)_
 
-- [x] iOS / Android splash assets or meta where applicable — `cc1d4ba`
+- [x] iOS / Android splash assets or meta where applicable — `17de5a6`
 
 ### 1.7 Offline shell _(Batch B)_
 
-- [x] Service worker caches app shell; offline UX acceptable — `60cd4f5`, `50a9152`
+- [x] Service worker caches app shell; offline UX acceptable — `17de5a6`, `7224be0`, `bbdcb23`
 
 ### 1.8 Install prompt _(Batch B)_
 
-- [x] `InstallPrompt` styled on-brand; dismiss + install flows work — `cc1d4ba`
+- [x] `InstallPrompt` styled on-brand; dismiss + install flows work — `17de5a6`
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [x] Lighthouse PWA audit passes on production preview build — `2cad463` (Lighthouse v11 PWA score 100)
+- [x] Lighthouse PWA audit passes on production preview build — `bbdcb23`, `5076d09` (Lighthouse v11 PWA score 100)
 
 ---
 
