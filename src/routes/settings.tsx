@@ -14,6 +14,8 @@ import {
   Lock,
   Bell,
   Info,
+  FileText,
+  Shield,
   HelpCircle,
   Trash2,
   Palette,
@@ -120,7 +122,7 @@ function SettingsPage() {
     <motion.button
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+      className="w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
@@ -208,6 +210,22 @@ function SettingsPage() {
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
+          Legal
+        </h3>
+        <SettingsItem
+          icon={Shield}
+          label="Privacy Policy"
+          onClick={() => navigate({ to: "/privacy" })}
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Terms of Service"
+          onClick={() => navigate({ to: "/terms" })}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
           Support
         </h3>
         <SettingsItem icon={Info} label="About application" />
@@ -238,7 +256,7 @@ function SettingsPage() {
     >
       <button
         onClick={() => setCurrentView("main")}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
+        className="flex min-h-11 items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
       >
         <ChevronLeft size={20} />
         <span className="font-medium">Back</span>
@@ -336,7 +354,7 @@ function SettingsPage() {
               key={option.value}
               onClick={() => setRestTimerDuration(option.value)}
               className={cn(
-                "py-3 rounded-xl border font-bold transition-all",
+                "min-h-11 py-3 rounded-xl border font-bold transition-all",
                 restTimerDuration === option.value
                   ? "bg-violet-900/20 border-violet-500/50 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.1)]"
                   : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"
@@ -407,7 +425,7 @@ function SettingsPage() {
   );
 
   return (
-    <div className="px-4 py-6 pb-24 min-h-screen text-white">
+    <div className="overflow-x-clip px-4 py-6 pb-24 min-h-screen text-white">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
