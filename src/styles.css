@@ -10,6 +10,24 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100dvh;
+}
+
+/* Mobile shell: bottom nav clearance + home-indicator safe area */
+@utility pb-page {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+@utility pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+@utility bottom-nav-offset {
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@utility fab-offset {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 h1, h2, h3, h4, h5, h6 {

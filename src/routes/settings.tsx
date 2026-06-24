@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useAppearance,
@@ -84,7 +84,8 @@ type SettingsView = "main" | "appearance";
 
 function SettingsPage() {
   const navigate = useNavigate();
-  const { data: sessionData } = authClient.useSession();
+  const { data: sessionData, isPending: isAuthPending } =
+    authClient.useSession();
   const session = sessionData?.session ?? null;
   const { profile } = useCurrentProfile({ enabled: !!session });
   const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
@@ -104,6 +105,31 @@ function SettingsPage() {
     await authClient.signOut();
     navigate({ to: "/login" });
   };
+
+  if (isAuthPending) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-black text-white">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-black px-4 text-white">
+        <p className="text-center text-zinc-400">
+          Sign in to manage your profile and preferences.
+        </p>
+        <Link
+          to="/login"
+          search={{ redirect: "/settings" }}
+          className="rounded-xl bg-purple-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-purple-500"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
+  }
 
   // Sub-components for cleaner render
   const SettingsItem = ({
@@ -234,7 +260,7 @@ function SettingsPage() {
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={handleLogout}
-        className="mt-4 w-full py-4 text-center font-semibold text-red-500 rounded-2xl border border-white/5 bg-white/5 hover:bg-black transition-colors"
+        className="mt-4 min-h-11 w-full py-4 text-center font-semibold text-red-500 rounded-2xl border border-white/5 bg-white/5 hover:bg-black transition-colors"
       >
         Log Out
       </motion.button>
@@ -419,7 +445,7 @@ function SettingsPage() {
   );
 
   return (
-    <div className="px-4 py-6 pb-24 min-h-screen text-white">
+    <div className="px-4 py-6 pb-page min-h-screen overflow-x-hidden text-white">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
