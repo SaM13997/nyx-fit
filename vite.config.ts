@@ -19,6 +19,7 @@ const config = defineConfig({
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifestFilename: 'manifest.json',
+			injectRegister: 'auto',
 			devOptions: {
 				enabled: true,
 			},
@@ -63,6 +64,22 @@ const config = defineConfig({
 			},
 			workbox: {
 				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+				navigateFallback: '/',
+				navigateFallbackDenylist: [/^\/api\//],
+				cleanupOutdatedCaches: true,
+				runtimeCaching: [
+					{
+						urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'google-fonts',
+							expiration: {
+								maxEntries: 12,
+								maxAgeSeconds: 60 * 60 * 24 * 365,
+							},
+						},
+					},
+				],
 			},
 		}),
 	],
