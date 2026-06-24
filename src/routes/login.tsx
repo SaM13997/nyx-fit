@@ -1,11 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { LoginForm } from "@/components/login-form";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dumbbell, LineChart, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
+import { getSafeRedirectPath } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === "string"
+        ? getSafeRedirectPath(search.redirect)
+        : undefined,
+  }),
   component: RouteComponent,
 });
 
@@ -43,7 +51,32 @@ const STEPS = [
 ];
 
 function RouteComponent() {
+  const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
+  const { data: sessionData, isPending: isAuthPending } =
+    authClient.useSession();
   const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (isAuthPending || !sessionData?.session) {
+      return;
+    }
+
+    if (redirect) {
+      navigate({ to: redirect });
+      return;
+    }
+
+    navigate({ to: "/" });
+  }, [isAuthPending, sessionData?.session, navigate, redirect]);
+
+  if (isAuthPending || sessionData?.session) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-black text-white">
+        <div className="animate-pulse">Loading...</div>
+      </div>
+    );
+  }
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
@@ -54,7 +87,7 @@ function RouteComponent() {
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-6 relative overflow-hidden">
+    <div className="min-h-dvh bg-black text-white flex flex-col items-center justify-between p-6 pb-safe relative overflow-x-hidden">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-zinc-900 to-black pointer-events-none" />
       <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-900/20 rounded-full blur-3xl pointer-events-none" />
