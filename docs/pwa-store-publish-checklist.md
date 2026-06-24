@@ -72,10 +72,10 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 2 — Mobile QA _(Batch E)_
 
-- [ ] 390×844 viewport: home, workouts, weights, settings — no overflow
-- [ ] Bottom nav safe area; tap targets ≥ 44px
-- [ ] Auth: login, session persist, logout
-- [ ] Settings: profile, appearance, rest timer
+- [x] 390×844 viewport: home, workouts, weights, settings — no overflow — `963fae0`
+- [x] Bottom nav safe area; tap targets ≥ 44px — `963fae0`
+- [x] Auth: login, session persist, logout — `963fae0`
+- [x] Settings: profile, appearance, rest timer — `963fae0`
 
 ---
 
