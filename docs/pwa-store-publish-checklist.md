@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B (pending commit on `cursor/nyx-fit-pwa-checklist-af1a`)
+**Last completed batch:** B (`b42601f`)
 
 ---
 
@@ -50,19 +50,19 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.6 Splash screens _(Batch B)_
 
-- [x] iOS / Android splash assets or meta where applicable — `public/splash/*`, `apple-touch-startup-image` links in `__root.tsx`
+- [x] iOS / Android splash assets or meta where applicable — `b42601f`
 
 ### 1.7 Offline shell _(Batch B)_
 
-- [x] Service worker caches app shell; offline UX acceptable — Workbox SW via `vite-pwa-sw-plugin.js`, `OfflineBanner` component
+- [x] Service worker caches app shell; offline UX acceptable — `b42601f`
 
 ### 1.8 Install prompt _(Batch B)_
 
-- [x] `InstallPrompt` styled on-brand; dismiss + install flows work — orange CTA, 7-day dismiss persistence, standalone detection
+- [x] `InstallPrompt` styled on-brand; dismiss + install flows work — `b42601f`
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [x] Lighthouse PWA audit passes on production preview build — score 100 (`lighthouse@11.7.1 --only-categories=pwa`)
+- [x] Lighthouse PWA audit passes on production preview build — `b42601f` (score 100)
 
 ---
 
