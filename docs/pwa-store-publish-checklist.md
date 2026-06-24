@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B (`e467587` / `1759c99`)
+**Last completed batch:** C (`81f3a34`)
 
 ---
 
@@ -77,9 +77,9 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 3 — Legal _(Batch C)_
 
-- [ ] `/privacy` page with store-ready privacy policy
-- [ ] `/terms` page with terms of service
-- [ ] Links from settings / install flows
+- [x] `/privacy` page with store-ready privacy policy — `81f3a34`
+- [x] `/terms` page with terms of service — `81f3a34`
+- [x] Links from settings / install flows — `81f3a34`
 
 ---
 
