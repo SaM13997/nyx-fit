@@ -103,7 +103,7 @@ function WeightsPage() {
   const oldestWeight = weights.length > 0 ? weights[weights.length - 1].weight : undefined;
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-screen pb-24">
+    <div className="bg-black text-white font-sans relative min-h-screen overflow-x-clip pb-24">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background with ORANGE override */}
@@ -184,7 +184,7 @@ function WeightsPage() {
       <button
         onClick={handleOpenLog}
         aria-label="Log weight entry"
-        className="fixed bottom-6 right-6 h-16 w-16 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-50 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
+        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-4 h-14 w-14 min-h-11 min-w-11 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-40 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
       >
         <Plus className="w-8 h-8" strokeWidth={3} />
       </button>
