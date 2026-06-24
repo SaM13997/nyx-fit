@@ -87,19 +87,19 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 4.1 Digital Asset Links
 
-- [x] `/.well-known/assetlinks.json` matches release signing key — (pending commit); `scripts/verify-assetlinks.mjs`
+- [x] `/.well-known/assetlinks.json` matches release signing key — `1099bed`; `scripts/verify-assetlinks.mjs`
 
 ### 4.2 Keystore documentation
 
-- [x] Keystore generation + CI secrets documented (no secrets in repo) — (pending commit); `docs/android-twa-signing.md`
+- [x] Keystore generation + CI secrets documented (no secrets in repo) — `1099bed`; `docs/android-twa-signing.md`
 
 ### 4.3 Bubblewrap / TWA manifest
 
-- [x] `builds/twa-manifest.json` aligned with live manifest URL and theme — (pending commit)
+- [x] `builds/twa-manifest.json` aligned with live manifest URL and theme — `1099bed`
 
 ### 4.4 CI build APK/AAB
 
-- [x] Workflow builds signed bundle (secrets in CI only) — (pending commit); `.github/workflows/twa-build.yml`
+- [x] Workflow builds signed bundle (secrets in CI only) — `1099bed`; `.github/workflows/twa-build.yml`
 
 ---
 
