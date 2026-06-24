@@ -22,7 +22,26 @@ import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 import appCss from "../styles.css?url";
+
+const appleSplashScreens = [
+  {
+    href: "/favicon/apple-splash-1170x2532.png",
+    media:
+      "(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    href: "/favicon/apple-splash-1284x2778.png",
+    media:
+      "(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)",
+  },
+  {
+    href: "/favicon/apple-splash-750x1334.png",
+    media:
+      "(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)",
+  },
+] as const;
 
 const Devtools = import.meta.env.DEV
   ? React.lazy(async () => {
@@ -83,6 +102,18 @@ export const Route = createRootRouteWithContext<{
         content: "#000000",
       },
       {
+        name: "mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
+      {
         name: "apple-mobile-web-app-title",
         content: "Nyx Fitness",
       },
@@ -121,8 +152,13 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
+      ...appleSplashScreens.map((splash) => ({
+        rel: "apple-touch-startup-image" as const,
+        href: splash.href,
+        media: splash.media,
+      })),
     ],
   }),
   beforeLoad: async (ctx) => {
@@ -151,6 +187,7 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <OfflineIndicator />
             <Outlet />
             <InstallPrompt />
           </RootDocument>
