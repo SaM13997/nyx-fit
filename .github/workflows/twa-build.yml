@@ -1,0 +1,58 @@
+name: TWA build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'builds/twa-manifest.json'
+      - 'scripts/twa/**'
+      - '.github/workflows/twa-build.yml'
+
+jobs:
+  build-aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build signed TWA bundle
+        env:
+          TWA_KEYSTORE_BASE64: ${{ secrets.TWA_KEYSTORE_BASE64 }}
+          TWA_KEYSTORE_PASSWORD: ${{ secrets.TWA_KEYSTORE_PASSWORD }}
+          TWA_KEY_ALIAS: ${{ secrets.TWA_KEY_ALIAS }}
+          TWA_KEY_PASSWORD: ${{ secrets.TWA_KEY_PASSWORD }}
+        run: bash scripts/twa/build.sh
+
+      - name: Upload AAB artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyx-fit-twa-aab
+          path: builds/app-release-bundle.aab
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyx-fit-twa-apk
+          path: builds/app-release-signed.apk
+          if-no-files-found: warn
