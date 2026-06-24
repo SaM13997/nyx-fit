@@ -4,9 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
-    "test": "vitest run"
+    "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
+    "test": "vitest run",
+    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.6",
