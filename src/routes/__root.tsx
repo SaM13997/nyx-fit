@@ -22,6 +22,8 @@ import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { appleSplashScreens } from "@/lib/pwa-splash";
 import appCss from "../styles.css?url";
 
 const Devtools = import.meta.env.DEV
@@ -86,6 +88,14 @@ export const Route = createRootRouteWithContext<{
         name: "apple-mobile-web-app-title",
         content: "Nyx Fitness",
       },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -121,8 +131,13 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
+      ...appleSplashScreens.map((splash) => ({
+        rel: "apple-touch-startup-image" as const,
+        href: splash.href,
+        media: splash.media,
+      })),
     ],
   }),
   beforeLoad: async (ctx) => {
@@ -151,6 +166,7 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <OfflineBanner />
             <Outlet />
             <InstallPrompt />
           </RootDocument>
@@ -167,8 +183,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
         <title>Nyx Fitness</title>
       </head>
-      <body className="bg-background">
-        <div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
+      <body className="bg-background min-h-dvh">
+        <div className="mx-auto max-w-lg flex min-h-dvh flex-col overflow-x-clip w-full">
           <div className="flex-1 flex flex-col">{children}</div>
           <BottomNav />
           {Devtools ? (
