@@ -22,4 +22,11 @@ builds/app-release-signed.apk
 builds/app-release-signed.apk.idsig
 builds/app-release-unsigned-aligned.apk
 
+# Capacitor iOS — commit ios/ scaffold; ignore local/Xcode artifacts
+ios/App/Pods/
+ios/App/App/public/
+ios/DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+
 

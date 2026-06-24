@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** E (`14941c8`)
+**Last completed batch:** F (pending commit)
 
 ---
 
@@ -105,8 +105,8 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 5 — iOS wrapper _(Batch F)_
 
-- [ ] Capacitor or PWABuilder iOS scaffold decision recorded
-- [ ] Minimal wrapper project with shared manifest / icons
+- [x] Capacitor or PWABuilder iOS scaffold decision recorded — `docs/ios-wrapper.md` (Capacitor 7 chosen over PWABuilder)
+- [x] Minimal wrapper project with shared manifest / icons — `capacitor.config.ts`, `ios/`, `builds/ios-capacitor.json`, `scripts/sync-ios-assets.mjs`
 
 ---
 
@@ -115,3 +115,4 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 - Do **not** enable Play Billing or web push unless a batch explicitly covers them.
 - Convex production deploy, keystore secrets, and store developer accounts are **stop conditions** — report in Slack, do not mark items complete.
 - TWA CI requires GitHub secrets: `TWA_KEYSTORE_BASE64`, `TWA_KEYSTORE_PASSWORD`, `TWA_KEY_ALIAS`, `TWA_KEY_PASSWORD` (see `docs/android-twa-signing.md` when added).
+- iOS wrapper: see `docs/ios-wrapper.md`; run `npx cap add ios` on macOS, then `npm run ios:assets` and `npx cap sync ios`.
