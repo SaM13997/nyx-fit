@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** A — pending commit (2026-06-24)
+**Last completed batch:** A — `85442f7` (2026-06-24)
 
 ---
 
@@ -23,30 +23,30 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.1 Single manifest source (`vite.config.ts`)
 
-- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — pending commit
-- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible) — pending commit
-- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand — pending commit
+- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `85442f7`
+- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible) — `85442f7`
+- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand — `85442f7`
 
 ### 1.2 Icons (192 + 512, any + maskable)
 
-- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512` — pending commit
-- [x] Both `any` and `maskable` purposes declared — pending commit
-- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`) — pending commit
+- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512` — `85442f7`
+- [x] Both `any` and `maskable` purposes declared — `85442f7`
+- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`) — `85442f7`
 
 ### 1.3 Apple touch icon
 
-- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180) — pending commit
+- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180) — `85442f7`
 
 ### 1.4 Apple meta tags
 
-- [x] `apple-mobile-web-app-title` = Nyx Fitness — pending commit
-- [x] `apple-mobile-web-app-capable` = yes — pending commit
-- [x] `apple-mobile-web-app-status-bar-style` = black-translucent — pending commit
-- [x] `theme-color` = `#000000` (dark-first) — pending commit
+- [x] `apple-mobile-web-app-title` = Nyx Fitness — `85442f7`
+- [x] `apple-mobile-web-app-capable` = yes — `85442f7`
+- [x] `apple-mobile-web-app-status-bar-style` = black-translucent — `85442f7`
+- [x] `theme-color` = `#000000` (dark-first) — `85442f7`
 
 ### 1.5 Head manifest link
 
-- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build) — pending commit
+- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build) — `85442f7`
 
 ### 1.6 Splash screens _(Batch B)_
 
