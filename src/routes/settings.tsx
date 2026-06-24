@@ -15,6 +15,8 @@ import {
   Bell,
   Info,
   HelpCircle,
+  FileText,
+  ScrollText,
   Trash2,
   Palette,
   Check,
@@ -212,6 +214,16 @@ function SettingsPage() {
         </h3>
         <SettingsItem icon={Info} label="About application" />
         <SettingsItem icon={HelpCircle} label="Help/FAQ" />
+        <SettingsItem
+          icon={FileText}
+          label="Privacy Policy"
+          onClick={() => navigate({ to: "/privacy" })}
+        />
+        <SettingsItem
+          icon={ScrollText}
+          label="Terms of Service"
+          onClick={() => navigate({ to: "/terms" })}
+        />
         <SettingsItem
           icon={Trash2}
           label="Deactivate my account"
