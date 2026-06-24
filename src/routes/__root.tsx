@@ -22,6 +22,9 @@ import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { IOS_SPLASH_LINKS } from "@/lib/iosSplashLinks";
 import appCss from "../styles.css?url";
 
 const Devtools = import.meta.env.DEV
@@ -76,11 +79,23 @@ export const Route = createRootRouteWithContext<{
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       {
         name: "theme-color",
         content: "#000000",
+      },
+      {
+        name: "mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
       },
       {
         name: "apple-mobile-web-app-title",
@@ -121,8 +136,13 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
+      ...IOS_SPLASH_LINKS.map((splash) => ({
+        rel: "apple-touch-startup-image" as const,
+        href: splash.href,
+        media: splash.media,
+      })),
     ],
   }),
   beforeLoad: async (ctx) => {
@@ -151,6 +171,8 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <ServiceWorkerRegistration />
+            <OfflineBanner />
             <Outlet />
             <InstallPrompt />
           </RootDocument>

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 
 const EMAIL_MAX_LENGTH = 254;
@@ -206,7 +206,21 @@ export function LoginForm({
         </div>
       </form>
       <div className="text-center text-xs text-gray-500 break-words">
-        By clicking continue, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a> and <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>.
+        By clicking continue, you agree to our{" "}
+        <Link
+          to="/terms"
+          className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white"
+        >
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link
+          to="/privacy"
+          className="underline decoration-white/30 underline-offset-4 transition-colors hover:text-white"
+        >
+          Privacy Policy
+        </Link>
+        .
       </div>
     </div>
   );
