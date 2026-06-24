@@ -4,8 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-sw.mjs",
     "serve": "vite preview",
+    "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
+    "twa:fingerprint": "node scripts/twa-fingerprint.mjs",
+    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs",
+    "twa:validate-assetlinks": "node scripts/validate-assetlinks.mjs",
     "test": "vitest run"
   },
   "dependencies": {
@@ -60,6 +64,7 @@
     "vite": "^7.1.7",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.0.5",
+    "workbox-build": "^7.3.0",
     "web-vitals": "^5.1.0"
   }
 }

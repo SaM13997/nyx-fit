@@ -16,6 +16,8 @@ import {
   Info,
   HelpCircle,
   Trash2,
+  FileText,
+  Shield,
   Palette,
   Check,
   ChevronLeft,
@@ -212,6 +214,20 @@ function SettingsPage() {
         </h3>
         <SettingsItem icon={Info} label="About application" />
         <SettingsItem icon={HelpCircle} label="Help/FAQ" />
+        <SettingsItem
+          icon={Shield}
+          label="Privacy Policy"
+          onClick={() =>
+            navigate({ to: "/privacy", search: { from: "settings" } })
+          }
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Terms of Service"
+          onClick={() =>
+            navigate({ to: "/terms", search: { from: "settings" } })
+          }
+        />
         <SettingsItem
           icon={Trash2}
           label="Deactivate my account"
