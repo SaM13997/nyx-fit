@@ -4,8 +4,18 @@ import { LoginForm } from "@/components/login-form";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dumbbell, LineChart, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { redirectIfAuthenticated } from "@/lib/route-auth";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === "string" && search.redirect.startsWith("/")
+        ? search.redirect
+        : undefined,
+  }),
+  beforeLoad: ({ context }) => {
+    redirectIfAuthenticated({ context });
+  },
   component: RouteComponent,
 });
 
@@ -54,7 +64,7 @@ function RouteComponent() {
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-6 relative overflow-hidden">
+    <div className="min-h-dvh bg-black text-white flex flex-col items-center justify-between p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] relative overflow-hidden">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-zinc-900 to-black pointer-events-none" />
       <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-900/20 rounded-full blur-3xl pointer-events-none" />
@@ -136,14 +146,14 @@ function RouteComponent() {
         >
           <Button
             onClick={handleNext}
-            className="w-full h-14 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group shadow-lg shadow-purple-900/20"
+            className="w-full h-14 min-h-[3.25rem] rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 group shadow-lg shadow-purple-900/20"
           >
             Next
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Button>
           <button
             onClick={() => setCurrentStep(STEPS.length - 1)}
-            className="w-full mt-4 text-gray-500 font-medium text-sm hover:text-white transition-colors"
+            className="w-full mt-4 min-h-[2.75rem] py-2 text-gray-500 font-medium text-sm hover:text-white transition-colors"
           >
             Skip to Login
           </button>

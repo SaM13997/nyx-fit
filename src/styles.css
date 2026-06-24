@@ -208,6 +208,26 @@ code {
   animation-duration: 0.3s;
 }
 
+/* Mobile shell — bottom nav clearance + iOS safe areas */
+@layer utilities {
+  .pb-page-nav {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-fab-safe {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-nav-safe {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .tap-target {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
