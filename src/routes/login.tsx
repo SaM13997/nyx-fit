@@ -54,7 +54,7 @@ function RouteComponent() {
   const isLastStep = currentStep === STEPS.length - 1;
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-between p-6 relative overflow-hidden">
+    <div className="relative flex min-h-dvh flex-col items-center justify-between overflow-x-clip bg-black p-6 pb-safe pt-safe text-white">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-zinc-900 to-black pointer-events-none" />
       <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-900/20 rounded-full blur-3xl pointer-events-none" />

@@ -1,6 +1,7 @@
 
 import { useState, type FormEvent } from "react";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -206,7 +207,21 @@ export function LoginForm({
         </div>
       </form>
       <div className="text-center text-xs text-gray-500 break-words">
-        By clicking continue, you agree to our <a href="#" className="underline hover:text-white transition-colors">Terms</a> and <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>.
+        By clicking continue, you agree to our{" "}
+        <Link
+          to="/terms"
+          className="underline underline-offset-2 hover:text-white transition-colors"
+        >
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link
+          to="/privacy"
+          className="underline underline-offset-2 hover:text-white transition-colors"
+        >
+          Privacy Policy
+        </Link>
+        .
       </div>
     </div>
   );

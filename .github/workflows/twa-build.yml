@@ -1,0 +1,87 @@
+name: Build Android TWA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev, master, cursor/**]
+    paths:
+      - 'builds/**'
+      - 'public/assetlinks.json'
+      - 'public/.well-known/assetlinks.json'
+      - 'scripts/build-twa.sh'
+      - 'scripts/verify-assetlinks.mjs'
+      - '.github/workflows/twa-build.yml'
+
+jobs:
+  build-twa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: builds
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Decode release keystore
+        working-directory: ${{ github.workspace }}
+        env:
+          TWA_KEYSTORE_BASE64: ${{ secrets.TWA_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$TWA_KEYSTORE_BASE64" ]; then
+            echo "::error::TWA_KEYSTORE_BASE64 secret is not configured. See docs/android-twa-signing.md"
+            exit 1
+          fi
+          echo "$TWA_KEYSTORE_BASE64" | base64 -d > builds/android.keystore
+
+      - name: Verify Digital Asset Links fingerprint
+        working-directory: ${{ github.workspace }}
+        env:
+          TWA_KEYSTORE_PASSWORD: ${{ secrets.TWA_KEYSTORE_PASSWORD }}
+          TWA_KEY_ALIAS: ${{ secrets.TWA_KEY_ALIAS }}
+        run: node scripts/verify-assetlinks.mjs
+
+      - name: Configure Bubblewrap
+        run: |
+          npx --yes @bubblewrap/cli@latest updateConfig \
+            --jdkPath="$JAVA_HOME" \
+            --androidSdkPath="$ANDROID_SDK_ROOT"
+
+      - name: Update TWA project from manifest
+        run: |
+          npx --yes @bubblewrap/cli@latest update \
+            --manifest=twa-manifest.json \
+            --skipPwaValidation
+
+      - name: Build signed AAB
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.TWA_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.TWA_KEY_PASSWORD }}
+          TWA_KEY_ALIAS: ${{ secrets.TWA_KEY_ALIAS }}
+        run: |
+          npx --yes @bubblewrap/cli@latest build \
+            --manifest=twa-manifest.json \
+            --signingKeyPath=./android.keystore \
+            --signingKeyAlias="${TWA_KEY_ALIAS:-android}" \
+            --skipPwaValidation
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyx-fit-twa-aab
+          path: builds/app-release-bundle.aab
+          if-no-files-found: error
