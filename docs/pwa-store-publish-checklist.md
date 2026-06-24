@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** A (`2df907c`)
+**Last completed batch:** A (`1c4fe53`)
 
 ---
 
@@ -23,30 +23,30 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.1 Single manifest source (`vite.config.ts`)
 
-- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `2df907c`
-- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible) — `2df907c`
-- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand — `2df907c`
+- [x] `vite-plugin-pwa` is the only manifest author (no stale `public/manifest.json`) — `1c4fe53`
+- [x] `manifestFilename` is `manifest.json` (TWA / Bubblewrap compatible) — `1c4fe53`
+- [x] `name`, `short_name`, `description`, `start_url`, `scope`, `display`, `orientation` match brand — `1c4fe53`
 
 ### 1.2 Icons (192 + 512, any + maskable)
 
-- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512` — `2df907c`
-- [x] Both `any` and `maskable` purposes declared — `2df907c`
-- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`) — `2df907c`
+- [x] Icons reference `/favicon/web-app-manifest-192x192.png` and `512x512` — `1c4fe53`
+- [x] Both `any` and `maskable` purposes declared — `1c4fe53`
+- [x] Favicon set linked in root head (`favicon.ico`, `favicon.svg`, `favicon-96x96`) — `1c4fe53`
 
 ### 1.3 Apple touch icon
 
-- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180) — `2df907c`
+- [x] `apple-touch-icon` points to `/favicon/apple-touch-icon.png` (180×180) — `1c4fe53`
 
 ### 1.4 Apple meta tags
 
-- [x] `apple-mobile-web-app-title` = Nyx Fitness — `2df907c`
-- [x] `apple-mobile-web-app-capable` = yes — `2df907c`
-- [x] `apple-mobile-web-app-status-bar-style` = black-translucent — `2df907c`
-- [x] `theme-color` = `#000000` (dark-first) — `2df907c`
+- [x] `apple-mobile-web-app-title` = Nyx Fitness — `1c4fe53`
+- [x] `apple-mobile-web-app-capable` = yes — `1c4fe53`
+- [x] `apple-mobile-web-app-status-bar-style` = black-translucent — `1c4fe53`
+- [x] `theme-color` = `#000000` (dark-first) — `1c4fe53`
 
 ### 1.5 Head manifest link
 
-- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build) — `2df907c`
+- [x] Root route links `rel="manifest"` → `/manifest.json` (generated at build) — `1c4fe53`
 
 ### 1.6 Splash screens _(Batch B)_
 
