@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/route-auth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useAppearance,
@@ -15,6 +16,8 @@ import {
   Bell,
   Info,
   HelpCircle,
+  FileText,
+  Shield,
   Trash2,
   Palette,
   Check,
@@ -26,6 +29,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: SettingsPage,
 });
 
@@ -99,8 +105,12 @@ function SettingsPage() {
   } = useAppearance();
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    navigate({ to: "/login" });
+    try {
+      await authClient.signOut();
+      navigate({ to: "/login", replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Sub-components for cleaner render
@@ -120,7 +130,7 @@ function SettingsPage() {
     <motion.button
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+      className="w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors text-left"
     >
       <div className="flex items-center gap-3">
         <div
@@ -160,7 +170,7 @@ function SettingsPage() {
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={() => navigate({ to: "/settings/profile" })}
-        className="w-full flex items-center gap-4 p-4 bg-white/10 rounded-2xl border border-white/10 text-left"
+        className="w-full flex items-center gap-4 p-4 min-h-[4.5rem] bg-white/10 rounded-2xl border border-white/10 text-left"
       >
         <div className="h-14 w-14 rounded-full bg-linear-to-tr from-purple-500 to-blue-500 overflow-hidden">
           {effectiveProfile.profilePicture && (
@@ -208,6 +218,22 @@ function SettingsPage() {
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
+          Legal
+        </h3>
+        <SettingsItem
+          icon={Shield}
+          label="Privacy Policy"
+          onClick={() => navigate({ to: "/privacy" })}
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Terms of Service"
+          onClick={() => navigate({ to: "/terms" })}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
           Support
         </h3>
         <SettingsItem icon={Info} label="About application" />
@@ -222,7 +248,7 @@ function SettingsPage() {
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={handleLogout}
-        className="mt-4 w-full py-4 text-center font-semibold text-red-500 rounded-2xl border border-white/5 bg-white/5 hover:bg-black transition-colors"
+        className="mt-4 w-full min-h-[3.25rem] py-4 text-center font-semibold text-red-500 rounded-2xl border border-white/5 bg-white/5 hover:bg-black transition-colors"
       >
         Log Out
       </motion.button>
@@ -407,7 +433,7 @@ function SettingsPage() {
   );
 
   return (
-    <div className="px-4 py-6 pb-24 min-h-screen text-white">
+    <div className="px-4 py-6 pb-page-nav min-h-screen text-white overflow-x-hidden">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
