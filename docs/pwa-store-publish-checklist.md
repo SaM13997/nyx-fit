@@ -108,7 +108,7 @@ See [android-twa-signing.md](./android-twa-signing.md) for keystore, asset links
 ## Phase 5 — iOS wrapper _(Batch F)_
 
 - [x] Capacitor chosen over PWABuilder — `docs/ios-capacitor.md`
-- [x] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons via `npm run ios:sync-assets`) — pending commit hash
+- [x] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons via `npm run ios:sync-assets`) — `fe5ac82`
 
 ---
 

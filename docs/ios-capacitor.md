@@ -20,7 +20,7 @@ Nyx Fit ships to the App Store as a **Capacitor** native shell loading the deplo
 | `builds/ios-config.json` | Bundle ID, host, icon paths (shared with scripts) |
 | `capacitor.config.ts` | Capacitor app config (`server.url` → production) |
 | `resources/icon.png` | App icon (synced from `public/favicon/`) |
-| `resources/splash.png` | Launch splash (synced from `public/favicon/splash/`) |
+| `resources/splash.png` | Launch splash (synced from `public/splash/`) |
 | `scripts/sync-ios-assets.mjs` | Regenerates `resources/` from PWA assets |
 | `ios/` | Xcode project (generated; build requires macOS) |
 

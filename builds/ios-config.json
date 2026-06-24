@@ -8,6 +8,6 @@
   "backgroundColor": "#000000",
   "icons": {
     "appIcon": "public/favicon/web-app-manifest-512x512.png",
-    "splash": "public/favicon/splash/splash-1290x2796.png"
+    "splash": "public/splash/apple-splash-1290x2796.png"
   }
 }
