@@ -50,23 +50,23 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.6 Splash screens _(Batch B)_
 
-- [x] iOS splash `apple-touch-startup-image` links for 8 device sizes — Batch B
-- [x] Splash PNG assets under `/favicon/splash/` — Batch B
+- [x] iOS splash `apple-touch-startup-image` links for 8 device sizes — `c8e471b`
+- [x] Splash PNG assets under `/favicon/splash/` — `c8e471b`
 
 ### 1.7 Offline shell _(Batch B)_
 
-- [x] Workbox service worker (`sw.js`) with app-shell precache + navigate fallback — Batch B
-- [x] `OfflineBanner` shows when offline; cached pages still work — Batch B
-- [x] `ServiceWorkerRegistration` registers `/sw.js` in preview/production — Batch B
+- [x] Workbox service worker (`sw.js`) with app-shell precache + navigate fallback — `c8e471b`
+- [x] `OfflineBanner` shows when offline; cached pages still work — `c8e471b`
+- [x] `ServiceWorkerRegistration` registers `/sw.js` in preview/production — `c8e471b`
 
 ### 1.8 Install prompt _(Batch B)_
 
-- [x] `InstallPrompt` orange-accent styling, 44px tap targets, dismiss persistence (7 days) — Batch B
-- [x] Skips prompt when already standalone or recently dismissed — Batch B
+- [x] `InstallPrompt` orange-accent styling, 44px tap targets, dismiss persistence (7 days) — `c8e471b`
+- [x] Skips prompt when already standalone or recently dismissed — `c8e471b`
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [x] `npm run lighthouse:pwa` script (Lighthouse v11) passes on preview build — Batch B
+- [x] `npm run lighthouse:pwa` script (Lighthouse v11) passes on preview build — `c8e471b`
 
 ---
 
