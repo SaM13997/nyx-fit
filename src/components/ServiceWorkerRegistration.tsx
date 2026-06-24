@@ -1,0 +1,10 @@
+import { useEffect } from "react";
+import { registerServiceWorker } from "@/lib/pwa";
+
+export function ServiceWorkerRegistration() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
+  return null;
+}
