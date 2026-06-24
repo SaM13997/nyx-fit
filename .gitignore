@@ -10,8 +10,14 @@ count.txt
 .wrangler
 .output
 .vinxi
-.lighthouse
 todos.json
+
+# iOS / Capacitor (Xcode user state; keep ios/ scaffold in git)
+ios/App/App/public/
+ios/App/Pods/
+ios/DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
 
 #Android
 builds/android.keystore

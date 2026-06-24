@@ -8,7 +8,10 @@
     "serve": "vite preview",
     "lighthouse:pwa": "node scripts/lighthouse-pwa.mjs",
     "test": "vitest run",
-    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs"
+    "twa:sync-assetlinks": "node scripts/sync-assetlinks.mjs",
+    "ios:sync-assets": "node scripts/sync-ios-assets.mjs",
+    "ios:sync": "npm run ios:sync-assets && npx cap sync ios",
+    "ios:open": "npx cap open ios"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.6",
@@ -48,6 +51,11 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@types/node": "^22.10.2",
