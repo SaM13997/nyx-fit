@@ -8,7 +8,7 @@ import {
   useWeightGoal,
   useCurrentProfile,
 } from "@/lib/convex/hooks";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { WeightStatsCard } from "@/components/weights/WeightStatsCard";
 import { WeightHistoryList } from "@/components/weights/WeightHistoryList";
 import type { WeightEntry } from "@/lib/types";
@@ -43,6 +43,11 @@ function WeightsPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WeightEntry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isChartReady, setIsChartReady] = useState(false);
+
+  useEffect(() => {
+    setIsChartReady(true);
+  }, []);
 
   const handleOpenLog = () => {
     setEditingEntry(null);
@@ -146,13 +151,17 @@ function WeightsPage() {
           />
 
           <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
-            <Suspense
-              fallback={
-                <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
-              }
-            >
-              <WeightChart weights={weights} goal={goal} unit={weightUnit} />
-            </Suspense>
+            {isChartReady ? (
+              <Suspense
+                fallback={
+                  <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+                }
+              >
+                <WeightChart weights={weights} goal={goal} unit={weightUnit} />
+              </Suspense>
+            ) : (
+              <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+            )}
           </div>
 
           <WeightHistoryList
