@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B — (2026-06-24)
+**Last completed batch:** B — `cf3b5ba` (2026-06-24)
 
 ---
 
@@ -50,23 +50,23 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ### 1.6 Splash screens _(Batch B)_
 
-- [x] iOS splash `apple-touch-startup-image` links for 8 device sizes — Batch B
-- [x] Splash PNG assets under `/favicon/splash/` — Batch B
+- [x] iOS splash `apple-touch-startup-image` links for 8 device sizes — `cf3b5ba`
+- [x] Splash PNG assets under `/favicon/splash/` — `cf3b5ba`
 
 ### 1.7 Offline shell _(Batch B)_
 
-- [x] Workbox service worker (`sw.js`) with app-shell precache + navigate fallback — Batch B
-- [x] `OfflineBanner` shows when offline; cached pages still work — Batch B
-- [x] `ServiceWorkerRegistration` registers `/sw.js` in preview/production — Batch B
+- [x] Workbox service worker (`sw.js`) with app-shell precache + navigate fallback — `cf3b5ba`
+- [x] `OfflineBanner` shows when offline; cached pages still work — `cf3b5ba`
+- [x] `ServiceWorkerRegistration` registers `/sw.js` in preview/production — `cf3b5ba`
 
 ### 1.8 Install prompt _(Batch B)_
 
-- [x] `InstallPrompt` orange-accent styling, 44px tap targets, dismiss persistence (7 days) — Batch B
-- [x] Skips prompt when already standalone or recently dismissed — Batch B
+- [x] `InstallPrompt` orange-accent styling, 44px tap targets, dismiss persistence (7 days) — `cf3b5ba`
+- [x] Skips prompt when already standalone or recently dismissed — `cf3b5ba`
 
 ### 1.9 Lighthouse PWA _(Batch B)_
 
-- [x] `npm run lighthouse:pwa` script (Lighthouse v11) passes on preview build — Batch B
+- [x] `npm run lighthouse:pwa` script (Lighthouse v11) passes on preview build — `cf3b5ba`
 
 ---
 
