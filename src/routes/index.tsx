@@ -82,7 +82,7 @@ function HomePage() {
   }
 
   return (
-    <div className=" px-4 py-6 min-h-screen text-white ">
+    <div className="px-4 py-6 pb-page-nav min-h-screen text-white overflow-x-hidden">
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 400, damping: 25 }}

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/route-auth";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useConvex } from "convex/react";
 
@@ -35,6 +36,9 @@ function validateProfileName(name: string) {
 }
 
 export const Route = createFileRoute("/settings_/profile")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: ProfileDetailsPage,
 });
 
@@ -220,7 +224,7 @@ function ProfileDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen text-white pb-24 relative overflow-hidden">
+    <div className="min-h-screen text-white pb-page-nav relative overflow-hidden">
       {/* Background Gradient */}
       <div className="fixed inset-0 z-0 bg-black pointer-events-none">
         <div className="absolute top-0 right-0 w-3/4 h-3/4 bg-purple-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

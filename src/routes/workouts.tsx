@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/route-auth";
 import { Dumbbell } from "lucide-react";
 import type { Workout } from "@/lib/types";
 import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/convex/hooks";
@@ -7,6 +8,9 @@ import { WorkoutCard } from "@/components/WorkoutCard";
 import { useState } from "react";
 
 export const Route = createFileRoute("/workouts")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: WorkoutsPage,
 });
 
@@ -68,7 +72,7 @@ function WorkoutsPage() {
   };
 
   return (
-    <div className=" bg-black text-white font-sans relative">
+    <div className="bg-black text-white font-sans relative overflow-x-hidden">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background */}
@@ -85,7 +89,7 @@ function WorkoutsPage() {
         {/* Content */}
         <div className="relative flex flex-col justify-end  h-full px-4 pt-12">
           <div className=" max-w-md">
-            <h1 className="text-6xl font-bold tracking-tighter ">
+            <h1 className="text-5xl font-bold tracking-tighter break-words">
               Workouts
             </h1>
           </div>
@@ -93,7 +97,7 @@ function WorkoutsPage() {
       </div>
 
       {/* Content */}
-      <div className="relative px-4 pb-24">
+      <div className="relative px-4 pb-page-nav">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
             <p className="text-sm text-zinc-400">
