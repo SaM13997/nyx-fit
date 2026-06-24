@@ -2,7 +2,7 @@
 
 Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work in **one batch per automation run** using the [Agent batching map](#agent-batching-map).
 
-**Last completed batch:** B — PR [#17](https://github.com/SaM13997/nyx-fit/pull/17) / `2cad463` (2026-06-23)
+**Last completed batch:** C — `6c00022` (2026-06-24)
 
 ---
 
@@ -77,9 +77,9 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 3 — Legal _(Batch C)_
 
-- [ ] `/privacy` page with store-ready privacy policy
-- [ ] `/terms` page with terms of service
-- [ ] Links from settings / install flows
+- [x] `/privacy` page with store-ready privacy policy — `6c00022`
+- [x] `/terms` page with terms of service — `6c00022`
+- [x] Links from settings / install flows — `6c00022`
 
 ---
 
