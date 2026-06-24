@@ -4,9 +4,13 @@ import type { Workout } from "@/lib/types";
 import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/convex/hooks";
 import { WorkoutStatusCard } from "@/components/home";
 import { WorkoutCard } from "@/components/WorkoutCard";
+import { requireAuth } from "@/lib/route-auth";
 import { useState } from "react";
 
 export const Route = createFileRoute("/workouts")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: WorkoutsPage,
 });
 
@@ -68,7 +72,7 @@ function WorkoutsPage() {
   };
 
   return (
-    <div className=" bg-black text-white font-sans relative">
+    <div className="bg-black text-white font-sans relative min-h-screen overflow-x-clip">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background */}
@@ -83,9 +87,9 @@ function WorkoutsPage() {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
 
         {/* Content */}
-        <div className="relative flex flex-col justify-end  h-full px-4 pt-12">
-          <div className=" max-w-md">
-            <h1 className="text-6xl font-bold tracking-tighter ">
+        <div className="relative flex flex-col justify-end h-full px-4 pt-12">
+          <div className="max-w-md min-w-0">
+            <h1 className="text-5xl sm:text-6xl font-bold tracking-tighter break-words">
               Workouts
             </h1>
           </div>
@@ -93,7 +97,7 @@ function WorkoutsPage() {
       </div>
 
       {/* Content */}
-      <div className="relative px-4 pb-24">
+      <div className="relative px-4 pb-nav-safe">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
             <p className="text-sm text-zinc-400">

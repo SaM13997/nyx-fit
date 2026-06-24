@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/route-auth";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useAppearance,
@@ -16,6 +17,8 @@ import {
   Info,
   HelpCircle,
   Trash2,
+  FileText,
+  Shield,
   Palette,
   Check,
   ChevronLeft,
@@ -26,6 +29,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/settings")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: SettingsPage,
 });
 
@@ -120,7 +126,7 @@ function SettingsPage() {
     <motion.button
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+      className="w-full flex min-h-11 items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
@@ -213,6 +219,20 @@ function SettingsPage() {
         <SettingsItem icon={Info} label="About application" />
         <SettingsItem icon={HelpCircle} label="Help/FAQ" />
         <SettingsItem
+          icon={Shield}
+          label="Privacy Policy"
+          onClick={() =>
+            navigate({ to: "/privacy", search: { from: "settings" } })
+          }
+        />
+        <SettingsItem
+          icon={FileText}
+          label="Terms of Service"
+          onClick={() =>
+            navigate({ to: "/terms", search: { from: "settings" } })
+          }
+        />
+        <SettingsItem
           icon={Trash2}
           label="Deactivate my account"
           isDestructive
@@ -238,7 +258,7 @@ function SettingsPage() {
     >
       <button
         onClick={() => setCurrentView("main")}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
+        className="inline-flex min-h-11 items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
       >
         <ChevronLeft size={20} />
         <span className="font-medium">Back</span>
@@ -336,7 +356,7 @@ function SettingsPage() {
               key={option.value}
               onClick={() => setRestTimerDuration(option.value)}
               className={cn(
-                "py-3 rounded-xl border font-bold transition-all",
+                "min-h-11 py-3 rounded-xl border font-bold transition-all",
                 restTimerDuration === option.value
                   ? "bg-violet-900/20 border-violet-500/50 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.1)]"
                   : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10"
@@ -407,7 +427,7 @@ function SettingsPage() {
   );
 
   return (
-    <div className="px-4 py-6 pb-24 min-h-screen text-white">
+    <div className="px-4 py-6 pb-nav-safe min-h-screen text-white overflow-x-clip">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>

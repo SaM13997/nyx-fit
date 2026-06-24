@@ -4,8 +4,18 @@ import { LoginForm } from "@/components/login-form";
 import { AnimatePresence, motion } from "framer-motion";
 import { Dumbbell, LineChart, Trophy, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { redirectIfAuthenticated } from "@/lib/route-auth";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect:
+      typeof search.redirect === "string" && search.redirect.length > 0
+        ? search.redirect
+        : undefined,
+  }),
+  beforeLoad: ({ context, search }) => {
+    redirectIfAuthenticated({ context, search });
+  },
   component: RouteComponent,
 });
 
