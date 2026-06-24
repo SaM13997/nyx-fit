@@ -78,7 +78,8 @@ export const Route = createRootRouteWithContext<{
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       {
         name: "theme-color",
@@ -184,8 +185,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <title>Nyx Fitness</title>
       </head>
       <body className="bg-background">
-        <div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
-          <div className="flex-1 flex flex-col">{children}</div>
+        <div className="mx-auto flex min-h-dvh w-full max-w-lg min-w-0 flex-col overflow-x-clip">
+          <div className="flex min-w-0 flex-1 flex-col">{children}</div>
           <BottomNav />
           {Devtools ? (
             <React.Suspense fallback={null}>
