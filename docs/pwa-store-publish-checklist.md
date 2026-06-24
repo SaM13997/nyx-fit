@@ -111,8 +111,8 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 5 — iOS wrapper _(Batch F)_
 
-- [x] Capacitor chosen over PWABuilder — `docs/ios-capacitor.md`
-- [x] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons via `npm run ios:sync-assets`)
+- [x] Capacitor chosen over PWABuilder — `docs/ios-capacitor.md` (`4b64b3c`)
+- [x] Minimal Capacitor scaffold (`capacitor.config.ts`, `ios/`, shared icons via `npm run ios:sync-assets`) — `4b64b3c`
 
 ---
 
