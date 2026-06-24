@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAuth } from "@/lib/route-auth";
 import { useMutation, useQuery } from "convex/react";
 
 import { Exercise, WorkoutSet } from "@/lib/types";
@@ -16,6 +17,9 @@ import type { ExerciseCategory } from "@/lib/exerciseCategories";
 import { useCurrentProfile } from "@/lib/convex/hooks";
 
 export const Route = createFileRoute("/workout/$id")({
+  beforeLoad: ({ context, location }) => {
+    requireAuth({ context, location });
+  },
   component: WorkoutPage,
 });
 
