@@ -6,7 +6,9 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "serve": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "twa:verify-assetlinks": "node scripts/verify-assetlinks.mjs",
+    "twa:build": "bash scripts/build-twa.sh"
   },
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.6",

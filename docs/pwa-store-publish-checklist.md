@@ -85,6 +85,8 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 
 ## Phase 4 — Android TWA _(Batch D)_
 
+See [android-twa-signing.md](./android-twa-signing.md) for keystore, asset links, and CI details.
+
 ### 4.1 Digital Asset Links
 
 - [ ] `/.well-known/assetlinks.json` matches release signing key
