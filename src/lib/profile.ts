@@ -10,6 +10,7 @@ export type EffectiveProfile = {
   name: string;
   email: string;
   profilePicture?: string;
+  weightUnit: Profile["weightUnit"];
   source: "profile" | "auth";
 };
 
@@ -20,6 +21,7 @@ export type ProfileFormValues = {
   gender?: Profile["gender"];
   fitnessLevel?: Profile["fitnessLevel"];
   notificationsEnabled: boolean;
+  weightUnit: Profile["weightUnit"];
 };
 
 function normalizeString(value: unknown): string | undefined {
@@ -39,11 +41,13 @@ export function getEffectiveProfile(
   const name = profile?.name ?? authName ?? authEmail ?? "User";
   const email = profile?.email ?? authEmail ?? "";
   const profilePicture = profile?.profilePicture ?? authImage ?? undefined;
+  const weightUnit = profile?.weightUnit ?? "lbs";
 
   return {
     name,
     email,
     profilePicture,
+    weightUnit,
     source: profile ? "profile" : "auth",
   };
 }
@@ -61,5 +65,6 @@ export function getProfileFormDefaults(
     gender: profile?.gender,
     fitnessLevel: profile?.fitnessLevel,
     notificationsEnabled: profile?.notificationsEnabled ?? true,
+    weightUnit: profile?.weightUnit ?? "lbs",
   };
 }

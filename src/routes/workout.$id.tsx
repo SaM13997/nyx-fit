@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "convex/react";
 import { Exercise, WorkoutSet } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
 import { ArrowLeft, MoreHorizontal, Plus, Share2, Square } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ExerciseItem } from "@/components/ExerciseItem";
 import { SetDrawer } from "@/components/SetDrawer";
@@ -12,6 +12,8 @@ import { AddExerciseDrawer } from "@/components/AddExerciseDrawer";
 import { RestTimer } from "@/components/RestTimer";
 import { api } from "convex/_generated/api";
 import { Id } from "convex/_generated/dataModel";
+import type { ExerciseCategory } from "@/lib/exerciseCategories";
+import { useCurrentProfile } from "@/lib/convex/hooks";
 
 export const Route = createFileRoute("/workout/$id")({
   component: WorkoutPage,
@@ -22,24 +24,15 @@ function WorkoutPage() {
   const workout = useQuery(api.workouts.getWorkout, {
     id: id as Id<"workouts">,
   });
+  const { profile } = useCurrentProfile();
   const updateWorkout = useMutation(api.workouts.updateWorkout);
+  const weightUnit = profile?.weightUnit ?? "lbs";
 
-  const [currentDuration, setCurrentDuration] = useState(0);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showEndWorkoutDialog, setShowEndWorkoutDialog] = useState(false);
-
-  useEffect(() => {
-    if (workout?.isActive && workout.startTime) {
-      const start = new Date(workout.startTime).getTime();
-      const interval = setInterval(() => {
-        const now = new Date().getTime();
-        setCurrentDuration(Math.floor((now - start) / 1000));
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [workout?.isActive, workout?.startTime]);
+  const currentDurationRef = useRef(0);
 
   const handleEndWorkout = async () => {
     if (!workout) return;
@@ -57,13 +50,18 @@ function WorkoutPage() {
       updates: {
         isActive: false,
         endTime: new Date().toISOString(),
-        duration: currentDuration,
+        duration: currentDurationRef.current || workout.duration,
       },
     });
     setShowEndWorkoutDialog(false);
   };
 
-  const handleAddSet = async (name: string, weight: number, reps: number) => {
+  const handleAddSet = async (
+    name: string,
+    category: ExerciseCategory,
+    weight: number,
+    reps: number
+  ) => {
     if (!workout) return;
 
     let exerciseId: string;
@@ -80,7 +78,9 @@ function WorkoutPage() {
         id: workout.id as Id<"workouts">,
         updates: {
           exercises: workout.exercises.map((ex) =>
-            ex.id === exerciseId ? { ...ex, sets: [...ex.sets, newSet] } : ex
+            ex.id === exerciseId
+              ? { ...ex, category: ex.category ?? category, sets: [...ex.sets, newSet] }
+              : ex
           ),
         },
       });
@@ -89,6 +89,7 @@ function WorkoutPage() {
       const newExercise: Exercise = {
         id: exerciseId,
         name,
+        category,
         sets: [
           {
             id: uuidv4(),
@@ -123,6 +124,11 @@ function WorkoutPage() {
     setSelectedExercise(exerciseId);
     setIsDrawerOpen(true);
   };
+
+  const reversedExercises = useMemo(
+    () => workout?.exercises.toReversed() ?? [],
+    [workout?.exercises]
+  );
 
   if (!workout) {
     return <div className="min-h-screen  text-white p-4">Loading...</div>;
@@ -210,11 +216,14 @@ function WorkoutPage() {
           </div>
 
           <div className="flex items-end gap-1 mb-6">
-            <span className="text-5xl font-bold font-heading tracking-tighter tabular-nums">
-              {workout.isActive
-                ? formatDuration(currentDuration)
-                : formatDuration(workout.duration)}
-            </span>
+            <WorkoutDuration
+              isActive={!!workout.isActive}
+              startTime={workout.startTime}
+              staticDuration={workout.duration}
+              onDurationChange={(duration) => {
+                currentDurationRef.current = duration;
+              }}
+            />
           </div>
 
           {/* Tags
@@ -295,10 +304,11 @@ function WorkoutPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {workout.exercises.toReversed().map((exercise: Exercise) => (
+            {reversedExercises.map((exercise: Exercise) => (
               <ExerciseItem
                 key={exercise.id}
                 exercise={exercise}
+                unit={weightUnit}
                 onClick={() => handleExerciseClick(exercise.id)}
               />
             ))}
@@ -311,6 +321,7 @@ function WorkoutPage() {
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           exerciseId={selectedExercise}
+          unit={weightUnit}
           workout={workout}
           onUpdate={handleSetUpdate}
         />
@@ -320,6 +331,7 @@ function WorkoutPage() {
         isOpen={showAddExercise}
         onClose={() => setShowAddExercise(false)}
         onAddSet={handleAddSet}
+        unit={weightUnit}
         exercises={workout.exercises}
       />
 
@@ -350,5 +362,52 @@ function WorkoutPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function WorkoutDuration({
+  isActive,
+  startTime,
+  staticDuration,
+  onDurationChange,
+}: {
+  isActive: boolean;
+  startTime?: string;
+  staticDuration: number;
+  onDurationChange: (duration: number) => void;
+}) {
+  const [duration, setDuration] = useState(staticDuration);
+
+  useEffect(() => {
+    if (!isActive) {
+      onDurationChange(staticDuration);
+    }
+  }, [isActive, onDurationChange, staticDuration]);
+
+  useEffect(() => {
+    if (!isActive || !startTime) {
+      setDuration(staticDuration);
+      onDurationChange(staticDuration);
+      return;
+    }
+
+    const start = new Date(startTime).getTime();
+
+    const syncDuration = () => {
+      const nextDuration = Math.floor((Date.now() - start) / 1000);
+      setDuration(nextDuration);
+      onDurationChange(nextDuration);
+    };
+
+    syncDuration();
+    const interval = window.setInterval(syncDuration, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [isActive, onDurationChange, startTime, staticDuration]);
+
+  return (
+    <span className="text-5xl font-bold font-heading tracking-tighter tabular-nums">
+      {formatDuration(isActive ? duration : staticDuration)}
+    </span>
   );
 }

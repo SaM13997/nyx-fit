@@ -9,13 +9,30 @@ import {
   useUploadUrl,
 } from "@/lib/convex/hooks";
 import { api } from "../../convex/_generated/api";
-import type { FitnessLevel, Gender } from "@/lib/types";
+import type { FitnessLevel, Gender, WeightUnit } from "@/lib/types";
 import { getProfileFormDefaults, type ProfileFormValues } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, Camera, Loader2, Save, User, Mail } from "lucide-react";
 import { useToast } from "@/lib/toast";
+
+const MAX_PROFILE_NAME_LENGTH = 80;
+const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
+
+function validateProfileName(name: string) {
+  const trimmed = name.trim();
+
+  if (!trimmed) {
+    return "Add a display name so people know whose profile this is."
+  }
+
+  if (Array.from(trimmed).length > MAX_PROFILE_NAME_LENGTH) {
+    return `Display name must stay under ${MAX_PROFILE_NAME_LENGTH} characters.`
+  }
+
+  return null
+}
 
 export const Route = createFileRoute("/settings_/profile")({
   component: ProfileDetailsPage,
@@ -41,6 +58,7 @@ function ProfileDetailsPage() {
   const [form, setForm] = useState<ProfileFormValues | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const readyToInit = !!session && !!authUser && !isProfileLoading;
 
@@ -61,11 +79,33 @@ function ProfileDetailsPage() {
       if (!prev) return prev;
       return { ...prev, [key]: value };
     });
+
+    if (key === "name" || formError) {
+      setFormError(null);
+    }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      toastError("You're offline. Reconnect before uploading a profile picture.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toastError("Choose an image file for your profile picture.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+      toastError("Profile pictures must be smaller than 5 MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
 
     setIsUploading(true);
 
@@ -104,23 +144,37 @@ function ProfileDetailsPage() {
 
   const canSubmit = useMemo(() => {
     if (!form) return false;
-    return !!form.name.trim() && !!form.email.trim();
+    return !validateProfileName(form.name) && !!form.email.trim();
   }, [form]);
 
   const handleSave = async () => {
     if (!form) return;
+    const validationError = validateProfileName(form.name);
+
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setFormError("You're offline. Reconnect before saving profile changes.");
+      return;
+    }
+
     setIsSaving(true);
+    setFormError(null);
 
     try {
       const saved = await upsertCurrentProfile({
         updates: {
-          name: form.name,
+          name: form.name.trim(),
           gender: form.gender,
           profilePicture: form.profilePicture?.trim()
             ? form.profilePicture.trim()
             : undefined,
           fitnessLevel: form.fitnessLevel,
           notificationsEnabled: form.notificationsEnabled,
+          weightUnit: form.weightUnit,
         },
       });
 
@@ -195,7 +249,9 @@ function ProfileDetailsPage() {
                 {form.profilePicture ? (
                   <img
                     src={form.profilePicture}
-                    alt="Profile"
+                    alt={`${form.name || "User"} profile`}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -214,7 +270,7 @@ function ProfileDetailsPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
+                disabled={isUploading || isSaving}
                 className="absolute bottom-1 right-1 h-10 w-10 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center shadow-lg border-4 border-black transition-transform active:scale-95 disabled:opacity-70 disabled:active:scale-100"
               >
                 {isUploading ? (
@@ -248,11 +304,34 @@ function ProfileDetailsPage() {
                   value={form.name}
                   onChange={(e) => setField("name", e.target.value)}
                   placeholder="Your display name"
+                  maxLength={MAX_PROFILE_NAME_LENGTH}
+                  dir="auto"
+                  aria-invalid={formError ? "true" : "false"}
+                  aria-describedby="profile-name-help profile-form-error"
                   className={cn(inputBaseClasses, "pl-11")}
                 />
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
               </div>
+              <div
+                id="profile-name-help"
+                className="flex items-center justify-between gap-3 px-1 text-xs text-zinc-500"
+              >
+                <span className="min-w-0 break-words">
+                  This name appears across the app and should stay readable on smaller screens.
+                </span>
+                <span className="shrink-0">{Array.from(form.name).length}/{MAX_PROFILE_NAME_LENGTH}</span>
+              </div>
             </div>
+
+            {formError ? (
+              <div
+                id="profile-form-error"
+                role="alert"
+                className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200 break-words"
+              >
+                {formError}
+              </div>
+            ) : null}
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-400 ml-1">
@@ -326,6 +405,26 @@ function ProfileDetailsPage() {
                   </option>
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <label className="text-sm font-medium text-zinc-400 ml-1">
+                Weight Unit
+              </label>
+              <select
+                className={cn(inputBaseClasses, "appearance-none")}
+                value={form.weightUnit}
+                onChange={(e) =>
+                  setField("weightUnit", e.target.value as WeightUnit)
+                }
+              >
+                <option value="lbs" className="bg-zinc-900">
+                  Pounds (lbs)
+                </option>
+                <option value="kgs" className="bg-zinc-900">
+                  Kilograms (kgs)
+                </option>
+              </select>
             </div>
 
             <label className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 mt-2 cursor-pointer transition-colors hover:bg-white/10">

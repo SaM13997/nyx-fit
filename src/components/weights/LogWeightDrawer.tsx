@@ -5,12 +5,15 @@ import { cn } from "@/lib/utils";
 import { useUploadUrl } from "@/lib/convex/hooks";
 import { WheelPicker } from "../wheel-picker";
 import { format, getYear, getMonth, getDate, lastDayOfMonth } from "date-fns";
+import type { WeightUnit } from "@/lib/types";
+import { convertWeightFromLbs, convertWeightToLbs, formatWeightUnit } from "@/lib/units";
 
 interface LogWeightDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (weight: number, date: string, note?: string, photoStorageId?: string) => Promise<void>;
   isSaving: boolean;
+  unit: WeightUnit;
   initialValues?: {
     weight: number;
     date: string;
@@ -27,7 +30,7 @@ const MONTHS = [
 const WEIGHT_INTEGERS = Array.from({ length: 400 }, (_, i) => (i + 1).toString());
 const WEIGHT_DECIMALS = Array.from({ length: 10 }, (_, i) => i.toString());
 
-export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, initialValues }: LogWeightDrawerProps) {
+export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initialValues }: LogWeightDrawerProps) {
   // Weight state split into integer and decimal
   const [weightInt, setWeightInt] = useState("180");
   const [weightDec, setWeightDec] = useState("0");
@@ -46,7 +49,7 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, initialValu
   useEffect(() => {
     if (isOpen) {
       if (initialValues) {
-        const w = initialValues.weight;
+        const w = convertWeightFromLbs(initialValues.weight, unit);
         setWeightInt(Math.floor(w).toString());
         setWeightDec(Math.round((w % 1) * 10).toString());
 
@@ -83,7 +86,7 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, initialValu
   };
 
   const handleSubmit = async () => {
-    const weightNum = parseFloat(`${weightInt}.${weightDec}`);
+    const weightNum = convertWeightToLbs(parseFloat(`${weightInt}.${weightDec}`), unit);
     const monthIndex = MONTHS.indexOf(month);
     const dateObj = new Date(parseInt(year), monthIndex, parseInt(day));
     const dateISO = dateObj.toISOString();
@@ -144,7 +147,7 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, initialValu
             <div className="p-6 flex flex-col gap-8 overflow-y-auto pb-12 scrollbar-hide">
               {/* Weight Wheel Picker */}
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center">Weight (lbs)</label>
+                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center">Weight ({formatWeightUnit(unit)})</label>
                 <div className="flex justify-center items-center gap-2">
                   <div className="relative h-40 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
                     <WheelPicker

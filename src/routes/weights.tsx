@@ -6,13 +6,25 @@ import {
   useUpdateWeight,
   useDeleteWeight,
   useWeightGoal,
+  useCurrentProfile,
 } from "@/lib/convex/hooks";
-import { useState } from "react";
-import { WeightChart } from "@/components/weights/WeightChart";
+import { Suspense, lazy, useState } from "react";
 import { WeightStatsCard } from "@/components/weights/WeightStatsCard";
 import { WeightHistoryList } from "@/components/weights/WeightHistoryList";
-import { LogWeightDrawer } from "@/components/weights/LogWeightDrawer";
 import type { WeightEntry } from "@/lib/types";
+import { useToast } from "@/lib/toast";
+
+const WeightChart = lazy(() =>
+  import("@/components/weights/WeightChart").then((module) => ({
+    default: module.WeightChart,
+  }))
+);
+
+const LogWeightDrawer = lazy(() =>
+  import("@/components/weights/LogWeightDrawer").then((module) => ({
+    default: module.LogWeightDrawer,
+  }))
+);
 
 export const Route = createFileRoute("/weights")({
   component: WeightsPage,
@@ -21,9 +33,12 @@ export const Route = createFileRoute("/weights")({
 function WeightsPage() {
   const { weights, isLoading } = useWeights();
   const { goal } = useWeightGoal(); // For chart reference
+  const { profile } = useCurrentProfile();
   const { logWeight } = useLogWeight();
   const { updateWeight } = useUpdateWeight();
   const { deleteWeight } = useDeleteWeight();
+  const { error: showError } = useToast();
+  const weightUnit = profile?.weightUnit ?? "lbs";
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WeightEntry | null>(null);
@@ -43,7 +58,7 @@ function WeightsPage() {
     try {
       await deleteWeight({ id: id as any });
     } catch (e) {
-      console.error("Failed to delete", e);
+      showError("Couldn't delete that entry. Please try again.");
     }
   };
 
@@ -53,6 +68,11 @@ function WeightsPage() {
     note?: string,
     photoStorageId?: string
   ) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      showError("You're offline. Reconnect before saving a weight entry.");
+      return;
+    }
+
     try {
       setIsSaving(true);
       if (editingEntry) {
@@ -73,7 +93,7 @@ function WeightsPage() {
       }
       setIsDrawerOpen(false);
     } catch (e) {
-      console.error("Failed to save", e);
+      showError("Couldn't save that entry. Please check your connection and try again.");
     } finally {
       setIsSaving(false);
     }
@@ -83,7 +103,7 @@ function WeightsPage() {
   const oldestWeight = weights.length > 0 ? weights[weights.length - 1].weight : undefined;
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-screen pb-24">
+    <div className="bg-black text-white font-sans relative min-h-screen overflow-x-clip pb-24">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background with ORANGE override */}
@@ -122,17 +142,34 @@ function WeightsPage() {
           <WeightStatsCard
             currentWeight={latestWeight}
             startWeight={oldestWeight}
+            unit={weightUnit}
           />
 
           <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
-            <WeightChart weights={weights} goal={goal} />
+            <Suspense
+              fallback={
+                <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+              }
+            >
+              <WeightChart weights={weights} goal={goal} unit={weightUnit} />
+            </Suspense>
           </div>
 
           <WeightHistoryList
             weights={weights}
+            unit={weightUnit}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
+
+          {!isLoading && weights.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/5 p-8 text-center">
+              <h2 className="text-lg font-bold text-white break-words">No weigh-ins yet</h2>
+              <p className="mt-2 text-sm text-zinc-400 break-words">
+                Log your first entry to start tracking trends, changes, and milestones over time.
+              </p>
+            </div>
+          ) : null}
 
           {isLoading && (
             <div className="text-center text-zinc-500 py-10">
@@ -146,23 +183,29 @@ function WeightsPage() {
       {/* FAB for Log Weight - ORANGE */}
       <button
         onClick={handleOpenLog}
-        className="fixed bottom-6 right-6 h-16 w-16 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-50 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
+        aria-label="Log weight entry"
+        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-4 h-14 w-14 min-h-11 min-w-11 bg-linear-to-tr from-orange-500 to-rose-600 rounded-full flex items-center justify-center shadow-lg shadow-orange-900/40 text-white z-40 hover:scale-105 active:scale-95 transition-all outline-hidden ring-4 ring-orange-500/10"
       >
         <Plus className="w-8 h-8" strokeWidth={3} />
       </button>
 
-      <LogWeightDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onSave={handleSave}
-        isSaving={isSaving}
-        initialValues={editingEntry ? {
-          weight: editingEntry.weight,
-          date: editingEntry.date,
-          note: editingEntry.note,
-          photoUrl: editingEntry.photoUrl
-        } : undefined}
-      />
+      {isDrawerOpen ? (
+        <Suspense fallback={null}>
+          <LogWeightDrawer
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+            onSave={handleSave}
+            isSaving={isSaving}
+            unit={weightUnit}
+            initialValues={editingEntry ? {
+              weight: editingEntry.weight,
+              date: editingEntry.date,
+              note: editingEntry.note,
+              photoUrl: editingEntry.photoUrl
+            } : undefined}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

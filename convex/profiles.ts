@@ -3,7 +3,7 @@ import { authComponent } from "./auth";
 
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
-import { fitnessLevelValidator, genderValidator } from "./schema";
+import { fitnessLevelValidator, genderValidator, weightUnitValidator } from "./schema";
 import { v } from "convex/values";
 
 type ProfileDoc = Doc<"profiles">;
@@ -15,6 +15,7 @@ const profileFieldsValidator = {
   profilePicture: v.optional(v.string()),
   fitnessLevel: v.optional(fitnessLevelValidator),
   notificationsEnabled: v.boolean(),
+  weightUnit: weightUnitValidator,
   createdAt: v.string(),
 } as const;
 
@@ -27,6 +28,7 @@ const profileUpdateValidator = v.object({
   notificationsEnabled: v.optional(
     profileFieldsValidator.notificationsEnabled,
   ),
+  weightUnit: v.optional(profileFieldsValidator.weightUnit),
   createdAt: v.optional(profileFieldsValidator.createdAt),
 });
 
@@ -36,6 +38,7 @@ const profileUpsertValidator = v.object({
   profilePicture: profileFieldsValidator.profilePicture,
   fitnessLevel: profileFieldsValidator.fitnessLevel,
   notificationsEnabled: v.optional(profileFieldsValidator.notificationsEnabled),
+  weightUnit: v.optional(profileFieldsValidator.weightUnit),
 });
 
 const mapProfile = (doc: ProfileDoc): Profile => {
@@ -167,6 +170,7 @@ export const upsertCurrentProfile = mutation({
         profilePicture: updates.profilePicture ?? providerImage,
         fitnessLevel: updates.fitnessLevel,
         notificationsEnabled: updates.notificationsEnabled ?? true,
+        weightUnit: updates.weightUnit ?? "lbs",
         createdAt: now,
       });
 

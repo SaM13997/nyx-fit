@@ -7,8 +7,6 @@ import {
   Scripts,
   useRouteContext,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 import { BottomNav } from "../components/BottomNav";
 import { createServerFn } from "@tanstack/react-start";
 import { QueryClient } from "@tanstack/react-query";
@@ -24,7 +22,38 @@ import { authClient } from "@/lib/auth-client";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { IOS_SPLASH_LINKS } from "@/lib/iosSplashLinks";
 import appCss from "../styles.css?url";
+
+const Devtools = import.meta.env.DEV
+  ? React.lazy(async () => {
+      const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] =
+        await Promise.all([
+          import("@tanstack/react-devtools"),
+          import("@tanstack/react-router-devtools"),
+        ]);
+
+      return {
+        default: function DevtoolsComponent() {
+          return (
+            <TanStackDevtools
+              config={{
+                position: "bottom-right",
+              }}
+              plugins={[
+                {
+                  name: "Tanstack Router",
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+          );
+        },
+      };
+    })
+  : null;
 
 // Get auth information for SSR using available cookies
 const fetchAuth = createServerFn({ method: "GET" }).handler(async () => {
@@ -50,11 +79,23 @@ export const Route = createRootRouteWithContext<{
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       {
         name: "theme-color",
         content: "#000000",
+      },
+      {
+        name: "mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
       },
       {
         name: "apple-mobile-web-app-title",
@@ -71,7 +112,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Titillium+Web:wght@400;600;700&display=swap",
       },
       {
         rel: "icon",
@@ -95,8 +136,13 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "manifest",
-        href: "/favicon/site.webmanifest",
+        href: "/manifest.json",
       },
+      ...IOS_SPLASH_LINKS.map((splash) => ({
+        rel: "apple-touch-startup-image" as const,
+        href: splash.href,
+        media: splash.media,
+      })),
     ],
   }),
   beforeLoad: async (ctx) => {
@@ -125,6 +171,8 @@ function RootComponent() {
       <AppearanceProvider>
         <ToastProvider>
           <RootDocument>
+            <ServiceWorkerRegistration />
+            <OfflineBanner />
             <Outlet />
             <InstallPrompt />
           </RootDocument>
@@ -145,17 +193,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
           <div className="flex-1 flex flex-col">{children}</div>
           <BottomNav />
-          <TanStackDevtools
-            config={{
-              position: "bottom-right",
-            }}
-            plugins={[
-              {
-                name: "Tanstack Router",
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
+          {Devtools ? (
+            <React.Suspense fallback={null}>
+              <Devtools />
+            </React.Suspense>
+          ) : null}
           <Scripts />
         </div>
       </body>

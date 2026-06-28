@@ -1,31 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { PlayCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCountLabel, formatDuration, formatLocaleDate } from "@/lib/utils";
 import type { Workout } from "@/lib/types";
 
 interface WorkoutCardProps {
   workout: Workout;
   index?: number;
-}
-
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${remainingMinutes}m`;
-  }
-  return `${minutes}m`;
-}
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
 }
 
 export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
@@ -53,11 +34,11 @@ export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
             : "bg-purple-800/5 border-purple-500/10 hover:bg-purple-500/10 hover:border-purple-500/20"
         )}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2">
               <span className={cn("text-sm font-medium", isActive ? "text-green-400" : "text-zinc-400")}>
-                {formatDate(workout.date)}
+                {formatLocaleDate(workout.date)}
               </span>
               {isActive && (
                 <span className="flex items-center gap-1 text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
@@ -67,12 +48,12 @@ export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
               )}
             </div>
 
-            <h3 className={cn("text-base font-semibold", isActive ? "text-green-50" : "text-white")}>
-              {workout.exercises.length} {workout.exercises.length === 1 ? 'Exercise' : 'Exercises'}
+            <h3 className={cn("text-base font-semibold break-words", isActive ? "text-green-50" : "text-white")}>
+              {formatCountLabel(workout.exercises.length, "Exercise")}
             </h3>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <div className="text-right">
               <span className="block text-xs uppercase tracking-wider text-zinc-500">
                 Duration

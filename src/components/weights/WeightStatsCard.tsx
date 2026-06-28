@@ -1,16 +1,19 @@
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
-import type { WeightEntry } from "@/lib/types";
+import type { WeightUnit } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { formatWeight, formatWeightUnit } from "@/lib/units";
 
 interface WeightStatsCardProps {
   currentWeight?: number;
   startWeight?: number;
+  unit: WeightUnit;
   height?: number; // in cm, for BMI
 }
 
 export function WeightStatsCard({
   currentWeight,
   startWeight,
+  unit,
   height,
 }: WeightStatsCardProps) {
   if (!currentWeight) {
@@ -32,8 +35,8 @@ export function WeightStatsCard({
         <div className="relative z-10 flex flex-col items-center">
           <span className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Current Weight</span>
           <div className="flex items-baseline gap-1">
-            <span className="text-6xl font-black text-white tracking-tighter">{currentWeight}</span>
-            <span className="text-orange-500 font-bold">lbs</span>
+            <span className="text-6xl font-black text-white tracking-tighter">{formatWeight(currentWeight, unit)}</span>
+            <span className="text-orange-500 font-bold">{formatWeightUnit(unit)}</span>
           </div>
         </div>
 
@@ -52,7 +55,7 @@ export function WeightStatsCard({
           {isLoss && <TrendingDown className="w-4 h-4" />}
           {isGain && <TrendingUp className="w-4 h-4" />}
           {!isLoss && !isGain && <Minus className="w-4 h-4" />}
-          <span>{Math.abs(change).toFixed(1)}</span>
+          <span>{formatWeight(Math.abs(change), unit)}</span>
         </div>
       </div>
 
@@ -60,7 +63,7 @@ export function WeightStatsCard({
       <div className="p-4 rounded-[2rem] bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center backdrop-blur-xs">
         <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold mb-1">Starting</span>
         <div className="font-bold text-xl text-white">
-          {startWeight ?? "-"}
+          {startWeight !== undefined ? formatWeight(startWeight, unit) : "-"}
         </div>
       </div>
     </div>
