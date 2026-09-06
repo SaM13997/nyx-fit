@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -22,6 +22,9 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const router = useRouter();
+  const search: { redirect?: unknown } = router.state.location.search;
+  const redirect = typeof search.redirect === "string" ? search.redirect : undefined;
   const { data: sessionData, isPending: isAuthPending } =
     authClient.useSession();
   const session = sessionData?.session;
@@ -35,7 +38,7 @@ function HomePage() {
       enabled: !!session,
     }
   );
-  const { profile, isLoading: isLoadingProfile } = useCurrentProfile({
+  const { profile } = useCurrentProfile({
     enabled: !!session,
   });
   const { startWorkout } = useStartWorkout();
@@ -46,7 +49,7 @@ function HomePage() {
   const handleStartWorkout = async (bodyParts: string[]) => {
     try {
       setIsStarting(true);
-      const newWorkout = await startWorkout({ bodyPartWorkedOut: bodyParts });
+      await startWorkout({ bodyPartWorkedOut: bodyParts });
     } catch (error) {
       console.error("Failed to start workout:", error);
       setIsStarting(false);
@@ -72,7 +75,7 @@ function HomePage() {
             Track your workouts, monitor your progress.
           </p>
         </div>
-        <Link to="/login">
+        <Link to="/onboarding" search={{ redirect }}>
           <Button size="lg" className="font-semibold">
             Get Started
           </Button>

@@ -1,7 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { Dumbbell, Home, Network, Settings, SquareFunction } from 'lucide-react'
-
-import { StickyNoteIcon } from '@/components/icons'
+import { Dumbbell, Home, Settings } from 'lucide-react'
 
 export type BottomNavItem = {
   href: '/' | '/workouts' | '/settings'

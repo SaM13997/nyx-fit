@@ -1,10 +1,9 @@
 import { authComponent } from "./auth";
 import { mutation, query } from "./_generated/server";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 
 type ExerciseStatDoc = Doc<"exerciseStats">;
-type WorkoutDoc = Doc<"workouts">;
 
 // Helper to get the Monday of the current week as ISO string
 function getWeekStart(date: Date = new Date()): string {

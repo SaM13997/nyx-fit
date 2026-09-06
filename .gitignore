@@ -36,3 +36,8 @@ builds/app-release-signed.apk.idsig
 builds/app-release-unsigned-aligned.apk
 
 
+
+# Android signing/build outputs (any versioned names)
+*.apk
+*.aab
+*.idsig

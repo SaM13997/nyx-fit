@@ -14,7 +14,6 @@ export function WeightStatsCard({
   currentWeight,
   startWeight,
   unit,
-  height,
 }: WeightStatsCardProps) {
   if (!currentWeight) {
     return (

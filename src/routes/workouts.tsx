@@ -56,10 +56,10 @@ function WorkoutsPage() {
   const { startWorkout } = useStartWorkout();
   const [isStarting, setIsStarting] = useState(false);
 
-  const handleStartWorkout = async () => {
+  const handleStartWorkout = async (bodyParts: string[]) => {
     try {
       setIsStarting(true);
-      const newWorkout = await startWorkout();
+      const newWorkout = await startWorkout({ bodyPartWorkedOut: bodyParts });
       navigate({ to: `/workout/${newWorkout.id}` });
     } catch (error) {
       console.error("Failed to start workout:", error);

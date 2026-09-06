@@ -17,7 +17,7 @@ export function BottomNav() {
     setMounted(true);
   }, []);
 
-  if (!mounted || pathname === "/login" || !session) {
+  if (!mounted || pathname === "/login" || pathname === "/onboarding" || !session) {
     return null;
   }
 

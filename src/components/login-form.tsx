@@ -31,10 +31,21 @@ function getAuthErrorMessage(error: unknown) {
   return "We couldn't sign you in right now. Please try again."
 }
 
+type LoginFormProps = React.ComponentProps<"div"> & {
+  heading?: string;
+  description?: string;
+  onAuthenticated?: () => void;
+  callbackURL?: string;
+};
+
 export function LoginForm({
   className,
+  heading = "Welcome Back",
+  description = "Enter your email to sign in or create an account",
+  onAuthenticated,
+  callbackURL,
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -82,7 +93,7 @@ export function LoginForm({
         email: normalizedEmail,
         password: "",
       });
-      navigateAfterAuth();
+      onAuthenticated ? onAuthenticated() : navigateAfterAuth();
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error));
     } finally {
@@ -101,6 +112,7 @@ export function LoginForm({
       setErrorMessage(null);
       await authClient.signIn.social({
         provider: "google",
+        ...(callbackURL ? { callbackURL } : {}),
       });
       navigateAfterAuth();
     } catch (error) {
@@ -115,11 +127,11 @@ export function LoginForm({
       <form onSubmit={handleEmailSignIn}>
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2 text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Welcome Back
+            <h1 id="login-heading" tabIndex={-1} className="text-2xl font-bold tracking-tight text-white focus:outline-none">
+              {heading}
             </h1>
             <p className="text-sm text-gray-400">
-              Enter your email to sign in or create an account
+              {description}
             </p>
           </div>
           <div className="grid gap-4">
@@ -128,6 +140,7 @@ export function LoginForm({
                 id="email"
                 type="email"
                 name="email"
+                aria-label="Email address"
                 value={email}
                 onChange={(event) => {
                   setEmail(event.target.value);

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useUploadUrl } from "@/lib/convex/hooks";
 import { WheelPicker } from "../wheel-picker";
-import { format, getYear, getMonth, getDate, lastDayOfMonth } from "date-fns";
+import { getYear, getMonth, getDate, lastDayOfMonth } from "date-fns";
 import type { WeightUnit } from "@/lib/types";
 import { convertWeightFromLbs, convertWeightToLbs, formatWeightUnit } from "@/lib/units";
 

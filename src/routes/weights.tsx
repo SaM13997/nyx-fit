@@ -31,8 +31,10 @@ export const Route = createFileRoute("/weights")({
 });
 
 function WeightsPage() {
-  const { weights, isLoading } = useWeights();
-  const { goal } = useWeightGoal(); // For chart reference
+  const { weights: weightDocuments, isLoading } = useWeights();
+  const { goal: goalDocument } = useWeightGoal();
+  const weights = weightDocuments.map((entry) => ({ ...entry, id: entry._id }));
+  const goal = goalDocument ? { ...goalDocument, id: goalDocument._id } : goalDocument;
   const { profile } = useCurrentProfile();
   const { logWeight } = useLogWeight();
   const { updateWeight } = useUpdateWeight();

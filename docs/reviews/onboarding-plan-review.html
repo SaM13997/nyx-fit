@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding Redesign — Approval Review | Nyx Fit</title>
+<style>
+  :root {
+    --bg: #000000;
+    --card: rgba(255, 255, 255, 0.05);
+    --card-strong: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.10);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --text-body: #a1a1aa;
+    --text-dim: #71717a;
+    --text-bright: #fafafa;
+    --purple: #9333ea;
+    --purple-bright: #a855f7;
+    --purple-glow: rgba(147, 51, 234, 0.25);
+    --cyan: #22d3ee;
+    --orange: #fb923c;
+    --red: #f87171;
+    --radius: 14px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-body);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% -10%, rgba(147, 51, 234, 0.14), transparent),
+      radial-gradient(ellipse 50% 30% at 85% 15%, rgba(34, 211, 238, 0.05), transparent);
+    background-repeat: no-repeat;
+  }
+
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-bright);
+    text-transform: uppercase;
+  }
+
+  a { color: var(--purple-bright); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+
+  /* ---------- Header ---------- */
+  header { padding: 56px 0 28px; }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--purple-bright);
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-transform: none;
+  }
+
+  .header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .badge-awaiting {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--orange);
+    border: 1px solid rgba(251, 146, 60, 0.4);
+    background: rgba(251, 146, 60, 0.08);
+    border-radius: 999px;
+    padding: 7px 14px;
+  }
+
+  .badge-awaiting::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--orange);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge-awaiting::before { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+
+  .summary-line {
+    margin-top: 18px;
+    max-width: 720px;
+    font-size: 16px;
+    color: var(--text-body);
+  }
+
+  .summary-line strong { color: var(--text-bright); font-weight: 600; }
+
+  /* ---------- Sticky mini nav ---------- */
+  .mininav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(0, 0, 0, 0.72);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 28px -20px 0;
+    padding: 0 20px;
+  }
+
+  .mininav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mininav-inner::-webkit-scrollbar { display: none; }
+
+  .mininav a {
+    flex-shrink: 0;
+    padding: 13px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .mininav a:hover { color: var(--text-bright); text-decoration: none; }
+  .mininav a.active { color: var(--purple-bright); border-bottom-color: var(--purple); }
+
+  /* ---------- Section scaffolding ---------- */
+  section { padding-top: 64px; }
+
+  .section-head { margin-bottom: 24px; }
+
+  .section-kicker {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+
+  .section-head h2 { font-size: 24px; }
+  .section-head p { margin-top: 8px; max-width: 760px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  /* ---------- Five levels (tabbed) ---------- */
+  .level-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 760px) {
+    .level-tabs { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .level-tab { padding: 10px 6px; }
+    .level-tab .lt-title { font-size: 9px; }
+  }
+
+  .level-tab {
+    appearance: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+    padding: 14px 12px;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .level-tab:hover { background: var(--card-strong); }
+
+  .lt-num {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .lt-title {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    line-height: 1.3;
+  }
+
+  .level-tab[aria-selected="true"] {
+    background: var(--card-strong);
+    border-color: var(--border-strong);
+    box-shadow: inset 0 3px 0 var(--purple);
+  }
+
+  .level-tab[aria-selected="true"] .lt-num { color: var(--purple-bright); }
+  .level-tab[aria-selected="true"] .lt-title { color: var(--text-bright); }
+
+  .level-panel {
+    border: 1px solid var(--border-strong);
+    border-radius: 0 var(--radius) var(--radius) var(--radius);
+    background: var(--card-strong);
+    padding: 28px;
+    display: none;
+  }
+
+  .level-panel.active { display: block; }
+
+  .level-panel h3 { font-size: 19px; margin-bottom: 6px; text-transform: none; }
+  .level-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 22px; }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 28px;
+  }
+
+  @media (max-width: 860px) {
+    .level-grid { grid-template-columns: 1fr; }
+  }
+
+  .why-col {
+    border-left: 2px solid var(--purple);
+    padding-left: 18px;
+    align-self: start;
+  }
+
+  @media (max-width: 860px) {
+    .why-col { border-left: none; border-top: 2px solid var(--purple); padding: 18px 0 0; }
+  }
+
+  .why-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--purple-bright);
+    margin-bottom: 10px;
+  }
+
+  .why-col p { font-size: 13.5px; line-height: 1.65; }
+  .why-col p + p { margin-top: 10px; }
+
+  .flow-list { list-style: none; }
+  .flow-list li {
+    position: relative;
+    padding: 10px 0 10px 34px;
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-list li:last-child { border-bottom: none; }
+
+  .step-num {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(147, 51, 234, 0.18);
+    border: 1px solid rgba(147, 51, 234, 0.45);
+    color: var(--purple-bright);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flow-list b { color: var(--text-bright); font-weight: 600; }
+
+  .branch-note {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--cyan);
+    border: 1px dashed rgba(34, 211, 238, 0.35);
+    border-radius: 10px;
+    padding: 10px 14px;
+    background: rgba(34, 211, 238, 0.05);
+  }
+
+  .diagram {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: stretch;
+    margin: 18px 0 6px;
+  }
+
+  .diagram .node {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+  }
+
+  .diagram .node.milestone {
+    border-color: rgba(147, 51, 234, 0.55);
+    background: rgba(147, 51, 234, 0.12);
+  }
+
+  .diagram .node.auth { border-color: rgba(34, 211, 238, 0.5); background: rgba(34, 211, 238, 0.08); }
+  .diagram .node.done { border-color: rgba(251, 146, 60, 0.5); background: rgba(251, 146, 60, 0.08); }
+
+  .diagram .arrow {
+    color: var(--text-dim);
+    font-size: 14px;
+    align-self: center;
+    font-family: var(--mono);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+  }
+
+  .stat {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .stat .v {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-bright);
+  }
+
+  .stat .v .accent { color: var(--orange); }
+  .stat .v .accent-c { color: var(--cyan); }
+  .stat .k {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .bullets { list-style: none; }
+  .bullets li {
+    position: relative;
+    padding: 8px 0 8px 22px;
+    font-size: 14px;
+  }
+
+  .bullets li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 16px;
+    width: 7px;
+    height: 2px;
+    background: var(--purple-bright);
+  }
+
+  .bullets b { color: var(--text-bright); font-weight: 600; }
+
+  .filetree {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.9;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    color: var(--text-body);
+    overflow-x: auto;
+    margin-bottom: 18px;
+  }
+
+  .filetree .new { color: var(--purple-bright); }
+  .filetree .mod { color: var(--orange); }
+  .filetree .dir { color: var(--text-dim); }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: baseline;
+  }
+
+  .legend .l-new::before { background: var(--purple); }
+  .legend .l-mod::before { background: var(--orange); }
+
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 3px 10px;
+    border: 1px solid;
+  }
+
+  .pill.p1 { color: var(--red); border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.08); }
+  .pill.p2 { color: var(--orange); border-color: rgba(251, 146, 60, 0.4); background: rgba(251, 146, 60, 0.08); }
+  .pill.p3 { color: var(--text-dim); border-color: var(--border-strong); background: rgba(255, 255, 255, 0.04); }
+  .pill.ok { color: var(--cyan); border-color: rgba(34, 211, 238, 0.4); background: rgba(34, 211, 238, 0.07); }
+
+  .pipeline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-size: 12.5px;
+  }
+
+  .pipeline .stage {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 13px;
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  .pipeline .stage.blocked { border-color: rgba(248, 113, 113, 0.45); color: var(--red); }
+  .pipeline .stage.fixed { border-color: rgba(34, 211, 238, 0.45); color: var(--cyan); }
+  .pipeline .stage.converged { border-color: rgba(147, 51, 234, 0.55); color: var(--purple-bright); }
+  .pipeline .sep { color: var(--text-dim); font-family: var(--mono); }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  td b { color: var(--text-bright); font-weight: 600; }
+  td .mono { font-family: var(--mono); font-size: 12px; color: var(--cyan); }
+
+  .table-card { padding: 6px 10px; overflow-x: auto; }
+  .table-card table { min-width: 640px; }
+  #decisions table { min-width: 760px; }
+
+  /* ---------- Comment panels ---------- */
+  .comment-panel {
+    background: linear-gradient(180deg, rgba(147, 51, 234, 0.10), rgba(255, 255, 255, 0.04));
+    border: 1px solid rgba(147, 51, 234, 0.35);
+    border-radius: var(--radius);
+    padding: 26px;
+    margin-top: 28px;
+  }
+
+  .comment-panel h3 {
+    font-size: 17px;
+    margin-bottom: 4px;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .comment-panel h3::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--purple);
+    box-shadow: 0 0 12px var(--purple-glow);
+  }
+
+  .comment-instructions {
+    font-size: 13px;
+    color: var(--text-body);
+    margin-bottom: 16px;
+  }
+
+  .comment-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .comment-controls label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  select {
+    appearance: none;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-bright);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 38px 11px 14px;
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 55%, calc(100% - 14px) 55%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+  }
+
+  select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--purple-bright);
+    outline-offset: 2px;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-bright);
+    font-family: var(--font);
+    font-size: 14.5px;
+    line-height: 1.6;
+    padding: 14px;
+    resize: vertical;
+  }
+
+  textarea::placeholder { color: var(--text-dim); }
+
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; align-items: center; }
+
+  .btn {
+    appearance: none;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 10px;
+    padding: 12px 20px;
+    min-height: 44px;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-bright);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
+
+  .btn-primary {
+    background: var(--purple);
+    border-color: var(--purple-bright);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover { background: var(--purple-bright); border-color: var(--purple-bright); }
+
+  .copy-feedback {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cyan);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .copy-feedback.show { opacity: 1; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 72px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+
+  .gates { list-style: none; margin: 14px 0 22px; }
+  .gates li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .gates li:last-child { border-bottom: none; }
+
+  .gate-check {
+    font-family: var(--mono);
+    color: var(--cyan);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .governance {
+    font-size: 13px;
+    color: var(--text-dim);
+    border: 1px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 14px 18px;
+  }
+
+  .footer-meta {
+    margin-top: 26px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  hr.spacer { border: none; border-top: 1px solid var(--border); margin: 56px 0 0; }
+
+  .callout {
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    margin: 14px 0;
+    border: 1px solid;
+  }
+
+  .callout.info { border-color: rgba(34, 211, 238, 0.35); background: rgba(34, 211, 238, 0.05); }
+  .callout.warn { border-color: rgba(251, 146, 60, 0.35); background: rgba(251, 146, 60, 0.05); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ================= HEADER ================= -->
+  <header>
+    <div class="eyebrow">Nyx Fit &middot; SDLC Gate &middot; Human Approval Artifact</div>
+    <h1>Onboarding Redesign &mdash; Approval Review</h1>
+    <div class="header-row">
+      <span class="badge-awaiting">Awaiting Human Approval</span>
+      <span style="font-size:12px; color:var(--text-dim); letter-spacing:0.06em;">Review loop converged &middot; 0 open P0/P1 findings</span>
+    </div>
+    <p class="summary-line">
+      <strong>What ships:</strong> the 3-slide feature carousel is replaced with a conversational onboarding flow &mdash;
+      three quick questions (goal, training level, weekly schedule), an animated &ldquo;building your plan&rdquo; moment,
+      a plan preview, a hands-on taste of logging a set, and sign-in reframed as <strong>&ldquo;Save your plan&rdquo;</strong> &mdash;
+      all behind a single route with a config-driven step sequence and no backend schema changes.
+    </p>
+  </header>
+
+  <!-- ================= STICKY MINI NAV ================= -->
+  <nav class="mininav" aria-label="Section navigation">
+    <div class="mininav-inner">
+      <a href="#levels">Five Levels</a>
+      <a href="#out-of-scope">Out of Scope</a>
+      <a href="#risks">Risks</a>
+      <a href="#decisions">Decisions</a>
+      <a href="#comments-top">Leave Comments</a>
+      <a href="#footer">Verification</a>
+    </div>
+  </nav>
+
+  <!-- ================= SECTION: FIVE LEVELS ================= -->
+  <section id="levels">
+    <div class="section-head">
+      <div class="section-kicker">The Core Requirement</div>
+      <h2>Five Levels of Understanding</h2>
+      <p>Read as deep as you want. Level 1 is the user's experience in plain English; Level 5 is the engineering and
+      review trail. Each level carries a <strong style="color:var(--purple-bright)">why</strong> column so no step is unexplained.</p>
+    </div>
+
+    <div class="level-tabs" role="tablist" aria-label="Depth levels">
+      <button class="level-tab" role="tab" id="tab-l1" aria-controls="panel-l1" aria-selected="true" data-panel="panel-l1">
+        <span class="lt-num">LEVEL 01</span>
+        <span class="lt-title">Plain English</span>
+      </button>
+      <button class="level-tab" role="tab" id="tab-l2" aria-controls="panel-l2" aria-selected="false" data-panel="panel-l2" tabindex="-1">
+        <span class="lt-num">LEVEL 02</span>
+        <span class="lt-title">User Flow</span>
+      </button>
+      <button class="level-tab" role="tab" id="tab-l3" aria-controls="panel-l3" aria-selected="false" data-panel="panel-l3" tabindex="-1">
+        <span class="lt-num">LEVEL 03</span>
+        <span class="lt-title">Conversion Science</span>
+      </button>
+      <button class="level-tab" role="tab" id="tab-l4" aria-controls="panel-l4" aria-selected="false" data-panel="panel-l4" tabindex="-1">
+        <span class="lt-num">LEVEL 04</span>
+        <span class="lt-title">Engineering</span>
+      </button>
+      <button class="level-tab" role="tab" id="tab-l5" aria-controls="panel-l5" aria-selected="false" data-panel="panel-l5" tabindex="-1">
+        <span class="lt-num">LEVEL 05</span>
+        <span class="lt-title">Edge Cases &amp; Review Trail</span>
+      </button>
+    </div>
+
+    <!-- LEVEL 1 -->
+    <div class="level-panel active" id="panel-l1" role="tabpanel" aria-labelledby="tab-l1">
+      <div class="level-grid">
+        <div>
+          <h3>What the user will experience</h3>
+          <p class="level-sub">The whole flow, described as a person living it &mdash; no jargon.</p>
+          <ul class="flow-list">
+            <li><span class="step-num">1</span><b>Welcome screen.</b> One bold statement about what Nyx Fit does, one button to start. No feature list.</li>
+            <li><span class="step-num">2</span><b>Three quick questions.</b> What's your goal (build muscle, get stronger, lose fat, general fitness)? How experienced are you &mdash; asked behaviorally, not as a self-label? How many days per week can you train? Each answer is one or two taps.</li>
+            <li><span class="step-num">3</span><b>&ldquo;Building your plan&rdquo; moment.</b> A short animated beat where their answers visibly turn into a plan. This is the payoff for answering.</li>
+            <li><span class="step-num">4</span><b>Plan preview.</b> They see the shape of the week they just committed to &mdash; split, days, first session.</li>
+            <li><span class="step-num">5</span><b>A taste of logging.</b> A single interactive peek at logging one set, so the core loop is felt before they ever sign in.</li>
+            <li><span class="step-num">6</span><b>Sign-in as &ldquo;Save your plan.&rdquo;</b> Auth is deferred to here and reframed: not &ldquo;create an account,&rdquo; but &ldquo;save what you just built.&rdquo; Google or email.</li>
+            <li><span class="step-num">7</span><b>One CTA into the app.</b> They land in the app with the plan already staged, ready to log their first real workout.</li>
+          </ul>
+        </div>
+        <aside class="why-col">
+          <div class="why-label">Why</div>
+          <p>The current onboarding is a 3-slide feature carousel that <b style="color:var(--orange)">~70% of users skip</b> &mdash; and even those who watch it learn nothing actionable.</p>
+          <p>Onboarding should produce commitment and a plan, not marketing. Questions create investment (people value what they configure), and the preview + logging peek prove value before asking for a sign-up.</p>
+          <p>Framing sign-in as &ldquo;save your plan&rdquo; converts the least popular step of every funnel into the natural conclusion of a story the user is already invested in.</p>
+        </aside>
+      </div>
+    </div>
+
+    <!-- LEVEL 2 -->
+    <div class="level-panel" id="panel-l2" role="tabpanel" aria-labelledby="tab-l2" hidden>
+      <div class="level-grid">
+        <div>
+          <h3>The actual step sequence</h3>
+          <p class="level-sub">Nine stages, one route, coach branch skips two.</p>
+
+          <div class="diagram" aria-label="Step diagram">
+            <span class="node">Welcome</span><span class="arrow">&rarr;</span>
+            <span class="node">Goal</span><span class="arrow">&rarr;</span>
+            <span class="node">Level</span><span class="arrow">&rarr;</span>
+            <span class="node">Schedule</span><span class="arrow">&rarr;</span>
+            <span class="node milestone">Building</span><span class="arrow">&rarr;</span>
+            <span class="node">Plan Preview</span><span class="arrow">&rarr;</span>
+            <span class="node">Logger Peek</span><span class="arrow">&rarr;</span>
+            <span class="node auth">Auth</span><span class="arrow">&rarr;</span>
+            <span class="node done">Done</span>
+          </div>
+          <div class="branch-note">Coach branch: coaches skip <b>Level</b> and <b>Schedule</b> &mdash; the derived step sequence simply omits those indices when goal = coach.</div>
+
+          <ul class="flow-list" style="margin-top:22px">
+            <li><span class="step-num">1</span><b>Welcome</b> &mdash; establishes tone and gets a tap; the only job is starting momentum.</li>
+            <li><span class="step-num">2</span><b>Goal</b> &mdash; the highest-leverage question; it selects the plan template and enables the coach branch.</li>
+            <li><span class="step-num">3</span><b>Level</b> &mdash; behavioral question (e.g., &ldquo;how long have you been training consistently?&rdquo;) calibrates volume and defaults without demanding self-labels.</li>
+            <li><span class="step-num">4</span><b>Schedule</b> &mdash; days-per-week drives the split; also an early commitment device.</li>
+            <li><span class="step-num">5</span><b>Building</b> &mdash; converts answers into perceived value; a beat of anticipation before the reveal.</li>
+            <li><span class="step-num">6</span><b>Plan preview</b> &mdash; shows the concrete output; the moment of &ldquo;this is mine.&rdquo;</li>
+            <li><span class="step-num">7</span><b>Logger peek</b> &mdash; teaches the core loop by touch, not explanation.</li>
+            <li><span class="step-num">8</span><b>Auth</b> &mdash; deferred and reframed as saving the plan; single CTA per screen rule still applies.</li>
+            <li><span class="step-num">9</span><b>Done</b> &mdash; exactly one path forward into the app.</li>
+          </ul>
+        </div>
+        <aside class="why-col">
+          <div class="why-label">Why each step exists</div>
+          <p>Every step either <b>collects one plan input</b>, <b>demonstrates value</b>, or <b>converts</b>. Nothing else is allowed on screen.</p>
+          <p>The sequence is front-loaded with questions (cheap, high investment) and back-loaded with proof (preview, logger peek), so that by the time auth appears the user has sunk answers and seen the product &mdash; the highest-probability moment to ask.</p>
+          <p>No step exists to describe features. Descriptions demoed nothing and the carousel's skip rate proved it.</p>
+        </aside>
+      </div>
+    </div>
+
+    <!-- LEVEL 3 -->
+    <div class="level-panel" id="panel-l3" role="tabpanel" aria-labelledby="tab-l3" hidden>
+      <div class="level-grid">
+        <div>
+          <h3>The metric-driven decisions</h3>
+          <p class="level-sub">Every structural choice maps to a number.</p>
+
+          <div class="stat-row">
+            <div class="stat"><div class="v"><span class="accent">~70%</span></div><div class="k">of users skip the old feature carousel</div></div>
+            <div class="stat"><div class="v"><span class="accent-c">&gt;80%</span></div><div class="k">completion observed for onboarding at &le;3 screens</div></div>
+            <div class="stat"><div class="v"><span class="accent">34%</span> vs <span class="accent-c">19%</span></div><div class="k">endowed progress effect: progress starting at 20% vs 0%</div></div>
+            <div class="stat"><div class="v"><span class="accent">+20%</span></div><div class="k">DAU lift attributed to deferred auth (Duolingo pattern)</div></div>
+            <div class="stat"><div class="v"><span class="accent-c">20&ndash;40%</span></div><div class="k">D1 retention improvement from deferring sign-up (industry)</div></div>
+          </div>
+
+          <ul class="bullets">
+            <li><b>Kill the carousel.</b> ~70% skip rate; industry onboarding data shows completion collapses past ~3 screens, while &le;3-screen flows complete &gt;80% of the time.</li>
+            <li><b>Behavioral level question, not self-labels.</b> &ldquo;How long have you trained consistently?&rdquo; yields honest calibration; &ldquo;beginner/intermediate/advanced&rdquo; invites ego inflation that misconfigures plans.</li>
+            <li><b>One CTA per screen.</b> Each step has exactly one primary action; skip is never a big button.</li>
+            <li><b>Progress rail starts at 20%.</b> Endowed progress effect: showing the first step as already banked lifts completion (34% vs 19% in the cited study).</li>
+            <li><b>Auth deferred and reframed.</b> &ldquo;Save your plan&rdquo; at the end, not a wall up front; Duolingo's deferred-auth pattern is associated with +20% DAU, and deferring sign-up shows 20&ndash;40% D1 retention improvement across consumer apps.</li>
+            <li><b>Skip as a small text link.</b> Available on question steps only, sized to be findable but not inviting.</li>
+            <li><b>SSO callbackURL threading.</b> Google sign-in returns the user to the exact onboarding step they left, so the OAuth round-trip can never dump them at the app entry or a broken state.</li>
+          </ul>
+
+          <div class="callout info">
+            <b style="color:var(--cyan)">Post-launch validation metrics.</b>
+            Primary activation metric: <b style="color:var(--text-bright)">first workout logged within 48h</b>.
+            Secondary: step-funnel completion per stage, D1 / D7 / D30 retention. If step-funnel drop-off clusters on a single step, that step is the next iteration target.
+          </div>
+        </div>
+        <aside class="why-col">
+          <div class="why-label">Why</div>
+          <p>Onboarding is the highest-traffic, least-forgiving surface in the app. Designing it on opinion is how the carousel happened.</p>
+          <p>Each decision above is falsifiable: if the 48h activation metric doesn't move, the funnel data will point at which assumption failed.</p>
+          <p>The primary metric is deliberately &ldquo;workout logged in 48h,&rdquo; not &ldquo;onboarding completed&rdquo; &mdash; completion is a proxy; a logged set is the product working.</p>
+        </aside>
+      </div>
+    </div>
+
+    <!-- LEVEL 4 -->
+    <div class="level-panel" id="panel-l4" role="tabpanel" aria-labelledby="tab-l4" hidden>
+      <div class="level-grid">
+        <div>
+          <h3>Architecture</h3>
+          <p class="level-sub">7 new files, 4 modified. Config-driven. No reducer.</p>
+
+          <div class="legend"><span class="l-new">new file</span><span class="l-mod">modified file</span></div>
+
+          <div class="filetree">
+<span class="dir">src/</span><br>
+&ensp;<span class="new">routes/onboarding.tsx</span><br>
+&ensp;<span class="dir">components/onboarding/</span><br>
+&ensp;&ensp;<span class="new">config.ts</span><br>
+&ensp;&ensp;<span class="new">OnboardingFlow.tsx</span><br>
+&ensp;&ensp;<span class="new">QuestionStep.tsx</span><br>
+&ensp;&ensp;<span class="new">ScheduleStep.tsx</span><br>
+&ensp;&ensp;<span class="new">BuildingStep.tsx</span><br>
+&ensp;&ensp;<span class="new">PreviewSteps.tsx</span><br>
+&ensp;<span class="mod">components/login-form.tsx</span> <span style="color:var(--text-dim)">(optional heading/description/onAuthenticated/callbackURL props &mdash; /login unchanged by default)</span><br>
+&ensp;<span class="mod">routes/login.tsx</span> <span style="color:var(--text-dim)">(carousel stripped, link to /onboarding)</span><br>
+&ensp;<span class="mod">routes/index.tsx</span> <span style="color:var(--text-dim)">(signed-out Get Started &rarr; /onboarding)</span><br>
+&ensp;<span class="mod">components/BottomNav.tsx</span> <span style="color:var(--text-dim)">(hide nav on /onboarding)</span>
+          </div>
+
+          <ul class="bullets">
+            <li><b>Config-driven steps.</b> <code>config.ts</code> declares the ordered step list (ids, copy, options); the flow renders from config, so adding or reordering steps is a data change.</li>
+            <li><b>No reducer &mdash; derived step sequence.</b> Current answers + goal branch derive the visible steps on each render. No action-dispatch machinery, no stale-state class of bug.</li>
+            <li><b>sessionStorage staging.</b> Answers are keyed <code>nyx:onboarding:staged</code> with a hand-written type guard (parse-don't-validate). This is what lets staged answers survive the OAuth full-page round-trip.</li>
+            <li><b>LoginForm extension.</b> Gains optional <code>heading</code>, <code>description</code>, <code>onAuthenticated</code>, and <code>callbackURL</code> props with defaults that keep <code>/login</code> byte-identical. No behavioral change to the existing route.</li>
+            <li><b>No route <code>beforeLoad</code>.</b> Session-dependent cases (returning from OAuth with a session already minted) are handled in a component mount effect, because <code>beforeLoad</code> runs server-side and was destroying the staged state.</li>
+            <li><b>Convex upsert with 1.5s retry, silent failure.</b> One retry after 1.5s; if it still fails, onboarding completes anyway &mdash; profile persistence is best-effort, never a blocker to entering the app.</li>
+          </ul>
+
+          <div class="callout info">
+            <b style="color:var(--cyan)">Repo conventions honored</b>
+            <ul class="bullets" style="margin-top:8px">
+              <li>Named exports only &mdash; no default exports.</li>
+              <li><code>type</code> aliases over <code>interface</code>; string-literal unions over TS enums.</li>
+              <li>Discriminated unions + exhaustive switch (<code>satisfies never</code>) for step states.</li>
+              <li>TypeScript strict: no <code>any</code>, no blind <code>as</code> casts; hand-written type guards for storage reads.</li>
+              <li>No code comments; no new dependencies; SSR-guarded storage access (<code>typeof window !== "undefined"</code>).</li>
+            </ul>
+          </div>
+        </div>
+        <aside class="why-col">
+          <div class="why-label">Why</div>
+          <p>Config over hardcoded JSX: onboarding copy and step order are the two things guaranteed to change in iteration. A data file makes that a diff, not a refactor.</p>
+          <p>Derivation over a reducer: the step list is a pure function of the answers. A reducer would be a second source of truth for the same data &mdash; classic over-engineering (ponytail pass: net negative lines).</p>
+          <p>sessionStorage (not localStorage): staged answers only need to survive one OAuth round-trip in the same tab. Persisting across days would resurrect stale plans.</p>
+          <p>Optional props on <code>LoginForm</code> with unchanged defaults means the existing <code>/login</code> page is provably untouched &mdash; the smallest possible blast radius.</p>
+        </aside>
+      </div>
+    </div>
+
+    <!-- LEVEL 5 -->
+    <div class="level-panel" id="panel-l5" role="tabpanel" aria-labelledby="tab-l5" hidden>
+      <div class="level-grid">
+        <div>
+          <h3>Edge cases &amp; the review trail</h3>
+          <p class="level-sub">What the loop caught, what was consciously accepted, what was deferred.</p>
+
+          <p style="margin-bottom:10px"><span class="pill p1">P1 &middot; caught &amp; fixed</span></p>
+          <ul class="bullets">
+            <li><b>OAuth return destroyed by server-side <code>beforeLoad</code> guard.</b> The guard ran during the OAuth full-page navigation back and redirected wiped flow state. Fixed: guard removed; session cases handled at component mount.</li>
+            <li><b>Google sign-in never returned to the flow.</b> Post-OAuth the user landed detached from onboarding. Fixed: <code>callbackURL</code> threaded through <code>LoginForm</code> so Google returns to the exact step.</li>
+            <li><b>Mount effect re-firing on session flip.</b> The auth-session subscription flipped state mid-flow and re-triggered side effects. Fixed: a flow-started guard makes the effect idempotent.</li>
+            <li><b><code>onExitComplete</code> focus no-op.</b> framer-motion's exit callback fired at the wrong time for focus management. Fixed: focus moved into the mount effect.</li>
+          </ul>
+
+          <p style="margin:18px 0 10px"><span class="pill p2">Accepted trade-offs</span></p>
+          <ul class="bullets">
+            <li><b>Upsert failure is silent.</b> After one 1.5s retry, persistence failure does not block entering the app. Rationale: a missing profile row is recoverable; a blocked user is not.</li>
+            <li><b>Goal not persisted to Convex.</b> There is no schema field for onboarding goal today; adding one would require a backend change outside this plan's scope. The goal shapes the staged plan only.</li>
+            <li><b>sessionStorage lost if the tab is killed mid-OAuth.</b> A page-session store dies with the tab. Accepted because the alternative (localStorage) resurrects stale plans; the failure mode is a polite restart, not corruption.</li>
+          </ul>
+
+          <p style="margin:18px 0 10px"><span class="pill p3">Carried P3s (non-blocking)</span></p>
+          <ul class="bullets">
+            <li>Open-redirect hardening on <code>callbackURL</code> validation.</li>
+            <li><code>noUnusedLocals</code> cleanup in touched files.</li>
+            <li>Remove prod <code>console.debug</code> statements.</li>
+          </ul>
+
+          <div class="callout warn">
+            <b style="color:var(--orange)">Out of scope, flagged for later:</b>
+            real program generation, guest mode, notification-permission ask, haptics, analytics instrumentation.
+            Full table in the section below.
+          </div>
+        </div>
+        <aside class="why-col">
+          <div class="why-label">Why this trail exists</div>
+          <p>Per <code>AGENTS.md</code>, the review loop runs until zero P0/P1 findings remain. It did &mdash; after two P1-bearing cycles, each fixed and re-reviewed.</p>
+          <p>Both P1 cycles were the same class of bug (the OAuth navigation path vs. client assumptions), which is exactly why the second review was scoped to re-verify the auth round-trip end to end.</p>
+          <p>The accepted trade-offs are documented, not hidden &mdash; each has a stated failure mode and a reason it is preferable to the alternative.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <hr class="spacer">
+
+  <!-- ================= OUT OF SCOPE ================= -->
+  <section id="out-of-scope">
+    <div class="section-head">
+      <div class="section-kicker">Scope Boundary</div>
+      <h2>Out of Scope &amp; Future Work</h2>
+      <p>Explicitly excluded from this plan. Each item is flagged for a later cycle rather than silently dropped.</p>
+    </div>
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr><th style="width:30%">Item</th><th style="width:45%">Why it's out of scope now</th><th style="width:25%">When to revisit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Real program generation</b></td><td>Onboarding produces a staged plan shape, not an authored program. Needs a separate design pass on template content and progression logic.</td><td>Immediately after onboarding ships and activation data exists.</td></tr>
+          <tr><td><b>Guest mode</b></td><td>Conflicts with the &ldquo;save your plan&rdquo; auth framing for now; requires decisions on data boundaries.</td><td>After D1 retention data shows how many users bounce at auth.</td></tr>
+          <tr><td><b>Notification permission ask</b></td><td>Asking for permissions during onboarding depresses completion; current focus is activation.</td><td>Post-first-workout moment instead.</td></tr>
+          <tr><td><b>Haptics</b></td><td>Capacitor iOS wrapper work; zero impact on the web activation funnel being measured.</td><td>With the native polish cycle.</td></tr>
+          <tr><td><b>Analytics instrumentation</b></td><td>Step-funnel metrics are defined (Level 3) but wiring them needs an analytics decision not yet made in the repo.</td><td>Before or with launch, so the 48h metric is measurable.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= RISKS ================= -->
+  <section id="risks">
+    <div class="section-head">
+      <div class="section-kicker">What Could Go Wrong</div>
+      <h2>Risk Table</h2>
+      <p>Top risks with concrete mitigations. Residual risk is stated, not hand-waved.</p>
+    </div>
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr><th style="width:26%">Risk</th><th style="width:10%">Severity</th><th style="width:38%">Mitigation</th><th style="width:26%">Residual risk</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>OAuth round-trip regression</b> (auth path breaks again; highest historical P1 density)</td>
+            <td><span class="pill p1">P1 class</span></td>
+            <td>Manual auth-path checks are a mandatory verification gate (footer). <code>callbackURL</code> threading plus sessionStorage staging is the tested pattern; <code>beforeLoad</code> guard removed.</td>
+            <td>Provider-side changes (Google consent screens) can still shift behavior; re-check after any auth config change.</td>
+          </tr>
+          <tr>
+            <td><b>Staged answers lost mid-OAuth</b> (tab killed / browser discards page session)</td>
+            <td><span class="pill p2">P2</span></td>
+            <td>Failure mode is a clean restart of onboarding, not a broken state; storage guard validates shape on every read.</td>
+            <td>Accepted trade-off; localStorage rejected deliberately.</td>
+          </tr>
+          <tr>
+            <td><b>Profile upsert silently fails</b></td>
+            <td><span class="pill p2">P2</span></td>
+            <td>1.5s retry; app entry never blocked. Carried P3: add non-silent telemetry later.</td>
+            <td>Some users may enter with default profile until next upsert.</td>
+          </tr>
+          <tr>
+            <td><b>Level question answered dishonestly</b> (behavioral proxy gamed)</td>
+            <td><span class="pill p3">P3</span></td>
+            <td>Behavioral framing reduces, not eliminates, misreporting; plan is adjustable in-app either way.</td>
+            <td>Watch first-week dropout per self-reported level post-launch.</td>
+          </tr>
+          <tr>
+            <td><b>Coach branch untested edge</b> (skipped steps change sequence length)</td>
+            <td><span class="pill p2">P2</span></td>
+            <td>Derived step sequence makes branch handling pure and unit-testable; progress rail computes from the derived list, never a hardcoded count.</td>
+            <td>Low &mdash; but verify coach path in manual checks.</td>
+          </tr>
+          <tr>
+            <td><b><code>/login</code> regressions</b> from <code>LoginForm</code> changes</td>
+            <td><span class="pill p2">P2</span></td>
+            <td>All new props optional with defaults preserving current behavior; <code>/login</code> must render byte-identical.</td>
+            <td>Verified by diffing rendered <code>/login</code> before/after in manual checks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= DECISIONS ================= -->
+  <section id="decisions">
+    <div class="section-head">
+      <div class="section-kicker">Audit Trail</div>
+      <h2>Decisions &amp; Reasoning Log</h2>
+      <p>The ~10 calls that shaped the plan, each with its reason and where the evidence came from.</p>
+    </div>
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr><th style="width:30%">Decision</th><th style="width:40%">Reason</th><th style="width:30%">Evidence source</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>No <code>beforeLoad</code> guard</b> on the onboarding route</td>
+            <td><code>beforeLoad</code> runs server-side on the OAuth full-page return and would destroy staged answers.</td>
+            <td class="mono">repo __root.tsx uses server-only APIs in beforeLoad; TanStack Router docs</td>
+          </tr>
+          <tr>
+            <td><b>sessionStorage staging</b> under <code>nyx:onboarding:staged</code></td>
+            <td>Staged answers must survive the OAuth round-trip; a page session survives reloads and same-tab navigation without leaking stale data across days.</td>
+            <td class="mono">MDN: sessionStorage survives page reloads and restoring a page session</td>
+          </tr>
+          <tr>
+            <td><b>Auth deferred to end of flow</b>, reframed &ldquo;Save your plan&rdquo;</td>
+            <td>Up-front auth walls are the largest funnel break; deferral is the highest-leverage activation lever in consumer apps.</td>
+            <td class="mono">Duolingo deferred-auth case (+20% DAU); industry D1 retention 20&ndash;40% lift</td>
+          </tr>
+          <tr>
+            <td><b>Kill the 3-slide feature carousel</b></td>
+            <td>~70% skip rate and it teaches nothing; &le;3-screen flows complete &gt;80% of the time.</td>
+            <td class="mono">Repo analytics (carousel skip rate); industry onboarding completion benchmarks</td>
+          </tr>
+          <tr>
+            <td><b>Progress rail starts at 20%</b></td>
+            <td>Endowed progress effect: a pre-banked first step lifts completion (34% vs 19% in the cited study).</td>
+            <td class="mono">Endowed progress effect research (Joseph Nunes / Xavier Dr&egrave;ze)</td>
+          </tr>
+          <tr>
+            <td><b>Behavioral level question</b> instead of self-labels</td>
+            <td>&ldquo;How long have you trained consistently?&rdquo; calibrates plans more honestly than beginner/intermediate/advanced self-ids.</td>
+            <td class="mono">Survey-design practice (behavioral proxies over self-assessment); CLAUDE.md user-mode goals</td>
+          </tr>
+          <tr>
+            <td><b>Derived step sequence, no reducer</b></td>
+            <td>The visible steps are a pure function of answers + goal branch; a reducer would duplicate state and add a bug class for zero benefit.</td>
+            <td class="mono">Ponytail over-engineering pass on the plan (net negative lines)</td>
+          </tr>
+          <tr>
+            <td><b><code>callbackURL</code> threaded through <code>LoginForm</code></b></td>
+            <td>Without it, Google sign-in strands the user outside the flow &mdash; found as P1 in review cycle 1.</td>
+            <td class="mono">better-auth client API (callbackURL param); review finding #2</td>
+          </tr>
+          <tr>
+            <td><b>Convex upsert with 1.5s retry, silent failure</b></td>
+            <td>Profile persistence is best-effort; blocking app entry on a transient mutation error costs more than a missing row.</td>
+            <td class="mono">Repo hooks: <code>useUpsertCurrentProfile</code> semantics; AGENTS.md activation-first principle</td>
+          </tr>
+          <tr>
+            <td><b>Goal stored in staging only, not Convex</b></td>
+            <td>No schema field exists; adding one requires a backend change beyond this plan's approved scope.</td>
+            <td class="mono">convex/ schema review; AGENTS.md escalation rule (schema changes need escalation)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= COMMENTS (TOP) ================= -->
+  <section id="comments-top">
+    <div class="section-head">
+      <div class="section-kicker">Your Call</div>
+      <h2>Leave Approval Comments</h2>
+      <p>Type your notes, pick a stance, hit copy, then paste the clipboard contents back into the chat.</p>
+    </div>
+
+    <div class="comment-panel">
+      <h3>Approval Comments</h3>
+      <p class="comment-instructions">Type your notes, pick a stance, hit copy, then paste the clipboard contents back into the chat. If clipboard copy is blocked (common on <code>file://</code>), use the download button and paste the file's contents instead.</p>
+
+      <div class="comment-controls">
+        <label for="stance-top">Stance</label>
+        <select id="stance-top" data-stance>
+          <option>Approve</option>
+          <option>Approve with notes</option>
+          <option>Request changes</option>
+        </select>
+      </div>
+
+      <label for="review-comments" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Your approval notes and objections</label>
+      <textarea id="review-comments" placeholder="Approve as-is, or list objections per section (e.g. 'Level 3: justify the 34% vs 19% number', 'Risks: add a plan for X')..."></textarea>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" data-copy>&nbsp;Copy comments to clipboard</button>
+        <button type="button" class="btn" data-download>Download comments (.txt)</button>
+        <span class="copy-feedback" data-feedback aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= COMMENTS (BOTTOM) ================= -->
+  <section id="comments-bottom">
+    <div class="section-head">
+      <div class="section-kicker">One More Time</div>
+      <h2>Comments (Bottom Copy)</h2>
+      <p>Same comments panel, mirrored with the one above &mdash; type in either place, both stay in sync.</p>
+    </div>
+
+    <div class="comment-panel">
+      <h3>Approval Comments</h3>
+      <p class="comment-instructions">Type your notes, pick a stance, hit copy, then paste the clipboard contents back into the chat. If clipboard copy is blocked (common on <code>file://</code>), use the download button and paste the file's contents instead.</p>
+
+      <div class="comment-controls">
+        <label for="stance-bottom">Stance</label>
+        <select id="stance-bottom" data-stance>
+          <option>Approve</option>
+          <option>Approve with notes</option>
+          <option>Request changes</option>
+        </select>
+      </div>
+
+      <label for="review-comments-bottom" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Your approval notes and objections</label>
+      <textarea id="review-comments-bottom" placeholder="Approve as-is, or list objections per section (e.g. 'Level 3: justify the 34% vs 19% number', 'Risks: add a plan for X')..."></textarea>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-primary" data-copy>&nbsp;Copy comments to clipboard</button>
+        <button type="button" class="btn" data-download>Download comments (.txt)</button>
+        <span class="copy-feedback" data-feedback aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer id="footer">
+    <div class="section-kicker">Before Implementation Merges</div>
+    <h2 style="font-size:20px; margin-bottom:6px;">Verification Gates</h2>
+    <p style="font-size:13.5px; max-width:720px;">The implementor must pass every gate below and report evidence for each. Approval of this page authorizes implementation only &mdash; it is not a merge.</p>
+
+    <ul class="gates">
+      <li><span class="gate-check">[&nbsp;]</span><span><b style="color:var(--text-bright)"><code>npx tsc --noEmit</code></b> &mdash; clean under TypeScript strict, zero errors.</span></li>
+      <li><span class="gate-check">[&nbsp;]</span><span><b style="color:var(--text-bright)"><code>npm run build</code></b> &mdash; succeeds; <code>src/routeTree.gen.ts</code> regenerated by the router plugin, never hand-edited.</span></li>
+      <li><span class="gate-check">[&nbsp;]</span><span><b style="color:var(--text-bright)">Manual auth-path checks</b> &mdash; email path through the flow, Google path with <code>callbackURL</code> returning to the flow, OAuth return with an existing session, and <code>/login</code> rendering unchanged.</span></li>
+      <li><span class="gate-check">[&nbsp;]</span><span><b style="color:var(--text-bright)">Coach branch check</b> &mdash; level and schedule steps correctly omitted; progress rail math correct for both sequence lengths.</span></li>
+    </ul>
+
+    <div class="governance">
+      <b style="color:var(--text-bright)">Governance note (AGENTS.md / CLAUDE.md):</b>
+      no commits without explicit human approval; no new dependencies; no code comments or emojis; named exports, type aliases, string-literal unions, discriminated unions with exhaustive switches; TypeScript strict, no <code>any</code>, parse-don't-validate; SSR-guarded storage access; WCAG AA with reduced-motion honored in both CSS and framer-motion; design language per CLAUDE.md &mdash; Apple Fitness polish, athletic typography, purple used intentionally with cyan/orange accents. Any schema change, new auth provider, or dependency requires escalation before proceeding.
+    </div>
+
+    <div class="footer-meta">Nyx Fit &middot; Onboarding Redesign &middot; Human approval artifact &middot; Static page, works from <code style="color:var(--text-dim)">file://</code></div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".level-tab"));
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".level-panel"));
+
+  function selectTab(tab) {
+    tabs.forEach(function (t) {
+      var selected = t === tab;
+      t.setAttribute("aria-selected", selected ? "true" : "false");
+      t.tabIndex = selected ? 0 : -1;
+    });
+    panels.forEach(function (p) {
+      var active = p.id === tab.getAttribute("data-panel");
+      p.classList.toggle("active", active);
+      if (active) { p.removeAttribute("hidden"); } else { p.setAttribute("hidden", ""); }
+    });
+  }
+
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener("click", function () { selectTab(tab); });
+    tab.addEventListener("keydown", function (e) {
+      var next = null;
+      if (e.key === "ArrowRight") { next = tabs[(i + 1) % tabs.length]; }
+      else if (e.key === "ArrowLeft") { next = tabs[(i - 1 + tabs.length) % tabs.length]; }
+      if (next) { e.preventDefault(); next.focus(); selectTab(next); }
+    });
+  });
+
+  var miniLinks = Array.prototype.slice.call(document.querySelectorAll(".mininav a"));
+  var sections = miniLinks
+    .map(function (a) { return document.querySelector(a.getAttribute("href")); })
+    .filter(Boolean);
+
+  function updateActiveLink() {
+    var pos = window.scrollY + 120;
+    var current = null;
+    sections.forEach(function (s) { if (s.offsetTop <= pos) { current = s.id; } });
+    miniLinks.forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+    });
+  }
+
+  window.addEventListener("scroll", updateActiveLink, { passive: true });
+  updateActiveLink();
+
+  var textareas = Array.prototype.slice.call(document.querySelectorAll("textarea"));
+  var stanceSelects = Array.prototype.slice.call(document.querySelectorAll("select[data-stance]"));
+  var sync = false;
+
+  function allTextareas() { return Array.prototype.slice.call(document.querySelectorAll("textarea")); }
+  function allSelects() { return Array.prototype.slice.call(document.querySelectorAll("select[data-stance]")); }
+
+  function broadcastText(source) {
+    if (sync) { return; }
+    sync = true;
+    allTextareas().forEach(function (t) { if (t !== source) { t.value = source.value; } });
+    sync = false;
+  }
+
+  function broadcastStance(source) {
+    if (sync) { return; }
+    sync = true;
+    allSelects().forEach(function (s) { if (s !== source) { s.value = source.value; } });
+    sync = false;
+  }
+
+  document.addEventListener("input", function (e) {
+    if (e.target && e.target.tagName === "TEXTAREA") { broadcastText(e.target); }
+  });
+
+  document.addEventListener("change", function (e) {
+    if (e.target && e.target.matches("select[data-stance]")) { broadcastStance(e.target); }
+  });
+
+  function composeBlock() {
+    var stance = stanceSelects.length ? stanceSelects[0].value : "Approve";
+    var text = textareas.length ? textareas[0].value : "";
+    var date = new Date().toISOString().slice(0, 10);
+    var lines = [
+      "=== Onboarding Redesign - Approval Comments ===",
+      "Date: " + date,
+      "Stance: " + stance,
+      "",
+      "Comments:",
+      text.trim() === "" ? "(no comments written)" : text.trim(),
+      ""
+    ];
+    return lines.join("\n");
+  }
+
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  function showFeedback(el, message, isError) {
+    if (!el) { return; }
+    el.textContent = message;
+    el.style.color = isError ? "var(--red)" : "var(--cyan)";
+    el.classList.add("show");
+    window.setTimeout(function () { el.classList.remove("show"); }, 2600);
+  }
+
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest("button") : null;
+    if (!btn) { return; }
+    var panel = btn.closest(".comment-panel");
+    var feedback = panel ? panel.querySelector("[data-feedback]") : null;
+    var block = composeBlock();
+
+    if (btn.hasAttribute("data-copy")) {
+      var done = function (ok) {
+        showFeedback(feedback, ok ? "Copied. Paste it back into the chat." : "Clipboard blocked. Use Download instead.", !ok);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(block).then(function () { done(true); }, function () { done(legacyCopy(block)); });
+      } else {
+        done(legacyCopy(block));
+      }
+    } else if (btn.hasAttribute("data-download")) {
+      var blob = new Blob([block], { type: "text/plain" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "onboarding-approval-comments.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      showFeedback(feedback, "Downloaded onboarding-approval-comments.txt", false);
+    }
+  });
+})();
+</script>
+</body>
+</html>

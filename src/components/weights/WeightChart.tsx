@@ -160,7 +160,7 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
               }}
               itemStyle={{ color: "#fff" }}
               labelStyle={{ color: "#a1a1aa" }}
-              formatter={(value: number) => [Math.round(value * 10) / 10, `Weight (${formatWeightUnit(unit)})`]}
+              formatter={(value) => [typeof value === "number" ? Math.round(value * 10) / 10 : "—", `Weight (${formatWeightUnit(unit)})`]}
             />
             {goal && (
               <ReferenceLine

@@ -9,7 +9,7 @@ import {
   inferExerciseCategory,
   type ExerciseCategory,
 } from "@/lib/exerciseCategories";
-import { convertWeightToLbs, formatWeightUnit, getWeightStep } from "@/lib/units";
+import { convertWeightToLbs, formatWeight, formatWeightUnit, getWeightStep } from "@/lib/units";
 
 interface AddExerciseDrawerProps {
   isOpen: boolean;
