@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { actionClass, headingClass, type QuestionOption } from "./config";
@@ -40,9 +39,8 @@ export function QuestionStep<T extends string>({
         </p>
         <div className="space-y-3">
           {options.map((option, index) => (
-            <motion.label
+            <label
               key={option.value}
-              whileTap={{ scale: 0.97 }}
               className={cn(
                 "flex min-h-11 cursor-pointer items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 transition-colors duration-150 focus-within:ring-2 focus-within:ring-purple-500 focus-within:ring-offset-2 focus-within:ring-offset-black motion-reduce:transition-none",
                 value === option.value && "border-purple-500 bg-purple-500/10",
@@ -77,7 +75,7 @@ export function QuestionStep<T extends string>({
               >
                 {value === option.value && <Check className="size-4" />}
               </span>
-            </motion.label>
+            </label>
           ))}
         </div>
       </fieldset>

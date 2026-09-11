@@ -1,471 +1,388 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import {
-  AnimatePresence,
-  MotionConfig,
-  motion,
-  useIsPresent,
-} from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Clock3, Dumbbell } from "lucide-react";
+import { useConvexAuth } from "convex/react";
+import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { LoginForm } from "@/components/login-form";
 import { authClient } from "@/lib/auth-client";
-import { useUpsertCurrentProfile } from "@/lib/convex/hooks";
 import { cn } from "@/lib/utils";
-import { BuildingStep } from "./BuildingStep";
-import { LoggerPeekStep, PlanPreviewStep } from "./PreviewSteps";
-import { QuestionStep } from "./QuestionStep";
-import { ScheduleStep } from "./ScheduleStep";
+import { useUpsertCurrentProfile } from "@/lib/convex/hooks";
 import {
-  actionClass,
-  buildSequence,
-  clearStaged,
+  clearLegacyStagedOnboarding,
+  clearOnboardingDraft,
   copy,
-  defaultDays,
-  deriveFitnessLevel,
-  focusClass,
-  goalOptions,
-  headingClass,
-  levelOptions,
-  linkClass,
-  readStagedOnboarding,
-  writeStaged,
-  type QuizAnswers,
-  type StagedOnboarding,
+  isDraftStorageAvailable,
+  readOnboardingDraft,
+  writeOnboardingDraft,
+  type ExperienceLevel,
   type StepId,
 } from "./config";
+import { WashBackground, type OnboardingWash } from "./kit/WashBackground";
+import { AuthError, AuthSaving } from "./screens/AuthStatus";
+import { DoneScreen } from "./screens/DoneScreen";
+import { ExperienceScreen } from "./screens/ExperienceScreen";
+import { OnboardingHeader } from "./screens/OnboardingHeader";
+import { WelcomeScreen } from "./screens/WelcomeScreen";
 
-const stepVariants = {
-  enter: (direction: number) => ({ x: 20 * direction, opacity: 0 }),
-  visible: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: -20 * direction, opacity: 0 }),
+type EntryPath = "setup" | "existing";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+const SETUP_STEPS: StepId[] = ["welcome", "experience", "auth", "done"];
+const READINESS_TIMEOUT_MS = 10000;
+const SAVE_FALLBACK_ERROR =
+  "We couldn't save your training experience. Check your connection and try again.";
+const READINESS_TIMEOUT_ERROR =
+  "Signing you in is taking longer than expected. Your answer is kept here.";
+const DEGRADED_AUTH_DESCRIPTION =
+  "Your answer can't be kept on this device, so it won't survive sign-in. Continue to sign in, then set your experience in profile settings.";
+
+const washByStep: Record<StepId, OnboardingWash> = {
+  welcome: "welcome",
+  experience: "experience",
+  auth: "auth",
+  done: "done",
 };
-
-function StepFrame({
-  children,
-  direction,
-  shouldFocus,
-}: {
-  children: ReactNode;
-  direction: number;
-  shouldFocus: boolean;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const present = useIsPresent();
-  useEffect(() => {
-    if (shouldFocus) ref.current?.querySelector("h1")?.focus();
-  }, [shouldFocus]);
-  return (
-    <motion.div
-      ref={ref}
-      inert={!present}
-      custom={direction}
-      variants={stepVariants}
-      initial="enter"
-      animate="visible"
-      exit="exit"
-      transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-      className="w-full py-8 sm:py-12"
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const router = useRouter();
   const { data: sessionData, isPending: isSessionPending } =
     authClient.useSession();
   const session = sessionData?.session;
+  const {
+    isLoading: isConvexAuthLoading,
+    isAuthenticated: isConvexAuthenticated,
+  } = useConvexAuth();
   const { upsertCurrentProfile } = useUpsertCurrentProfile();
-  const [index, setIndex] = useState(0);
-  const [maxIndex, setMaxIndex] = useState(1);
-  const [direction, setDirection] = useState(1);
-  const [focusStepId, setFocusStepId] = useState<StepId | null>(null);
+  const [step, setStep] = useState<StepId>("welcome");
+  const [entryPath, setEntryPath] = useState<EntryPath | null>(null);
+  const [fitnessLevel, setFitnessLevel] = useState<ExperienceLevel | null>(null);
   const [leaving, setLeaving] = useState(false);
-  const [answers, setAnswers] = useState<QuizAnswers>({
-    goal: null,
-    lastWeekSessions: null,
-    daysPerWeek: null,
-    equipment: ["dumbbells", "bodyweight"],
-  });
-  const flowStartedRef = useRef(false);
-  const cancelledRef = useRef(false);
+  const [initialized, setInitialized] = useState(false);
+  const [storageAvailable, setStorageAvailable] = useState(true);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveLevel, setSaveLevel] = useState<ExperienceLevel | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [authSettled, setAuthSettled] = useState(false);
+  const mountedRef = useRef(false);
+  const postAuthHandledRef = useRef(false);
+  const saveAttemptRef = useRef(false);
+  const mutatingRef = useRef(false);
   const leavingRef = useRef(false);
-  const sequence = buildSequence(answers.goal);
-  const step = sequence[index];
-  const reached = Math.min(maxIndex, sequence.length - 1);
+  const readinessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentRef = useRef<HTMLElement>(null);
+  const firstScreenRef = useRef(true);
+  const resumedRef = useRef(false);
+  const reduceMotion = useReducedMotion();
+  const stepNumber = SETUP_STEPS.indexOf(step) + 1;
+  const showSetupProgress = entryPath !== "existing";
+  const doneAction =
+    !redirect || redirect === "/" ? copy.done.action : copy.done.continueAction;
   const authCallbackUrl = redirect
     ? `/onboarding?redirect=${encodeURIComponent(redirect)}`
     : "/onboarding";
+  const destination = redirect ?? "/";
+
+  const clearReadinessTimer = useCallback(() => {
+    if (readinessTimerRef.current !== null) {
+      clearTimeout(readinessTimerRef.current);
+      readinessTimerRef.current = null;
+    }
+  }, []);
+
+  const beginSaveFlow = useCallback(
+    (level: ExperienceLevel) => {
+      if (saveAttemptRef.current) return;
+      saveAttemptRef.current = true;
+      clearReadinessTimer();
+      readinessTimerRef.current = setTimeout(() => {
+        readinessTimerRef.current = null;
+        if (!mountedRef.current || mutatingRef.current) return;
+        setSaveError(READINESS_TIMEOUT_ERROR);
+        setSaveStatus("error");
+      }, READINESS_TIMEOUT_MS);
+      setSaveLevel(level);
+      setSaveError(null);
+      setSaveStatus("saving");
+    },
+    [clearReadinessTimer],
+  );
 
   useEffect(() => {
-    cancelledRef.current = false;
+    mountedRef.current = true;
+    setStorageAvailable(isDraftStorageAvailable());
+    clearLegacyStagedOnboarding();
+    const draft = readOnboardingDraft();
+    if (draft !== null) {
+      setEntryPath("setup");
+      setFitnessLevel(draft.fitnessLevel);
+      resumedRef.current = true;
+      if (draft.step === "auth" && draft.fitnessLevel !== null) {
+        setStep("auth");
+      } else {
+        setStep("experience");
+      }
+    }
+    setInitialized(true);
     return () => {
-      cancelledRef.current = true;
+      mountedRef.current = false;
+      if (readinessTimerRef.current !== null) {
+        clearTimeout(readinessTimerRef.current);
+        readinessTimerRef.current = null;
+      }
     };
   }, []);
 
-  const commitStaged = useCallback(
-    async (staged: StagedOnboarding) => {
-      if (staged.goal === "coach" || staged.fitnessLevel === null) return;
+  useEffect(() => {
+    if (saveLevel === null || saveStatus !== "saving") return;
+    if (isConvexAuthLoading || !isConvexAuthenticated) return;
+    if (mutatingRef.current) return;
+    mutatingRef.current = true;
+    clearReadinessTimer();
+    void (async () => {
       try {
-        await upsertCurrentProfile({
-          updates: { fitnessLevel: staged.fitnessLevel },
-        });
-      } catch {
-        if (cancelledRef.current) return;
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        if (cancelledRef.current) return;
-        try {
-          await upsertCurrentProfile({
-            updates: { fitnessLevel: staged.fitnessLevel },
-          });
-        } catch {
-          return;
-        }
+        await upsertCurrentProfile({ updates: { fitnessLevel: saveLevel } });
+        if (!mountedRef.current) return;
+        clearOnboardingDraft();
+        setSaveStatus("saved");
+        setStep("done");
+      } catch (error) {
+        if (!mountedRef.current) return;
+        setSaveError(
+          error instanceof Error && error.message.trim().length > 0
+            ? error.message
+            : SAVE_FALLBACK_ERROR,
+        );
+        setSaveStatus("error");
       }
-    },
-    [upsertCurrentProfile],
-  );
+    })();
+  }, [
+    saveLevel,
+    saveStatus,
+    isConvexAuthLoading,
+    isConvexAuthenticated,
+    upsertCurrentProfile,
+    clearReadinessTimer,
+  ]);
 
   useEffect(() => {
-    if (isSessionPending || !session || flowStartedRef.current) return;
-    flowStartedRef.current = true;
-    const staged = readStagedOnboarding();
-    if (staged?.fitnessLevel) {
-      void commitStaged(staged)
-        .finally(clearStaged)
-        .then(() => {
-          if (!cancelledRef.current) router.history.push(redirect ?? "/");
-        });
+    if (!initialized || isSessionPending || !session) return;
+    if (postAuthHandledRef.current) return;
+    postAuthHandledRef.current = true;
+    const draft = readOnboardingDraft();
+    if (
+      draft !== null &&
+      draft.step === "auth" &&
+      draft.fitnessLevel !== null
+    ) {
+      setEntryPath("setup");
+      setFitnessLevel(draft.fitnessLevel);
+      beginSaveFlow(draft.fitnessLevel);
+      setAuthSettled(true);
     } else {
-      clearStaged();
-      router.history.push(redirect ?? "/");
+      router.history.replace(destination);
     }
-  }, [isSessionPending, session, redirect, router.history, commitStaged]);
+  }, [
+    initialized,
+    isSessionPending,
+    session,
+    destination,
+    router.history,
+    beginSaveFlow,
+  ]);
 
-  const goTo = useCallback(
-    (target: StepId, goal = answers.goal) => {
-      const nextIndex = buildSequence(goal).indexOf(target);
-      if (nextIndex < 0) return;
-      flowStartedRef.current = true;
-      setDirection(nextIndex < index ? -1 : 1);
-      setFocusStepId(target);
-      setIndex(nextIndex);
-      setMaxIndex((previous) => Math.max(previous, nextIndex));
-    },
-    [answers.goal, index],
-  );
+  useEffect(() => {
+    if (!initialized || entryPath !== "setup") return;
+    if (step === "experience") {
+      writeOnboardingDraft({ version: 2, step: "experience", fitnessLevel });
+    } else if (
+      step === "auth" &&
+      saveStatus === "idle" &&
+      fitnessLevel !== null
+    ) {
+      writeOnboardingDraft({ version: 2, step: "auth", fitnessLevel });
+    }
+  }, [initialized, entryPath, step, fitnessLevel, saveStatus]);
 
-  const showPreview = useCallback(() => goTo("plan-preview"), [goTo]);
-  const showAuth = useCallback(() => goTo("auth"), [goTo]);
-  const stageAnswers = (nextAnswers: QuizAnswers) => {
-    if (!nextAnswers.goal) return;
-    writeStaged({
-      fitnessLevel: deriveFitnessLevel(nextAnswers),
-      goal: nextAnswers.goal,
-    });
-    goTo("building", nextAnswers.goal);
-  };
-  const handleEmailAuthenticated = () => {
-    flowStartedRef.current = true;
-    const staged = readStagedOnboarding();
-    if (staged) void commitStaged(staged);
-    clearStaged();
-    goTo("done");
-  };
+  const goToStep = useCallback((target: StepId) => {
+    setStep(target);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta === null) return;
+    const previous = meta.getAttribute("content");
+    meta.setAttribute("content", "#FAF9FB");
+    return () => {
+      if (previous !== null) meta.setAttribute("content", previous);
+    };
+  }, []);
+
+  const retrySave = useCallback(() => {
+    if (saveLevel === null) return;
+    saveAttemptRef.current = false;
+    mutatingRef.current = false;
+    beginSaveFlow(saveLevel);
+  }, [saveLevel, beginSaveFlow]);
+
+  const abandonSave = useCallback(() => {
+    clearReadinessTimer();
+    clearOnboardingDraft();
+    router.history.replace(destination);
+  }, [clearReadinessTimer, destination, router.history]);
 
   const renderStep = () => {
     switch (step) {
       case "welcome":
         return (
-          <div>
-            <div
-              aria-hidden="true"
-              className="relative mx-auto mb-10 flex h-56 max-w-80 items-center justify-center sm:h-64"
-            >
-              <div className="absolute size-52 rounded-full border border-white/10 sm:size-60" />
-              <div className="absolute size-40 rounded-full border border-white/5 sm:size-48" />
-              <div className="relative w-64 -rotate-6 rounded-2xl border border-white/15 bg-linear-to-br from-zinc-800 to-zinc-950 p-5 shadow-2xl shadow-black/50">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                    Every rep counts
-                  </span>
-                  <Dumbbell className="size-5 text-zinc-300" />
-                </div>
-                <div className="mt-5 flex items-end gap-1.5">
-                  {[24, 36, 30, 48, 42, 60, 72].map((height, bar) => (
-                    <div
-                      key={bar}
-                      style={{ height }}
-                      className={cn(
-                        "flex-1 rounded-t-sm bg-white/15",
-                        bar === 6 && "bg-white/80",
-                      )}
-                    />
-                  ))}
-                </div>
-                <div className="mt-4 flex justify-between border-t border-white/10 pt-3 text-xs text-zinc-400">
-                  <span>Your effort.</span>
-                  <span>Your progress.</span>
-                </div>
-              </div>
-              <div className="absolute -right-1 bottom-3 flex rotate-3 items-center gap-3 rounded-xl border border-white/15 bg-zinc-900 p-3 shadow-xl">
-                <span className="flex size-9 items-center justify-center rounded-full bg-white/10">
-                  <Check className="size-5" />
-                </span>
-                <span className="text-sm font-semibold">One set closer.</span>
-              </div>
-            </div>
-            <div className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-              <Clock3 aria-hidden="true" className="size-3.5" />
-              {copy.welcome.meta}
-            </div>
-            <h1
-              tabIndex={-1}
-              className={cn(headingClass, "max-w-80 text-5xl sm:text-6xl")}
-            >
-              {copy.welcome.heading}
-            </h1>
-            <p className="mt-5 max-w-sm text-lg leading-relaxed text-zinc-400">
-              {copy.welcome.description}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                clearStaged();
-                goTo("goal");
-              }}
-              className={actionClass}
-            >
-              {copy.welcome.action}
-              <ArrowRight aria-hidden="true" className="size-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                clearStaged();
-                showAuth();
-              }}
-              className={cn(linkClass, "mx-auto mt-2")}
-            >
-              {copy.welcome.skip}
-            </button>
-          </div>
-        );
-      case "goal":
-        return (
-          <QuestionStep
-            name="goal"
-            {...copy.goal}
-            options={goalOptions}
-            value={answers.goal}
-            onChange={(goal) => {
-              const next = { ...answers, goal };
-              setAnswers(next);
-              if (goal === "coach") stageAnswers(next);
+          <WelcomeScreen
+            onStart={() => {
+              clearOnboardingDraft();
+              clearLegacyStagedOnboarding();
+              setEntryPath("setup");
+              goToStep("experience");
             }}
+            onExistingAccount={() => {
+              clearOnboardingDraft();
+              clearLegacyStagedOnboarding();
+              setEntryPath("existing");
+              goToStep("auth");
+            }}
+          />
+        );
+      case "experience":
+        return (
+          <ExperienceScreen
+            value={fitnessLevel}
+            onChange={setFitnessLevel}
             onContinue={() => {
-              if (answers.goal === "coach") stageAnswers(answers);
-              else goTo("level");
+              if (fitnessLevel === null) return;
+              goToStep("auth");
             }}
           />
         );
-      case "level":
-        return (
-          <QuestionStep
-            name="level"
-            {...copy.level}
-            options={levelOptions}
-            value={answers.lastWeekSessions}
-            onChange={(lastWeekSessions) =>
-              setAnswers({
-                ...answers,
-                lastWeekSessions,
-                daysPerWeek: defaultDays(lastWeekSessions),
-              })
-            }
-            onContinue={() => goTo("schedule")}
-          />
-        );
-      case "schedule":
-        return (
-          <ScheduleStep
-            answers={answers}
-            onChange={setAnswers}
-            onContinue={() => stageAnswers(answers)}
-          />
-        );
-      case "building":
-        return <BuildingStep answers={answers} onContinue={showPreview} />;
-      case "plan-preview":
-        return (
-          <PlanPreviewStep
-            answers={answers}
-            onContinue={() => goTo("logger-peek")}
-          />
-        );
-      case "logger-peek":
-        return <LoggerPeekStep onContinue={showAuth} />;
       case "auth":
-        return (
-          <div>
-            <LoginForm
-              heading={copy.auth.heading}
-              description={copy.auth.description}
-              callbackURL={authCallbackUrl}
-              onAuthenticated={handleEmailAuthenticated}
-              className="[&_h1]:text-4xl [&_h1]:sm:text-5xl [&_h1]:leading-tight [&_input]:focus:border-purple-500 [&_input]:focus:ring-purple-500 [&_button[type=submit]]:hover:bg-purple-700 [&_button]:focus-visible:ring-purple-500 [&_.text-gray-500]:text-zinc-400 [&_.text-zinc-500]:text-zinc-400 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center [&_a]:focus-visible:outline-2 [&_a]:focus-visible:outline-purple-500 motion-reduce:[&_*]:transition-none motion-reduce:[&_*]:animate-none"
+        if (entryPath !== "existing" && saveStatus === "error") {
+          return (
+            <AuthError
+              message={saveError ?? SAVE_FALLBACK_ERROR}
+              onRetry={retrySave}
+              onAbandon={abandonSave}
             />
-            <button
-              type="button"
-              onClick={() => {
-                clearStaged();
-                goTo("done");
-              }}
-              className={cn(linkClass, "mx-auto mt-6")}
-            >
-              {copy.auth.skip}
-            </button>
-          </div>
+          );
+        }
+        if (entryPath !== "existing" && saveStatus !== "idle") {
+          return <AuthSaving />;
+        }
+        return (
+          <LoginForm
+            heading={
+              entryPath === "existing"
+                ? copy.auth.existing.heading
+                : copy.auth.setup.heading
+            }
+            description={
+              entryPath === "existing"
+                ? copy.auth.existing.description
+                : storageAvailable
+                  ? copy.auth.setup.description
+                  : DEGRADED_AUTH_DESCRIPTION
+            }
+            callbackURL={authCallbackUrl}
+            variant="onboarding"
+          />
         );
       case "done":
         return (
-          <div className="text-center">
-            <div
-              aria-hidden="true"
-              className="mx-auto mb-10 flex size-28 items-center justify-center rounded-full border border-white/15 bg-white/5 shadow-2xl"
-            >
-              <Check className="size-12" strokeWidth={1.5} />
-            </div>
-            <h1 tabIndex={-1} className={headingClass}>
-              {copy.done.heading}
-            </h1>
-            <p className="mt-4 text-lg text-zinc-400">
-              {copy.done.description}
-            </p>
-            <button
-              type="button"
-              disabled={leaving}
-              onClick={() => {
-                if (leavingRef.current) return;
-                leavingRef.current = true;
-                setLeaving(true);
-                clearStaged();
-                router.history.push(redirect ?? "/");
-              }}
-              className={actionClass}
-            >
-              {copy.done.action}
-              <ArrowRight aria-hidden="true" className="size-5" />
-            </button>
-          </div>
+          <DoneScreen
+            action={doneAction}
+            disabled={leaving}
+            onContinue={() => {
+              if (leavingRef.current) return;
+              leavingRef.current = true;
+              setLeaving(true);
+              clearOnboardingDraft();
+              router.history.replace(destination);
+            }}
+          />
         );
       default:
         return step satisfies never;
     }
   };
 
-  const canGoBack =
-    step === "goal" ||
-    step === "level" ||
-    step === "schedule" ||
-    step === "plan-preview" ||
-    step === "logger-peek";
+  const saveFlowActive =
+    step === "auth" &&
+    entryPath === "setup" &&
+    (saveStatus === "saving" || saveStatus === "error");
+  const backTarget: StepId | null = saveFlowActive
+    ? null
+    : step === "experience"
+      ? "welcome"
+      : step === "auth"
+        ? entryPath === "setup"
+          ? "experience"
+          : "welcome"
+        : null;
+  const showLoadingShell =
+    !initialized || isSessionPending || (!!session && !authSettled);
+  const screenKey =
+    step === "auth" && entryPath === "setup" && saveStatus !== "idle"
+      ? `auth-${saveStatus}`
+      : step;
+
+  useEffect(() => {
+    if (!initialized || showLoadingShell) return;
+    const isInitialWelcome =
+      firstScreenRef.current && step === "welcome" && !resumedRef.current;
+    firstScreenRef.current = false;
+    window.scrollTo(0, 0);
+    if (isInitialWelcome) return;
+    contentRef.current?.querySelector("h1")?.focus({ preventScroll: true });
+  }, [initialized, showLoadingShell, screenKey, step]);
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="relative isolate flex min-h-svh flex-col overflow-x-clip bg-black px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] text-white">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-        >
-          <div className="absolute inset-x-0 top-0 h-1/2 bg-linear-to-b from-zinc-900 to-transparent" />
-          <div className="absolute -right-20 -top-20 size-80 rounded-full bg-purple-900/20 blur-3xl" />
-          <div className="absolute -left-20 top-60 size-64 rounded-full bg-blue-900/10 blur-3xl" />
-        </div>
-        <header className="mx-auto w-full max-w-md">
-          <div className="mb-6 flex min-h-11 items-center justify-between">
-            <span className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-[0.22em]">
-              <Dumbbell aria-hidden="true" className="size-5" />
-              Nyx Fit
-            </span>
-            <span className="text-xs uppercase tracking-[0.16em] text-zinc-400">
-              Built around you
-            </span>
-          </div>
-          <div
-            key={answers.goal}
-            role="progressbar"
-            aria-label="Onboarding progress"
-            aria-valuemin={1}
-            aria-valuemax={sequence.length}
-            aria-valuenow={reached + 1}
-            className="flex gap-1.5"
-          >
-            {sequence.map((id, segmentIdx) => (
-              <div
-                key={id}
-                className={cn(
-                  "h-1.5 flex-1 rounded-full",
-                  segmentIdx <= reached ? "bg-white" : "bg-white/10",
-                )}
-              />
-            ))}
-          </div>
-          <div className="mt-3 flex min-h-11 items-center justify-between">
-            {canGoBack ? (
-              <button
-                type="button"
-                onClick={() =>
-                  goTo(
-                    step === "plan-preview"
-                      ? answers.goal === "coach"
-                        ? "goal"
-                        : "schedule"
-                      : sequence[index - 1],
-                  )
-                }
-                className={cn(
-                  "-ml-2 flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm text-zinc-400 hover:text-white",
-                  focusClass,
-                )}
-              >
-                <ArrowLeft aria-hidden="true" className="size-4" />
-                Back
-              </button>
-            ) : (
-              <span />
+      <div className="theme-onboarding relative isolate flex min-h-svh flex-col overflow-x-clip bg-ob-canvas">
+        <WashBackground wash={washByStep[step]} />
+        <div className="mx-auto flex w-full max-w-[390px] flex-1 flex-col px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          {step !== "welcome" ? (
+            <OnboardingHeader
+              stepNumber={stepNumber}
+              totalSteps={SETUP_STEPS.length}
+              showRail={showSetupProgress}
+              showBack={backTarget !== null}
+              onBack={() => {
+                if (backTarget !== null) goToStep(backTarget);
+              }}
+            />
+          ) : null}
+          <main
+            ref={contentRef}
+            className={cn(
+              "flex w-full flex-1 flex-col",
+              step !== "welcome" && "mt-6",
             )}
-            <span className="text-xs tabular-nums text-zinc-400">
-              {String(index + 1).padStart(2, "0")} /{" "}
-              {String(sequence.length).padStart(2, "0")}
-            </span>
-          </div>
-        </header>
-        <main className="mx-auto flex w-full max-w-md flex-1 items-center">
-          {isSessionPending || (session && focusStepId === null) ? (
-            <p role="status" className="w-full py-20 text-center text-zinc-400">
-              Loading…
-            </p>
-          ) : (
-            <AnimatePresence mode="wait" custom={direction}>
-              <StepFrame
-                key={step}
-                direction={direction}
-                shouldFocus={focusStepId === step}
+          >
+            {showLoadingShell ? (
+              <p
+                role="status"
+                className="w-full py-20 text-center text-ob-ink-secondary"
+              >
+                Loading…
+              </p>
+            ) : (
+              <motion.div
+                key={screenKey}
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.16 }}
+                className="flex w-full flex-1 flex-col"
               >
                 {renderStep()}
-              </StepFrame>
-            </AnimatePresence>
-          )}
-        </main>
+              </motion.div>
+            )}
+          </main>
+        </div>
       </div>
     </MotionConfig>
   );

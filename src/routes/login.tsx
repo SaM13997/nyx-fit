@@ -2,13 +2,11 @@ import { createFileRoute, Link, useNavigate, useRouter, useSearch } from "@tanst
 import { useEffect } from "react";
 import { LoginForm } from "@/components/login-form";
 import { authClient } from "@/lib/auth-client";
+import { parseRedirectParam } from "@/lib/redirect";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    redirect:
-      typeof search.redirect === "string" && search.redirect.length > 0
-        ? search.redirect
-        : undefined,
+    redirect: parseRedirectParam(search.redirect),
   }),
   component: RouteComponent,
 });
@@ -41,6 +39,10 @@ function RouteComponent() {
     );
   }
 
+  const callbackURL = redirect
+    ? `/login?redirect=${encodeURIComponent(redirect)}`
+    : "/login";
+
   return (
     <div className="min-h-svh bg-black text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-zinc-900 to-black pointer-events-none" />
@@ -48,9 +50,9 @@ function RouteComponent() {
       <div className="absolute top-40 -left-20 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md py-8">
-        <LoginForm />
+        <LoginForm callbackURL={callbackURL} />
         <Link to="/onboarding" search={{ redirect }} className="mt-6 flex min-h-11 items-center justify-center rounded-lg text-sm text-zinc-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 motion-reduce:transition-none">
-          New here? Build your plan
+          New here? Set up your profile
         </Link>
       </div>
     </div>

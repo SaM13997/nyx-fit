@@ -1,15 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { parseRedirectParam } from "@/lib/redirect";
 
 export const Route = createFileRoute("/onboarding")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    redirect:
-      typeof search.redirect === "string" &&
-      search.redirect.startsWith("/") &&
-      !search.redirect.startsWith("//") &&
-      !/[\\\u0000-\u0020]/.test(search.redirect)
-        ? search.redirect
-        : undefined,
+    redirect: parseRedirectParam(search.redirect),
   }),
   component: OnboardingPage,
 });

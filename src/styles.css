@@ -60,6 +60,28 @@ code {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-ob-canvas: var(--ob-canvas);
+  --color-ob-card: var(--ob-card);
+  --color-ob-ink: var(--ob-ink);
+  --color-ob-ink-secondary: var(--ob-ink-secondary);
+  --color-ob-control: var(--ob-control);
+  --color-ob-disabled: var(--ob-disabled);
+  --color-ob-soft: var(--ob-soft);
+  --color-ob-hairline: var(--ob-hairline);
+  --color-ob-lime: var(--ob-lime);
+  --color-ob-green: var(--ob-green);
+  --color-ob-green-tint: var(--ob-green-tint);
+  --color-ob-action: var(--ob-action);
+  --color-ob-action-hover: var(--ob-action-hover);
+  --color-ob-action-active: var(--ob-action-active);
+  --color-ob-progress: var(--ob-progress);
+  --color-ob-track: var(--ob-track);
+  --color-ob-coral: var(--ob-coral);
+  --color-ob-red-notice: var(--ob-red-notice);
+  --color-ob-alert-bg: var(--ob-alert-bg);
+  --color-ob-alert-line: var(--ob-alert-line);
+  --color-ob-alert-text: var(--ob-alert-text);
+  --color-ob-bar-rest: var(--ob-bar-rest);
 }
 
 :root {
@@ -217,4 +239,140 @@ code {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Onboarding redesign light world ("Calibrated Dawn") */
+@layer components {
+.theme-onboarding {
+  --font-heading: "Chakra Petch", "Titillium Web", system-ui, sans-serif;
+  --font-sans: "Titillium Web", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ob-canvas: #faf9fb;
+  --ob-card: #ffffff;
+  --ob-wash-lavender: #ede9fe;
+  --ob-wash-mint: #ddf3e7;
+  --ob-wash-peach: #fff1e6;
+  --ob-ink: #17171a;
+  --ob-ink-secondary: #63636d;
+  --ob-control: #7c7c87;
+  --ob-disabled: #eceaf0;
+  --ob-soft: #f1f0f4;
+  --ob-hairline: rgba(23, 23, 26, 0.06);
+  --ob-lime: #c6f25e;
+  --ob-green: #147233;
+  --ob-green-tint: #e7f6e7;
+  --ob-action: #17171a;
+  --ob-action-hover: #2e2e36;
+  --ob-action-active: #0b0b0e;
+  --ob-progress: #147233;
+  --ob-track: #edecf0;
+  --ob-coral: #f5502e;
+  --ob-red-notice: #dc2626;
+  --ob-alert-bg: #fef2f2;
+  --ob-alert-line: #fecaca;
+  --ob-alert-text: #b91c1c;
+  --ob-bar-rest: #edecf0;
+
+  --ob-shadow-rest: 0 1px 2px rgba(23, 23, 26, 0.04), 0 8px 24px rgba(23, 23, 26, 0.06);
+  --ob-shadow-float: 0 2px 6px rgba(23, 23, 26, 0.05), 0 16px 40px rgba(23, 23, 26, 0.1);
+  --ob-shadow-action: 0 8px 20px rgba(23, 23, 26, 0.18);
+
+  color: var(--ob-ink);
+  caret-color: var(--ob-action);
+}
+
+.theme-onboarding::selection,
+.theme-onboarding ::selection {
+  background: var(--ob-lime);
+  color: var(--ob-ink);
+}
+
+.ob-base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #faf9fb 42%, #faf9fb 100%);
+}
+
+.ob-wash {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ob-wash-lavender-top {
+  inset: 0 0 auto 0;
+  height: 50%;
+  background: radial-gradient(
+    120% 68% at 16% -8%,
+    #ede9fe 0%,
+    rgba(237, 233, 254, 0.8) 38%,
+    rgba(237, 233, 254, 0) 82%
+  );
+}
+
+.ob-wash-mint-top {
+  inset: 0 0 auto 0;
+  height: 50%;
+  background: radial-gradient(
+    130% 64% at 86% -6%,
+    #ddf3e7 0%,
+    rgba(221, 243, 231, 0.75) 40%,
+    rgba(221, 243, 231, 0) 84%
+  );
+}
+
+.ob-wash-lavender-center {
+  inset: 0 0 auto 0;
+  height: 70%;
+  background: radial-gradient(
+    72% 42% at 50% 26%,
+    #ede9fe 0%,
+    rgba(237, 233, 254, 0.72) 40%,
+    rgba(237, 233, 254, 0) 80%
+  );
+}
+
+.ob-wash-mint-shoulder {
+  inset: 0 0 auto 0;
+  height: 44%;
+  background: radial-gradient(
+    92% 54% at 96% -6%,
+    #ddf3e7 0%,
+    rgba(221, 243, 231, 0.72) 40%,
+    rgba(221, 243, 231, 0) 82%
+  );
+}
+
+.ob-wash-peach-bottom {
+  inset: auto 0 0 0;
+  height: 56%;
+  background: radial-gradient(
+    110% 52% at 50% 110%,
+    #fff1e6 0%,
+    rgba(255, 241, 230, 0.7) 44%,
+    rgba(255, 241, 230, 0) 82%
+  );
+}
+
+.ob-wash-lavender-bottom {
+  inset: auto 0 0 0;
+  height: 60%;
+  background: radial-gradient(
+    130% 66% at 50% 120%,
+    #ede9fe 0%,
+    rgba(237, 233, 254, 0.78) 44%,
+    rgba(237, 233, 254, 0) 84%
+  );
+}
+
+.ob-shadow-rest {
+  box-shadow: var(--ob-shadow-rest);
+}
+
+.ob-shadow-float {
+  box-shadow: var(--ob-shadow-float);
+}
+
+.ob-shadow-action {
+  box-shadow: var(--ob-shadow-action);
+}
 }

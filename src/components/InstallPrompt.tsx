@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download } from "lucide-react";
 import {
@@ -13,6 +13,13 @@ export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const isSuppressed =
+    pathname === "/login" ||
+    pathname === "/onboarding" ||
+    pathname.startsWith("/design");
 
   useEffect(() => {
     if (isStandalonePwa() || isInstallPromptDismissed()) return;
@@ -47,7 +54,7 @@ export function InstallPrompt() {
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible && !isSuppressed && (
         <motion.div
           initial={{ opacity: 0, y: -50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

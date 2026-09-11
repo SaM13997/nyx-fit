@@ -27,6 +27,14 @@ import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistratio
 import { IOS_SPLASH_LINKS } from "@/lib/iosSplashLinks";
 import appCss from "../styles.css?url";
 
+const Agentation = import.meta.env.DEV
+  ? React.lazy(async () => {
+      const { Agentation } = await import("agentation");
+
+      return { default: Agentation };
+    })
+  : null;
+
 const Devtools = import.meta.env.DEV
   ? React.lazy(async () => {
       const [{ TanStackDevtools }, { TanStackRouterDevtoolsPanel }] =
@@ -196,6 +204,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           {Devtools ? (
             <React.Suspense fallback={null}>
               <Devtools />
+            </React.Suspense>
+          ) : null}
+          {Agentation ? (
+            <React.Suspense fallback={null}>
+              <Agentation />
             </React.Suspense>
           ) : null}
           <Scripts />

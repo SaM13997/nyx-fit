@@ -17,9 +17,14 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DesignRouteImport } from './routes/design'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as WorkoutIdRouteImport } from './routes/workout.$id'
 import { Route as SettingsProfileRouteImport } from './routes/settings_.profile'
+import { Route as DesignScreensRouteImport } from './routes/design.screens'
+import { Route as DesignLanguageRouteImport } from './routes/design.language'
+import { Route as DesignComponentsRouteImport } from './routes/design.components'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const WorkoutsRoute = WorkoutsRouteImport.update({
@@ -62,10 +67,20 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DesignRoute = DesignRouteImport.update({
+  id: '/design',
+  path: '/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DesignIndexRoute = DesignIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DesignRoute,
 } as any)
 const WorkoutIdRoute = WorkoutIdRouteImport.update({
   id: '/workout/$id',
@@ -77,6 +92,21 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DesignScreensRoute = DesignScreensRouteImport.update({
+  id: '/screens',
+  path: '/screens',
+  getParentRoute: () => DesignRoute,
+} as any)
+const DesignLanguageRoute = DesignLanguageRouteImport.update({
+  id: '/language',
+  path: '/language',
+  getParentRoute: () => DesignRoute,
+} as any)
+const DesignComponentsRoute = DesignComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => DesignRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -85,6 +115,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/design': typeof DesignRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
@@ -93,8 +124,12 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
+  '/design/components': typeof DesignComponentsRoute
+  '/design/language': typeof DesignLanguageRoute
+  '/design/screens': typeof DesignScreensRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
+  '/design/': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -107,13 +142,18 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
+  '/design/components': typeof DesignComponentsRoute
+  '/design/language': typeof DesignLanguageRoute
+  '/design/screens': typeof DesignScreensRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
+  '/design': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/design': typeof DesignRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
@@ -122,14 +162,19 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/weights': typeof WeightsRoute
   '/workouts': typeof WorkoutsRoute
+  '/design/components': typeof DesignComponentsRoute
+  '/design/language': typeof DesignLanguageRoute
+  '/design/screens': typeof DesignScreensRoute
   '/settings_/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
+  '/design/': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/design'
     | '/login'
     | '/onboarding'
     | '/privacy'
@@ -138,8 +183,12 @@ export interface FileRouteTypes {
     | '/terms'
     | '/weights'
     | '/workouts'
+    | '/design/components'
+    | '/design/language'
+    | '/design/screens'
     | '/settings/profile'
     | '/workout/$id'
+    | '/design/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -152,12 +201,17 @@ export interface FileRouteTypes {
     | '/terms'
     | '/weights'
     | '/workouts'
+    | '/design/components'
+    | '/design/language'
+    | '/design/screens'
     | '/settings/profile'
     | '/workout/$id'
+    | '/design'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/design'
     | '/login'
     | '/onboarding'
     | '/privacy'
@@ -166,13 +220,18 @@ export interface FileRouteTypes {
     | '/terms'
     | '/weights'
     | '/workouts'
+    | '/design/components'
+    | '/design/language'
+    | '/design/screens'
     | '/settings_/profile'
     | '/workout/$id'
+    | '/design/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DesignRoute: typeof DesignRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -244,12 +303,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/design': {
+      id: '/design'
+      path: '/design'
+      fullPath: '/design'
+      preLoaderRoute: typeof DesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/design/': {
+      id: '/design/'
+      path: '/'
+      fullPath: '/design/'
+      preLoaderRoute: typeof DesignIndexRouteImport
+      parentRoute: typeof DesignRoute
     }
     '/workout/$id': {
       id: '/workout/$id'
@@ -265,6 +338,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/design/screens': {
+      id: '/design/screens'
+      path: '/screens'
+      fullPath: '/design/screens'
+      preLoaderRoute: typeof DesignScreensRouteImport
+      parentRoute: typeof DesignRoute
+    }
+    '/design/language': {
+      id: '/design/language'
+      path: '/language'
+      fullPath: '/design/language'
+      preLoaderRoute: typeof DesignLanguageRouteImport
+      parentRoute: typeof DesignRoute
+    }
+    '/design/components': {
+      id: '/design/components'
+      path: '/components'
+      fullPath: '/design/components'
+      preLoaderRoute: typeof DesignComponentsRouteImport
+      parentRoute: typeof DesignRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -275,8 +369,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DesignRouteChildren {
+  DesignComponentsRoute: typeof DesignComponentsRoute
+  DesignLanguageRoute: typeof DesignLanguageRoute
+  DesignScreensRoute: typeof DesignScreensRoute
+  DesignIndexRoute: typeof DesignIndexRoute
+}
+
+const DesignRouteChildren: DesignRouteChildren = {
+  DesignComponentsRoute: DesignComponentsRoute,
+  DesignLanguageRoute: DesignLanguageRoute,
+  DesignScreensRoute: DesignScreensRoute,
+  DesignIndexRoute: DesignIndexRoute,
+}
+
+const DesignRouteWithChildren =
+  DesignRoute._addFileChildren(DesignRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DesignRoute: DesignRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   PrivacyRoute: PrivacyRoute,

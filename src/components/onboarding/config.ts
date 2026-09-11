@@ -19,16 +19,8 @@ export type QuizAnswers = {
   daysPerWeek: DaysPerWeek | null;
   equipment: Equipment[];
 };
-export type StepId =
-  | "welcome"
-  | "goal"
-  | "level"
-  | "schedule"
-  | "building"
-  | "plan-preview"
-  | "logger-peek"
-  | "auth"
-  | "done";
+export type StepId = "welcome" | "experience" | "auth" | "done";
+export type ExperienceLevel = "beginner" | "intermediary" | "advanced";
 export type StagedOnboarding = {
   fitnessLevel: FitnessLevel | null;
   goal: Goal;
@@ -39,33 +31,22 @@ export type QuestionOption<T extends string> = {
   detail: string;
 };
 
-export const goalOptions: QuestionOption<Goal>[] = [
+export const experienceOptions: QuestionOption<ExperienceLevel>[] = [
   {
-    value: "build-muscle",
-    label: "Build muscle",
-    detail: "Make every rep count.",
+    value: "beginner",
+    label: "Beginner",
+    detail: "I'm learning the basics or building a foundation.",
   },
   {
-    value: "get-stronger",
-    label: "Get stronger",
-    detail: "Build on your best.",
+    value: "intermediary",
+    label: "Intermediate",
+    detail: "I'm comfortable with the basics and have trained consistently.",
   },
   {
-    value: "stay-consistent",
-    label: "Stay consistent",
-    detail: "Find a rhythm that sticks.",
+    value: "advanced",
+    label: "Advanced",
+    detail: "I have extensive training experience and manage my own programming.",
   },
-  {
-    value: "coach",
-    label: "I coach others",
-    detail: "Bring intent to every athlete's training.",
-  },
-];
-export const levelOptions: QuestionOption<LastWeekSessions>[] = [
-  { value: "0", label: "0 — Starting fresh", detail: "A fresh start counts." },
-  { value: "1-2", label: "1–2 days", detail: "Building your rhythm." },
-  { value: "3-4", label: "3–4 days", detail: "Putting in the work." },
-  { value: "5+", label: "5 or more", detail: "Training is part of your week." },
 ];
 export const dayOptions: DaysPerWeek[] = [2, 3, 4, 5];
 export const equipmentOptions: { value: Equipment; label: string }[] = [
@@ -79,19 +60,13 @@ export const copy = {
   welcome: {
     heading: "Train with intent.",
     description:
-      "Log sets in seconds, see your progress build week after week.",
-    meta: "2 minute setup",
-    action: "Get Started",
+      "Log workouts and follow your progress. Start by setting your training experience.",
+    action: "Set up my profile",
     skip: "I already have an account",
   },
-  goal: {
-    heading: "What are you chasing?",
-    description: "We'll shape your plan around it.",
-    action: "Continue",
-  },
-  level: {
-    heading: "How many days did you train last week?",
-    description: "Honest beats ambitious. We'll calibrate from here.",
+  experience: {
+    heading: "What is your training experience?",
+    description: "Choose the closest fit. You can change this in your profile settings.",
     action: "Continue",
   },
   schedule: {
@@ -114,14 +89,21 @@ export const copy = {
     action: "Continue",
   },
   auth: {
-    heading: "Save your plan.",
-    description: "One account keeps your plan, history, and progress safe.",
-    skip: "Not now — explore without saving",
+    setup: {
+      heading: "Save your profile.",
+      description:
+        "Sign in with Google to save your training experience and track your workouts.",
+    },
+    existing: {
+      heading: "Welcome back.",
+      description: "Sign in with Google to continue.",
+    },
   },
   done: {
-    heading: "You're set.",
-    description: "Session 1 is waiting. Start strong.",
-    action: "Start first workout",
+    heading: "Your profile is ready.",
+    description: "You can update your training experience in profile settings.",
+    action: "Open dashboard",
+    continueAction: "Continue",
   },
 };
 
@@ -196,20 +178,93 @@ export function derivePlan(answers: QuizAnswers) {
   };
 }
 
-export function buildSequence(goal: Goal | null): StepId[] {
-  return [
-    "welcome",
-    "goal",
-    ...(goal === "coach" ? [] : (["level", "schedule"] satisfies StepId[])),
-    "building",
-    "plan-preview",
-    "logger-peek",
-    "auth",
-    "done",
-  ];
+export function buildSequence(_goal: Goal | null): StepId[] {
+  return ["welcome", "experience", "auth", "done"];
 }
 
 export const STAGED_KEY = "nyx:onboarding:staged";
+
+export const DRAFT_KEY = "nyx:onboarding:draft:v2";
+export const DRAFT_VERSION = 2;
+
+export type OnboardingDraftStep = "experience" | "auth";
+export type OnboardingDraft = {
+  version: 2;
+  step: OnboardingDraftStep;
+  fitnessLevel: ExperienceLevel | null;
+};
+
+function isDraftRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function isOnboardingDraft(value: unknown): value is OnboardingDraft {
+  if (!isDraftRecord(value)) return false;
+  if (value.version !== DRAFT_VERSION) return false;
+  const step: unknown = value.step;
+  if (step !== "experience" && step !== "auth") return false;
+  const fitnessLevel: unknown = value.fitnessLevel;
+  const validLevel =
+    fitnessLevel === null ||
+    fitnessLevel === "beginner" ||
+    fitnessLevel === "intermediary" ||
+    fitnessLevel === "advanced";
+  if (!validLevel) return false;
+  if (step === "auth" && fitnessLevel === null) return false;
+  return true;
+}
+
+export function readOnboardingDraft(): OnboardingDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_KEY);
+    if (raw === null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return isOnboardingDraft(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeOnboardingDraft(draft: OnboardingDraft) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    return;
+  }
+}
+
+export function clearOnboardingDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    return;
+  }
+}
+
+export function clearLegacyStagedOnboarding() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(STAGED_KEY);
+  } catch {
+    return;
+  }
+}
+
+const DRAFT_PROBE_KEY = "nyx:onboarding:draft:probe";
+
+export function isDraftStorageAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    window.sessionStorage.setItem(DRAFT_PROBE_KEY, "1");
+    window.sessionStorage.removeItem(DRAFT_PROBE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function isStagedOnboarding(value: unknown): value is StagedOnboarding {
   if (
