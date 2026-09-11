@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, Outlet, useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { obFocusRing, obLinkLabel } from "@/components/onboarding/kit/classes";
 
@@ -14,9 +14,29 @@ const designNavItems = [
   { label: "Language", to: "/design/language", exact: false },
   { label: "Components", to: "/design/components", exact: false },
   { label: "Screens", to: "/design/screens", exact: false },
+  { label: "Onboarding", to: "/design/onboarding", exact: false },
 ] as const;
 
 function DesignLayout() {
+  const presentation = useRouterState({
+    select: (state) => {
+      const value = new URLSearchParams(state.location.searchStr).get(
+        "present",
+      );
+      return value === "1" || value === "true";
+    },
+  });
+
+  if (presentation) {
+    return (
+      <div className="theme-onboarding fixed inset-0 z-50 overflow-auto bg-ob-canvas text-ob-ink">
+        <main className="min-h-full">
+          <Outlet />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="theme-onboarding fixed inset-0 z-50 overflow-auto bg-ob-canvas text-ob-ink">
       <header className="sticky top-0 z-10 border-b border-ob-hairline bg-ob-canvas px-6 py-3 sm:px-8">
@@ -51,9 +71,9 @@ function DesignLayout() {
         </div>
       </header>
 
-      <div className="min-w-0">
+      <main className="min-w-0">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }

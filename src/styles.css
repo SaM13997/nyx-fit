@@ -82,6 +82,20 @@ code {
   --color-ob-alert-line: var(--ob-alert-line);
   --color-ob-alert-text: var(--ob-alert-text);
   --color-ob-bar-rest: var(--ob-bar-rest);
+  --color-lm-bg: var(--lm-bg);
+  --color-lm-card: var(--lm-card);
+  --color-lm-ink: var(--lm-ink);
+  --color-lm-ink-soft: var(--lm-ink-soft);
+  --color-lm-ink-faint: var(--lm-ink-faint);
+  --color-lm-line: var(--lm-line);
+  --color-lm-lavender: var(--lm-lavender);
+  --color-lm-mint: var(--lm-mint);
+  --color-lm-lime: var(--lm-lime);
+  --color-lm-forest: var(--lm-forest);
+  --color-lm-tomato: var(--lm-tomato);
+  --color-lm-bar-rest: var(--lm-bar-rest);
+  --color-lm-disabled: var(--lm-disabled);
+  --color-lm-disabled-ink: var(--lm-disabled-ink);
 }
 
 :root {
@@ -374,5 +388,59 @@ code {
 
 .ob-shadow-action {
   box-shadow: var(--ob-shadow-action);
+}
+}
+
+/* Onboarding concept ("Lumen") — warm light world, design-section only */
+@layer components {
+.theme-lumen {
+  --font-heading: "Space Grotesk", "DM Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --lm-bg: #faf9f7;
+  --lm-card: #ffffff;
+  --lm-ink: #171719;
+  --lm-ink-soft: #5f5e63;
+  --lm-ink-faint: #6e6d73;
+  --lm-line: rgba(23, 23, 25, 0.07);
+  --lm-lavender: #ddd4fa;
+  --lm-lime: #c8f65c;
+  --lm-mint: #d9f0e4;
+  --lm-forest: #1a683d;
+  --lm-tomato: #f34e32;
+  --lm-bar-rest: #eae8ee;
+  --lm-disabled: #edece8;
+  --lm-disabled-ink: #808086;
+
+  --lm-shadow-card: 0 1px 2px rgba(23, 23, 25, 0.05), 0 14px 34px rgba(23, 23, 25, 0.08);
+  --lm-shadow-float: 0 2px 8px rgba(23, 23, 25, 0.06), 0 28px 64px rgba(23, 23, 25, 0.13);
+  --lm-shadow-action: 0 10px 24px rgba(23, 23, 25, 0.18);
+  --lm-shadow-lime: 0 1px 2px rgba(23, 23, 25, 0.05), 0 14px 34px rgba(23, 23, 25, 0.08),
+    0 10px 30px -6px rgba(154, 205, 48, 0.45);
+
+  color: var(--lm-ink);
+  caret-color: var(--lm-ink);
+}
+
+.theme-lumen::selection,
+.theme-lumen ::selection {
+  background: var(--lm-lime);
+  color: var(--lm-ink);
+}
+
+.lm-shadow-card {
+  box-shadow: var(--lm-shadow-card);
+}
+
+.lm-shadow-float {
+  box-shadow: var(--lm-shadow-float);
+}
+
+.lm-shadow-action {
+  box-shadow: var(--lm-shadow-action);
+}
+
+.lm-shadow-lime {
+  box-shadow: var(--lm-shadow-lime);
 }
 }
