@@ -310,19 +310,6 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
   };
 
-  const saveFlowActive =
-    step === "auth" &&
-    entryPath === "setup" &&
-    (saveStatus === "saving" || saveStatus === "error");
-  const backTarget: StepId | null = saveFlowActive
-    ? null
-    : step === "experience"
-      ? "welcome"
-      : step === "auth"
-        ? entryPath === "setup"
-          ? "experience"
-          : "welcome"
-        : null;
   const showLoadingShell =
     !initialized || isSessionPending || (!!session && !authSettled);
   const screenKey =
@@ -350,10 +337,6 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
               stepNumber={stepNumber}
               totalSteps={SETUP_STEPS.length}
               showRail={showSetupProgress}
-              showBack={backTarget !== null}
-              onBack={() => {
-                if (backTarget !== null) goToStep(backTarget);
-              }}
             />
           ) : null}
           <main

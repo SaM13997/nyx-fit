@@ -287,13 +287,11 @@ describe("onboarding google sign-in", () => {
 });
 
 describe("onboarding questionnaire", () => {
-  it("requires continue for radios and preserves the answer on back", async () => {
+  it("requires continue for radios before advancing", async () => {
     render(<OnboardingFlow />);
     await findHeading("Train with intent.");
     fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
-    const experienceHeading = await findHeading(
-      "What is your training experience?",
-    );
+    await findHeading("What is your training experience?");
     const intermediate = screen.getByRole("radio", {
       name: /Intermediate/,
     });
@@ -303,18 +301,12 @@ describe("onboarding questionnaire", () => {
       next instanceof HTMLButtonElement && next.disabled,
     ).toBe(true);
     fireEvent.click(intermediate);
-    await findHeading("What is your training experience?");
     expect(
       screen.queryByRole("heading", { name: "Save your profile." }),
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     const authHeading = await findHeading("Save your profile.");
     await waitFor(() => expect(document.activeElement).toBe(authHeading));
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    await findHeading("What is your training experience?");
-    const kept = screen.getByRole("radio", { name: /Intermediate/ });
-    expect(kept instanceof HTMLInputElement && kept.checked).toBe(true);
-    expect(experienceHeading.textContent).toContain("training experience");
   });
 
   it("restores a valid experience draft on remount", async () => {
@@ -545,26 +537,17 @@ describe("onboarding layout and motion", () => {
     await findHeading("Train with intent.");
     expect(screen.queryByText("Built around you")).toBeNull();
     expect(screen.queryByRole("progressbar")).toBeNull();
-    expect(screen.queryByText(/Step \d of 4/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
     await findHeading("What is your training experience?");
     expect(
       screen.getByRole("progressbar").getAttribute("aria-valuenow"),
     ).toBe("2");
-    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
     fireEvent.click(screen.getByRole("radio", { name: /Advanced/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     await findHeading("Save your profile.");
     expect(
       screen.getByRole("progressbar").getAttribute("aria-valuenow"),
     ).toBe("3");
-    expect(screen.getByText("Step 3 of 4")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    await findHeading("What is your training experience?");
-    expect(
-      screen.getByRole("progressbar").getAttribute("aria-valuenow"),
-    ).toBe("2");
-    expect(screen.getByText("Step 2 of 4")).toBeTruthy();
   });
 
   it("mounts only the incoming screen during the entrance fade", async () => {

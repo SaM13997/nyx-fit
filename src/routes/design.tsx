@@ -19,13 +19,13 @@ const designNavItems = [
 function DesignLayout() {
   return (
     <div className="theme-onboarding fixed inset-0 z-50 overflow-auto bg-ob-canvas text-ob-ink">
-      <div className="flex min-h-full flex-col lg:flex-row lg:items-start">
-        <header className="border-b border-ob-hairline px-6 pt-8 pb-5 sm:px-8 lg:sticky lg:top-0 lg:h-svh lg:w-[280px] lg:shrink-0 lg:border-r lg:border-b-0 lg:px-8 lg:py-10">
-          <h1 className="font-heading text-2xl leading-8 font-semibold text-ob-ink">
-            Nyx Fit — Onboarding Design Language
+      <header className="sticky top-0 z-10 border-b border-ob-hairline bg-ob-canvas px-6 py-3 sm:px-8">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
+          <h1 className="font-heading text-lg leading-6 font-semibold text-ob-ink">
+            Design language
           </h1>
-          <nav aria-label="Design sections" className="mt-5">
-            <ul className="flex flex-wrap gap-1 lg:flex-col">
+          <nav aria-label="Design sections">
+            <ul className="flex flex-wrap gap-1">
               {designNavItems.map((item) => (
                 <li key={item.to}>
                   <Link
@@ -37,7 +37,7 @@ function DesignLayout() {
                       "aria-current": "page",
                     }}
                     className={cn(
-                      "flex min-h-11 items-center rounded-lg px-3 transition-colors hover:text-ob-ink lg:-mx-3",
+                      "flex min-h-11 items-center rounded-lg px-3 transition-colors hover:text-ob-ink",
                       obLinkLabel,
                       obFocusRing,
                     )}
@@ -48,11 +48,11 @@ function DesignLayout() {
               ))}
             </ul>
           </nav>
-        </header>
-
-        <div className="min-w-0 flex-1">
-          <Outlet />
         </div>
+      </header>
+
+      <div className="min-w-0">
+        <Outlet />
       </div>
     </div>
   );

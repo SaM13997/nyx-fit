@@ -19,36 +19,38 @@ export function DoneScreen({
   const reduceMotion = useReducedMotion();
 
   return (
-    <div className="text-center">
-      <div className="flex justify-center">
-        <ProgressRing value={100} label="Setup progress">
-          <motion.span
-            initial={reduceMotion ? false : { scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 320, damping: 22 }}
-            className="flex"
-          >
-            <CheckBadge size={64} />
-          </motion.span>
-        </ProgressRing>
+    <div className="flex flex-1 flex-col text-center">
+      <div className="flex flex-1 flex-col justify-center">
+        <div className="flex justify-center">
+          <ProgressRing value={100} label="Setup progress">
+            <motion.span
+              initial={reduceMotion ? false : { scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              className="flex"
+            >
+              <CheckBadge size={64} />
+            </motion.span>
+          </ProgressRing>
+        </div>
+        <p className={cn(obMicro, "mt-4 text-ob-ink-secondary")}>
+          Setup complete
+        </p>
+        <h1
+          tabIndex={-1}
+          className={cn(obScreenTitle, "mt-6 text-ob-ink focus:outline-none")}
+        >
+          {copy.done.heading}
+        </h1>
+        <p
+          className={cn(
+            obBody,
+            "mx-auto mt-2 max-w-[320px] text-ob-ink-secondary",
+          )}
+        >
+          {copy.done.description}
+        </p>
       </div>
-      <p className={cn(obMicro, "mt-4 text-ob-ink-secondary")}>
-        Setup complete
-      </p>
-      <h1
-        tabIndex={-1}
-        className={cn(obScreenTitle, "mt-6 text-ob-ink focus:outline-none")}
-      >
-        {copy.done.heading}
-      </h1>
-      <p
-        className={cn(
-          obBody,
-          "mx-auto mt-2 max-w-[320px] text-ob-ink-secondary",
-        )}
-      >
-        {copy.done.description}
-      </p>
       <PrimaryButton
         onClick={onContinue}
         disabled={disabled}

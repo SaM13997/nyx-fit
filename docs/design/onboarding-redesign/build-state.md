@@ -126,3 +126,4 @@ HAIRLINE            1px rgba(23,23,26,.06) — dividers only, never card borders
 - Welcome art card is WHITE (spec section 7 governs over the section 3.2 mention of a dark card); the dark card stays kit-only.
 - Exactly one coral element per screen (Welcome: one bar; Done/Experience/Auth: none).
 - Kit numbers are illustrative only; screens carry no invented stats.
+- Header/action revision (Sep 11, 2026): every screen header is a centered "Nyx Fit" wordmark plus the step rail (brand mark, eyebrow, bell, Back control, and step counter removed), and every screen anchors its primary action to the bottom third.

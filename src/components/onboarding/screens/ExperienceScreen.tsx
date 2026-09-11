@@ -23,7 +23,7 @@ export function ExperienceScreen({
   const descriptionId = useId();
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       <fieldset aria-describedby={descriptionId}>
         <legend className="w-full">
           <h1
@@ -67,13 +67,11 @@ export function ExperienceScreen({
           ))}
         </div>
       </fieldset>
-      <PrimaryButton
-        onClick={onContinue}
-        disabled={value === null}
-        className="mt-8"
-      >
-        {copy.experience.action}
-      </PrimaryButton>
+      <div className="mt-auto pt-8">
+        <PrimaryButton onClick={onContinue} disabled={value === null}>
+          {copy.experience.action}
+        </PrimaryButton>
+      </div>
     </div>
   );
 }

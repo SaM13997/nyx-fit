@@ -132,7 +132,7 @@ export function LoginForm({
 
   if (variant === "onboarding") {
     return (
-      <div className={cn("flex flex-col", className)} {...props}>
+      <div className={cn("flex flex-1 flex-col", className)} {...props}>
         <div className="flex flex-col gap-2">
           <h1
             id="login-heading"
@@ -146,12 +146,10 @@ export function LoginForm({
         {errorMessage ? (
           <InlineAlert className="mt-6">{errorMessage}</InlineAlert>
         ) : null}
-        <GoogleButton
-          onClick={handleGoogleSignIn}
-          loading={isSubmitting}
-          className="mt-6"
-        />
-        <LegalRow className="mt-2" />
+        <div className="mt-auto pt-6">
+          <GoogleButton onClick={handleGoogleSignIn} loading={isSubmitting} />
+          <LegalRow className="mt-2" />
+        </div>
       </div>
     );
   }

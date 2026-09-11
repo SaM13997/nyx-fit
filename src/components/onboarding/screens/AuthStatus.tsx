@@ -43,7 +43,7 @@ export function AuthError({
   onAbandon: () => void;
 }) {
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       <h1
         tabIndex={-1}
         className={cn(obScreenTitle, "text-ob-ink focus:outline-none")}
@@ -51,12 +51,12 @@ export function AuthError({
         {copy.auth.setup.heading}
       </h1>
       <InlineAlert className="mt-6">{message}</InlineAlert>
-      <PrimaryButton onClick={onRetry} className="mt-6">
-        Retry saving
-      </PrimaryButton>
-      <TextLink onClick={onAbandon} className="mx-auto mt-2 flex">
-        Continue without saving
-      </TextLink>
+      <div className="mt-auto pt-6">
+        <PrimaryButton onClick={onRetry}>Retry saving</PrimaryButton>
+        <TextLink onClick={onAbandon} className="mx-auto mt-2 flex">
+          Continue without saving
+        </TextLink>
+      </div>
     </div>
   );
 }
