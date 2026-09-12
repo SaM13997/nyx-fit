@@ -29,7 +29,7 @@ React Bits references were inspected at source before integration:
 | [Background Studio](https://reactbits.dev/tools/background-studio) | Customizer tool, no runtime component | Not applicable |
 | [Color Bends](https://reactbits.dev/backgrounds/color-bends) | `three` WebGL shader | No new dependency allowed; the ambient background is now the user-supplied raster art in `public/onboarding/` rendered by `LumenBackground.tsx` (CSS washes and SVG ribbons served as the interim stand-in and were removed) |
 | [Grainient](https://reactbits.dev/backgrounds/grainient) | `ogl` WebGL shader | Same: the supplied art already contains grain and falloff, so no separate grain layer remains |
-| [Spotlight Card](https://reactbits.dev/components/spotlight-card) | Plain CSS: pointer-tracked `--mouse-x/--mouse-y` radial over a card | Adapted in `LumenChoiceCard.tsx`; selected state renders the lime/mint illumination without hover so it is visible on touch |
+| [Spotlight Card](https://reactbits.dev/components/spotlight-card) | Plain CSS: pointer-tracked `--mouse-x/--mouse-y` radial over a card | Adapted in the bespoke choice card (deleted in the post-rebuild cleanup); selected state renders the lime/mint illumination without hover so it is visible on touch |
 | [Magic Rings](https://reactbits.dev/animations/magic-rings) | `three` WebGL shader | Replaced with SVG concentric rings, a rotating lime arc, and orbit dots (`RingsArt` in `artwork.tsx`) |
 
 The `three`/`ogl` engines were rejected per the repository rule against new dependencies and
@@ -83,10 +83,13 @@ breathing loop (1 → 1.03). A remount on `wash` change gives each step a 300 ms
 
 ## Accessibility
 
-- Each screen has a semantic `h1`; the Experience options are a native radio group in a
-  `fieldset`/`legend` with arrow-key navigation, `:focus-visible` rings, and 44px+ targets.
-- The stepper is a labeled `progressbar` with three segments (the Welcome step does not
-  count); the back control is an icon button in the bottom action row, labeled "Go back".
+- Each screen has a semantic `h1`; the Experience options are a shadcn `RadioGroup` (Radix)
+  inside `FieldSet`/`FieldLegend` (a `fieldset`/`legend`) with roving focus and arrow-key
+  navigation, `:focus-visible` rings from the token-driven shadcn classes, and 44px+ card
+  targets.
+- The stepper is three `Progress` segments with one `sr-only` `Step N of 3` label (the Welcome
+  step does not count); the back control is `Button variant="outline" size="icon-xl"` in the
+  bottom action row, labeled "Go back".
 - Decorative layers (`LumenBackground`, the backdrop blur/wash layer, artwork) are
   `aria-hidden` and `pointer-events-none`.
 - axe-core 4.10.2 (injected from the CDN in a headless browser only, not a project
@@ -94,21 +97,31 @@ breathing loop (1 → 1.03). A remount on `wash` change gives each step a 300 ms
 
 ## Files
 
-- `src/styles.css` — `.theme-lumen` tokens and shadows (background washes and grain were
-  removed once the raster art landed).
+- `src/styles.css` — `.theme-lumen` tokens (also mapped onto the shadcn semantic tokens so the
+  light world renders through stock component classes) and shadows.
 - `public/onboarding/{1,2,3,4}.png` — the supplied ambient backgrounds.
 - `src/components/onboarding/lumen/config.ts` — copy, options, step labels (reuses the real
   `ExperienceLevel` union from `../config`).
 - `.../classes.ts` — type recipes.
 - `.../LumenBackground.tsx` — per-screen background art plus the ambient scale loop.
-- `.../LumenStepper.tsx`, `.../LumenShell.tsx` — shared stepper, header, scroll body.
-- `.../LumenButton.tsx`, `.../LumenBackButton.tsx`, `.../LumenChoiceCard.tsx` — actions and
-  spotlight choice card.
+- `.../LumenShell.tsx` — background art layer, brand header, `Progress` stepper, scroll body,
+  bottom action row.
 - `.../artwork.tsx` — bars card, capsule, rings, profile-card illustration, level icon.
-- `.../screens/Lumen*Screen.tsx` — the four screens.
+- `.../screens/Lumen*Screen.tsx` — the four screens. Interactive UI is composed from the
+  shadcn components: `Button` (`default`, `outline`, `link`, `card` variants; `xl`/`icon-xl`
+  sizes) on all four screens, `Spinner` for the simulated save, and on Experience
+  `FieldSet`/`FieldLegend`/`RadioGroup`/`Field`/`FieldLabel`/`FieldContent`/`FieldTitle`/
+  `FieldDescription`/`RadioGroupItem`.
+- `src/components/ui/button.tsx` — central additions only: `xl` and `icon-xl` sizes and a
+  `card` variant used for the white Google save action.
+- `src/components/ui/field.tsx` — central adjustment only: the checked `FieldLabel` fill uses
+  the scoped `--accent` token so the selected choice card reads lime in `.theme-lumen`.
 - `.../OnboardingConceptBoard.tsx` — prototype stage, tabs, viewport toggle, flow state.
 - `.../GoogleColorMark.tsx` — the official four-colour Google mark used on the white save
   button (the shipped kit keeps its monochrome mark; `kit/GoogleButton.tsx` is untouched).
+- The four bespoke controls the rebuild replaced — `LumenButton`, `LumenBackButton`,
+  `LumenChoiceCard`, `LumenStepper` — were deleted once the shadcn composition was verified;
+  all interactive UI now comes from the shadcn components listed above.
 - `src/routes/design.onboarding.tsx` — route + search parsing for presentation mode.
 - `src/routes/design.tsx` — nav entry, `main` landmark, presentation layout.
 
@@ -130,6 +143,10 @@ breathing loop (1 → 1.03). A remount on `wash` change gives each step a 300 ms
   the service worker precaches 72 files / 6.7 MB including the four PNGs).
 - Experience redesign re-run: 14/14 interaction checks, 5/5 axe surfaces, 31/31 vitest, tsc
   clean, build clean (exit 0), compact 320 × 568 stage still free of horizontal overflow.
+- shadcn composition rebuild (2026-09-11): `bunx tsc --noEmit` clean; CDP screens 1/1
+  (compact 320 × 568 stage still free of horizontal overflow); CDP interactions 14/14 with the
+  Radix selectors (`[role=radio][aria-label="..."]`, `aria-checked`); axe 5/5 surfaces with 0
+  violations.
 - No lint script exists in `package.json`; no lint run was performed.
 
 ## Constraints and notes
@@ -155,3 +172,20 @@ breathing loop (1 → 1.03). A remount on `wash` change gives each step a 300 ms
   onboarding flow, which was explicitly out of scope.
 - No production state or persistence changed, so no new automated tests were added; the
   existing onboarding suite covers the shipped flow.
+- shadcn composition rebuild: customizations live in the components, not at the usage sites.
+  `button.tsx` gained `xl`/`icon-xl` sizes and a `card` variant (the stock `outline` variant's
+  `dark:` fill would leave the Google action nearly transparent inside the always-on `.dark`);
+  `field.tsx`'s checked-label fill now uses the scoped `--accent` because the stock `dark:`
+  override would otherwise replace the lime fill with an ink tint. No dark-variant workarounds
+  were added and `.theme-lumen`/`.dark` were not touched.
+- The rebuild kept the verification surface: route and query params, both
+  `data-testid="lumen-stage"` wrappers, the exact button labels, the 700 ms simulated save
+  with "Saving your profile...", and "Get fit" navigating to `/`.
+- The CDP interaction script moved to the Radix DOM: radio queries use
+  `[role=radio][aria-label="Beginner" | "Intermediate"]` and assert `aria-checked="true"`; the
+  ArrowDown keydown/keyup pair is separated by 150 ms because Radix moves roving focus in a
+  `setTimeout` and an immediate keyup resets the arrow-key flag before focus lands.
+- Post-rebuild cleanup (2026-09-11): the four retired bespoke components were deleted and
+  `classes.ts` dropped the unused `lmEyebrow`, `lmButtonLabel`, and `lmMicro` recipes
+  (`lmFocusRing`, `lmDisplay`, `lmScreenTitle`, `lmBody`, and `lmCaption` remain in use).
+  Re-verified after deletion: `bunx tsc --noEmit` clean, CDP interactions 14/14, axe 5/5.

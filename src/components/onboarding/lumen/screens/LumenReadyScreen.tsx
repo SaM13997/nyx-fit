@@ -1,7 +1,7 @@
 import { ArrowRight, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { ExperienceLevel } from "../../config";
-import { LumenButton } from "../LumenButton";
 import { LumenShell } from "../LumenShell";
 import { LevelBarsIcon, RingsArt } from "../artwork";
 import { lmScreenTitle } from "../classes";
@@ -46,18 +46,19 @@ export function LumenReadyScreen({
         </div>
 
         <div className="mt-auto w-full shrink-0 pt-6">
-          <LumenButton
+          <Button
+            type="button"
+            size="xl"
             onClick={onOpenDashboard}
-            icon={
-              <ArrowRight
-                aria-hidden="true"
-                className="size-5"
-                strokeWidth={1.75}
-              />
-            }
+            className="w-full"
           >
             {lumenCopy.ready.action}
-          </LumenButton>
+            <ArrowRight
+              aria-hidden="true"
+              className="size-5"
+              strokeWidth={1.75}
+            />
+          </Button>
         </div>
       </div>
     </LumenShell>

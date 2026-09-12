@@ -9,12 +9,4 @@ export const lmScreenTitle =
 
 export const lmBody = "text-[16px] leading-[1.5] text-lm-ink-soft";
 
-export const lmEyebrow =
-  "text-[11px] leading-4 font-semibold uppercase tracking-[0.18em]";
-
-export const lmButtonLabel = "text-[16px] leading-5 font-bold";
-
 export const lmCaption = "text-[13px] leading-4 font-semibold";
-
-export const lmMicro =
-  "font-heading text-[11px] leading-4 font-semibold tracking-[0.08em]";

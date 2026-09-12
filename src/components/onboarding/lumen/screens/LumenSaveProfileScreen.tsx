@@ -1,18 +1,14 @@
 import { Link } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import type { ExperienceLevel } from "../../config";
 import { GoogleColorMark } from "../GoogleColorMark";
-import { LumenBackButton } from "../LumenBackButton";
-import { LumenButton } from "../LumenButton";
 import { LumenShell } from "../LumenShell";
 import { ProfileCardArt } from "../artwork";
-import { lmBody, lmFocusRing, lmScreenTitle } from "../classes";
+import { lmBody, lmScreenTitle } from "../classes";
 import { lumenCopy } from "../config";
-
-const legalLinkClass = cn(
-  "inline-flex min-h-11 items-center font-semibold text-lm-ink underline decoration-lm-ink/40 underline-offset-4 transition-colors hover:decoration-lm-ink motion-reduce:transition-none",
-  lmFocusRing,
-);
 
 function LumenLegalRow({ className }: { className?: string }) {
   return (
@@ -23,13 +19,13 @@ function LumenLegalRow({ className }: { className?: string }) {
       )}
     >
       By continuing, you agree to our{" "}
-      <Link to="/terms" className={legalLinkClass}>
-        Terms
-      </Link>{" "}
+      <Button asChild variant="link" size="xs" className="min-h-11 px-1">
+        <Link to="/terms">Terms</Link>
+      </Button>{" "}
       and{" "}
-      <Link to="/privacy" className={legalLinkClass}>
-        Privacy Policy
-      </Link>
+      <Button asChild variant="link" size="xs" className="min-h-11 px-1">
+        <Link to="/privacy">Privacy Policy</Link>
+      </Button>
       .
     </p>
   );
@@ -62,17 +58,37 @@ export function LumenSaveProfileScreen({
 
       <div className="mt-6 shrink-0">
         <div className="flex items-center gap-3">
-          <LumenBackButton onClick={onBack} />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-xl"
+            aria-label="Go back"
+            onClick={onBack}
+          >
+            <ChevronLeft aria-hidden="true" className="size-6" strokeWidth={2} />
+          </Button>
           <div className="flex-1">
-            <LumenButton
-              onClick={onContinue}
-              loading={saving}
-              loadingLabel="Saving your profile..."
+            <Button
+              type="button"
               variant="card"
+              size="xl"
+              onClick={onContinue}
+              disabled={saving}
+              aria-busy={saving ? true : undefined}
+              className="w-full"
             >
-              <GoogleColorMark />
-              {lumenCopy.save.action}
-            </LumenButton>
+              {saving ? (
+                <>
+                  <Spinner className="size-5" />
+                  Saving your profile...
+                </>
+              ) : (
+                <>
+                  <GoogleColorMark />
+                  {lumenCopy.save.action}
+                </>
+              )}
+            </Button>
           </div>
         </div>
         <LumenLegalRow className="mt-2" />

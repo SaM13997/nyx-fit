@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LumenButton } from "../LumenButton";
+import { Button } from "@/components/ui/button";
 import { LumenShell } from "../LumenShell";
 import { BarsCard, Capsule } from "../artwork";
-import { lmBody, lmCaption, lmDisplay, lmFocusRing } from "../classes";
+import { lmBody, lmCaption, lmDisplay } from "../classes";
 import { lumenCopy } from "../config";
 
 export function LumenWelcomeScreen({ onStart }: { onStart: () => void }) {
@@ -45,35 +45,29 @@ export function LumenWelcomeScreen({ onStart }: { onStart: () => void }) {
           </Capsule>
         </motion.div>
       </div>
-      <div className="relative shrink-0">
+      <div className="relative flex shrink-0 flex-col">
         <h1 className={cn(lmDisplay, "mt-3 text-lm-ink")}>
           {lumenCopy.welcome.heading}
         </h1>
         <p className={cn(lmBody, "mt-3.5 max-w-[330px]")}>
           {lumenCopy.welcome.description}
         </p>
-        <LumenButton
+        <Button
+          type="button"
+          size="xl"
           onClick={onStart}
-          className="mt-7"
-          icon={
-            <ArrowRight
-              aria-hidden="true"
-              className="size-5"
-              strokeWidth={1.75}
-            />
-          }
+          className="mt-7 w-full"
         >
           {lumenCopy.welcome.action}
-        </LumenButton>
-        <Link
-          to="/login"
-          className={cn(
-            "mx-auto mt-1.5 flex min-h-11 w-fit items-center rounded-lg px-3 text-[14px] leading-5 font-semibold text-lm-ink underline decoration-lm-ink/30 underline-offset-4 transition-colors hover:decoration-lm-ink motion-reduce:transition-none",
-            lmFocusRing,
-          )}
+          <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.75} />
+        </Button>
+        <Button
+          asChild
+          variant="link"
+          className="mt-1.5 min-h-11 self-center"
         >
-          {lumenCopy.welcome.existing}
-        </Link>
+          <Link to="/login">{lumenCopy.welcome.existing}</Link>
+        </Button>
       </div>
     </LumenShell>
   );

@@ -2,7 +2,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 body {
@@ -100,11 +99,11 @@ code {
 
 :root {
   --radius: 0.625rem;
-  
+
   /* Font Theme - Default: Night Runner */
   --font-heading: "Chakra Petch", sans-serif;
   --font-sans: "Titillium Web", sans-serif;
-  
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
@@ -207,7 +206,7 @@ code {
   --s: 56px; /* control the size */
   --g: 10px; /* control the gap */
   --c: #a032f4; /* energetic orange - primary workout color */
-  
+
   --_l: #0000 calc(33% - .866*var(--g)),var(--c) calc(33.2% - .866*var(--g)) 33%,#0000 34%;
   background:
     repeating-linear-gradient(var(--c) 0 var(--g), #0000 0 50%)
@@ -290,6 +289,38 @@ code {
   --ob-shadow-rest: 0 1px 2px rgba(23, 23, 26, 0.04), 0 8px 24px rgba(23, 23, 26, 0.06);
   --ob-shadow-float: 0 2px 6px rgba(23, 23, 26, 0.05), 0 16px 40px rgba(23, 23, 26, 0.1);
   --ob-shadow-action: 0 8px 20px rgba(23, 23, 26, 0.18);
+
+  --background: var(--ob-canvas);
+  --foreground: var(--ob-ink);
+  --card: var(--ob-card);
+  --card-foreground: var(--ob-ink);
+  --popover: var(--ob-card);
+  --popover-foreground: var(--ob-ink);
+  --primary: var(--ob-action);
+  --primary-foreground: #ffffff;
+  --secondary: var(--ob-soft);
+  --secondary-foreground: var(--ob-ink);
+  --muted: var(--ob-soft);
+  --muted-foreground: var(--ob-ink-secondary);
+  --accent: color-mix(in oklab, var(--ob-lime) 30%, white);
+  --accent-foreground: var(--ob-ink);
+  --destructive: var(--ob-red-notice);
+  --border: var(--ob-hairline);
+  --input: var(--ob-control);
+  --ring: var(--ob-action);
+  --chart-1: var(--ob-lime);
+  --chart-2: var(--ob-green);
+  --chart-3: var(--ob-coral);
+  --chart-4: var(--ob-control);
+  --chart-5: var(--ob-ink);
+  --sidebar: var(--ob-card);
+  --sidebar-foreground: var(--ob-ink);
+  --sidebar-primary: var(--ob-action);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--ob-soft);
+  --sidebar-accent-foreground: var(--ob-ink);
+  --sidebar-border: var(--ob-hairline);
+  --sidebar-ring: var(--ob-action);
 
   color: var(--ob-ink);
   caret-color: var(--ob-action);
@@ -417,6 +448,40 @@ code {
   --lm-shadow-action: 0 10px 24px rgba(23, 23, 25, 0.18);
   --lm-shadow-lime: 0 1px 2px rgba(23, 23, 25, 0.05), 0 14px 34px rgba(23, 23, 25, 0.08),
     0 10px 30px -6px rgba(154, 205, 48, 0.45);
+
+  --background: var(--lm-bg);
+  --foreground: var(--lm-ink);
+  --card: var(--lm-card);
+  --card-foreground: var(--lm-ink);
+  --popover: var(--lm-card);
+  --popover-foreground: var(--lm-ink);
+  --primary: var(--lm-ink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--lm-bar-rest);
+  --secondary-foreground: var(--lm-ink);
+  --muted: var(--lm-bar-rest);
+  --muted-foreground: var(--lm-ink-soft);
+  --accent: color-mix(in oklab, var(--lm-lime) 30%, white);
+  --accent-foreground: var(--lm-ink);
+  --destructive: var(--lm-tomato);
+  --border: var(--lm-line);
+  --input: color-mix(in oklab, var(--lm-ink) 46%, white);
+  --ring: var(--lm-ink);
+  --chart-1: var(--lm-lime);
+  --chart-2: var(--lm-forest);
+  --chart-3: var(--lm-tomato);
+  --chart-4: var(--lm-ink-soft);
+  --chart-5: var(--lm-ink);
+  --sidebar: var(--lm-card);
+  --sidebar-foreground: var(--lm-ink);
+  --sidebar-primary: var(--lm-ink);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--lm-bar-rest);
+  --sidebar-accent-foreground: var(--lm-ink);
+  --sidebar-border: var(--lm-line);
+  --sidebar-ring: var(--lm-ink);
+  --radius: 1.25rem;
+  --radius-2xl: 1.75rem;
 
   color: var(--lm-ink);
   caret-color: var(--lm-ink);

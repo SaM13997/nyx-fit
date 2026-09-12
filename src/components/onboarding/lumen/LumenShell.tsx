@@ -1,6 +1,24 @@
 import type { ReactNode } from "react";
+import { Progress } from "@/components/ui/progress";
 import { LumenBackground, type LumenWash } from "./LumenBackground";
-import { LumenStepper } from "./LumenStepper";
+
+function StepProgress({ step }: { step: 2 | 3 | 4 }) {
+  const segment = step - 1;
+
+  return (
+    <div className="mt-4 flex gap-1.5">
+      <span className="sr-only">Step {segment} of 3</span>
+      {[1, 2, 3].map((value) => (
+        <Progress
+          key={value}
+          aria-hidden="true"
+          value={value <= segment ? 100 : 0}
+          className="h-1.5 flex-1"
+        />
+      ))}
+    </div>
+  );
+}
 
 function FlowHeader({ step }: { step: 2 | 3 | 4 }) {
   return (
@@ -10,7 +28,7 @@ function FlowHeader({ step }: { step: 2 | 3 | 4 }) {
           Nyx Fit
         </p>
       </div>
-      <LumenStepper step={step} className="mt-4" />
+      <StepProgress step={step} />
     </header>
   );
 }

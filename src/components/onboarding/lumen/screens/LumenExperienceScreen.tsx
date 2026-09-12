@@ -1,11 +1,18 @@
-import { useId } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from "@/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { ExperienceLevel } from "../../config";
-import { LumenBackButton } from "../LumenBackButton";
-import { LumenButton } from "../LumenButton";
-import { LumenChoiceCard } from "../LumenChoiceCard";
 import { LumenShell } from "../LumenShell";
 import { lmBody, lmScreenTitle } from "../classes";
 import { lumenCopy, lumenExperienceOptions } from "../config";
@@ -22,7 +29,11 @@ export function LumenExperienceScreen({
   onBack: () => void;
 }) {
   const reduceMotion = useReducedMotion();
-  const groupName = useId();
+
+  const handleChange = (next: string) => {
+    const option = lumenExperienceOptions.find((item) => item.value === next);
+    if (option) onChange(option.value);
+  };
 
   return (
     <LumenShell step={2} wash="experience">
@@ -33,9 +44,15 @@ export function LumenExperienceScreen({
         {lumenCopy.experience.description}
       </p>
 
-      <fieldset className="mt-8 min-w-0">
-        <legend className="sr-only">{lumenCopy.experience.heading}</legend>
-        <div className="space-y-5">
+      <FieldSet className="mt-8 min-w-0">
+        <FieldLegend className="sr-only">
+          {lumenCopy.experience.heading}
+        </FieldLegend>
+        <RadioGroup
+          value={value ?? ""}
+          onValueChange={handleChange}
+          className="gap-5"
+        >
           {lumenExperienceOptions.map((option, index) => (
             <motion.div
               key={option.value}
@@ -47,35 +64,49 @@ export function LumenExperienceScreen({
                 delay: reduceMotion ? 0 : index * 0.04,
               }}
             >
-              <LumenChoiceCard
-                name={groupName}
-                value={option.value}
-                label={option.label}
-                detail={option.detail}
-                checked={value === option.value}
-                onSelect={onChange}
-              />
+              <FieldLabel htmlFor={`lumen-level-${option.value}`}>
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    <FieldTitle>{option.label}</FieldTitle>
+                    <FieldDescription>{option.detail}</FieldDescription>
+                  </FieldContent>
+                  <RadioGroupItem
+                    id={`lumen-level-${option.value}`}
+                    value={option.value}
+                    aria-label={option.label}
+                  />
+                </Field>
+              </FieldLabel>
             </motion.div>
           ))}
-        </div>
-      </fieldset>
+        </RadioGroup>
+      </FieldSet>
 
       <div className="mt-auto flex shrink-0 items-center gap-3 pt-6">
-        <LumenBackButton onClick={onBack} />
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-xl"
+          aria-label="Go back"
+          onClick={onBack}
+        >
+          <ChevronLeft aria-hidden="true" className="size-6" strokeWidth={2} />
+        </Button>
         <div className="flex-1">
-          <LumenButton
+          <Button
+            type="button"
+            size="xl"
             onClick={onContinue}
             disabled={value === null}
-            icon={
-              <ArrowRight
-                aria-hidden="true"
-                className="size-5"
-                strokeWidth={1.75}
-              />
-            }
+            className="w-full"
           >
             {lumenCopy.experience.action}
-          </LumenButton>
+            <ArrowRight
+              aria-hidden="true"
+              className="size-5"
+              strokeWidth={1.75}
+            />
+          </Button>
         </div>
       </div>
     </LumenShell>
