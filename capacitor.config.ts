@@ -2,8 +2,8 @@ import type { CapacitorConfig } from '@capacitor/cli'
 import iosConfig from './builds/ios-config.json'
 
 /**
- * Capacitor loads the deployed PWA (SSR on Vercel) — same model as Android TWA.
- * Icons and splash sync from public/favicon via `npm run ios:sync-assets`.
+ * Capacitor loads the deployed PWA (SSR on Cloudflare Workers) — same model as Android TWA.
+ * Icons and splash sync from public/favicon via `bun run ios:sync-assets`.
  */
 const config: CapacitorConfig = {
 	appId: iosConfig.appId,

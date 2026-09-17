@@ -1,16 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { reactStartHandler } from "@convex-dev/better-auth/react-start";
+
+const handleAuthRequest = async (request: Request) => {
+  const { env } = await import("cloudflare:workers");
+  const { createAuth } = await import("@/lib/auth-server");
+
+  return createAuth(env).handler(request);
+};
 
 export const Route = createFileRoute("/api/auth/$")({
   server: {
     handlers: {
-      GET: ({ request }) => {
-        return reactStartHandler(request);
-      },
-      POST: ({ request, context, params }) => {
-        console.log({ request, context, params });
-        return reactStartHandler(request);
-      },
+      GET: ({ request }) => handleAuthRequest(request),
+      POST: ({ request }) => handleAuthRequest(request),
     },
   },
 });

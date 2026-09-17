@@ -113,4 +113,4 @@ Track progress toward installable PWA, Play Store (TWA), and iOS wrapper. Work i
 ## Notes
 
 - Do **not** enable Play Billing or web push unless a batch explicitly covers them.
-- Convex production deploy, keystore secrets, and store developer accounts are **stop conditions** — report in Slack, do not mark items complete.
+- Cloudflare Workers deployment, D1/R2 bindings and auth secrets, keystore secrets, and store developer accounts are **stop conditions** — report in Slack, do not mark items complete. See `docs/cloudflare-setup.md` for the fresh-database deployment procedure.

@@ -9,9 +9,13 @@ import { lumenCopy, lumenLevelLabel } from "../config";
 
 export function LumenReadyScreen({
   level,
+  action = lumenCopy.ready.action,
+  disabled = false,
   onOpenDashboard,
 }: {
   level: ExperienceLevel | null;
+  action?: string;
+  disabled?: boolean;
   onOpenDashboard: () => void;
 }) {
   return (
@@ -21,7 +25,10 @@ export function LumenReadyScreen({
           <RingsArt />
         </div>
 
-        <h1 className={cn(lmScreenTitle, "mt-3 text-lm-ink")}>
+        <h1
+          tabIndex={-1}
+          className={cn(lmScreenTitle, "mt-3 text-lm-ink focus:outline-none")}
+        >
           {lumenCopy.ready.heading}
         </h1>
 
@@ -50,9 +57,10 @@ export function LumenReadyScreen({
             type="button"
             size="xl"
             onClick={onOpenDashboard}
-            className="w-full"
+            disabled={disabled}
+            className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
           >
-            {lumenCopy.ready.action}
+            {action}
             <ArrowRight
               aria-hidden="true"
               className="size-5"

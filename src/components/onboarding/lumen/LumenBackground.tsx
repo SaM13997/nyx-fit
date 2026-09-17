@@ -18,17 +18,15 @@ export function LumenBackground({ wash }: { wash: LumenWash }) {
       className="pointer-events-none absolute inset-0 overflow-hidden bg-lm-bg"
     >
       <motion.img
-        key={wash}
         src={backgroundSrc[wash]}
         alt=""
         draggable={false}
+        decoding="async"
+        fetchPriority={wash === "welcome" ? "high" : undefined}
         initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1, scale: reduceMotion ? 1 : [1, 1.03, 1] }}
-        transition={{
-          opacity: { duration: 0.3, ease: "easeOut" },
-          scale: { duration: 34, repeat: Infinity, ease: "easeInOut" },
-        }}
-        className="absolute inset-0 size-full object-cover object-top select-none"
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="lm-drift absolute inset-0 size-full object-cover object-top select-none motion-reduce:animate-none"
       />
     </div>
   );

@@ -1,83 +1,12 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/auth-client";
 import { Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { GoogleButton } from "@/components/onboarding/kit/GoogleButton";
 import { InlineAlert } from "@/components/onboarding/kit/InlineAlert";
 import { LegalRow } from "@/components/onboarding/kit/LegalRow";
 import { obBody, obScreenTitle } from "@/components/onboarding/kit/classes";
-
-const FALLBACK_ERROR = "We couldn't sign you in right now. Please try again.";
-
-function getAuthErrorMessage(error: unknown) {
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
-    return "You're offline. Reconnect to the internet and try again."
-  }
-
-  if (error instanceof Error) {
-    if (error.message.includes("403")) {
-      return "Sign-in is temporarily unavailable because the authentication provider is misconfigured."
-    }
-
-    if (error.message.includes("429")) {
-      return "Too many sign-in attempts. Please wait a moment and try again."
-    }
-
-    if (error.message.trim()) {
-      return error.message
-    }
-  }
-
-  return FALLBACK_ERROR
-}
-
-type SocialSignInResult = Awaited<ReturnType<typeof authClient.signIn.social>>;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function getSocialResultError(
-  result: SocialSignInResult,
-): Record<string, unknown> | null {
-  if (!isRecord(result)) {
-    return null;
-  }
-  const error: unknown = result.error;
-  return isRecord(error) ? error : null;
-}
-
-function getSocialErrorDetail(error: Record<string, unknown>): string | null {
-  const message: unknown = error.message;
-  if (typeof message !== "string" || message.trim().length === 0) {
-    return null;
-  }
-  return message;
-}
-
-function isProviderHandoff(result: SocialSignInResult): boolean {
-  if (!isRecord(result)) {
-    return false;
-  }
-  const data: unknown = result.data;
-  if (!isRecord(data)) {
-    return false;
-  }
-  if (data.redirect === true) {
-    return true;
-  }
-  const url: unknown = data.url;
-  if (typeof url === "string" && url.length > 0) {
-    return true;
-  }
-  const token: unknown = data.token;
-  if (typeof token === "string" && token.length > 0) {
-    return true;
-  }
-  return isRecord(data.user);
-}
+import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 
 type LoginFormProps = React.ComponentProps<"div"> & {
   heading?: string;
@@ -94,41 +23,9 @@ export function LoginForm({
   variant = "default",
   ...props
 }: LoginFormProps) {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleGoogleSignIn = async () => {
-    if (isSubmitting) {
-      return;
-    }
-
-    if (typeof navigator !== "undefined" && !navigator.onLine) {
-      setErrorMessage("You're offline. Reconnect to the internet and try again.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const result: SocialSignInResult = await authClient.signIn.social({
-        provider: "google",
-        ...(callbackURL ? { callbackURL } : {}),
-      });
-      const resultError = getSocialResultError(result);
-      if (resultError !== null) {
-        setErrorMessage(getSocialErrorDetail(resultError) ?? FALLBACK_ERROR);
-        setIsSubmitting(false);
-        return;
-      }
-      if (!isProviderHandoff(result)) {
-        setErrorMessage(FALLBACK_ERROR);
-        setIsSubmitting(false);
-      }
-    } catch (error) {
-      setErrorMessage(getAuthErrorMessage(error));
-      setIsSubmitting(false);
-    }
-  };
+  const { errorMessage, isSubmitting, signIn } = useGoogleSignIn(
+    callbackURL ?? "",
+  );
 
   if (variant === "onboarding") {
     return (
@@ -147,7 +44,7 @@ export function LoginForm({
           <InlineAlert className="mt-6">{errorMessage}</InlineAlert>
         ) : null}
         <div className="mt-auto pt-6">
-          <GoogleButton onClick={handleGoogleSignIn} loading={isSubmitting} />
+          <GoogleButton onClick={signIn} loading={isSubmitting} />
           <LegalRow className="mt-2" />
         </div>
       </div>
@@ -177,7 +74,7 @@ export function LoginForm({
       ) : null}
       <Button
         type="button"
-        onClick={handleGoogleSignIn}
+        onClick={signIn}
         disabled={isSubmitting}
         className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold h-12 rounded-xl text-base transition-all active:scale-[0.98] shadow-lg shadow-purple-900/20 gap-3"
       >

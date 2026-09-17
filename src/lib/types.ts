@@ -1,13 +1,14 @@
 export type Workout = {
   id: string;
   date: string;
-  duration: number;
+  duration: number; // elapsed seconds
   startTime?: string; // ISO string for when workout started
   endTime?: string; // ISO string for when workout ended
   isActive?: boolean; // Whether the workout is currently in progress
   exercises: Exercise[];
   bodyPartWorkedOut?: string[];
   notes?: string;
+  revision: number; // Incremented on every accepted edit
 };
 
 export type Exercise = {
@@ -50,7 +51,7 @@ export type Profile = {
   name: string;
   email: string;
   gender?: Gender;
-  profilePicture?: string; // URL of the profile picture uploaded to the convex storage
+  profilePicture?: string; // Same-origin image URL or external provider URL
   fitnessLevel?: FitnessLevel;
   notificationsEnabled: boolean;
   weightUnit: WeightUnit;

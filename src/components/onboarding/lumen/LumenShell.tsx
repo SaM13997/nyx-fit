@@ -20,7 +20,13 @@ function StepProgress({ step }: { step: 2 | 3 | 4 }) {
   );
 }
 
-function FlowHeader({ step }: { step: 2 | 3 | 4 }) {
+function FlowHeader({
+  step,
+  showProgress,
+}: {
+  step: 2 | 3 | 4;
+  showProgress: boolean;
+}) {
   return (
     <header>
       <div className="flex h-11 items-center justify-center">
@@ -28,7 +34,7 @@ function FlowHeader({ step }: { step: 2 | 3 | 4 }) {
           Nyx Fit
         </p>
       </div>
-      <StepProgress step={step} />
+      {showProgress ? <StepProgress step={step} /> : null}
     </header>
   );
 }
@@ -36,10 +42,12 @@ function FlowHeader({ step }: { step: 2 | 3 | 4 }) {
 export function LumenShell({
   step,
   wash,
+  showProgress = true,
   children,
 }: {
   step: 1 | 2 | 3 | 4;
   wash: LumenWash;
+  showProgress?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -47,11 +55,13 @@ export function LumenShell({
       <LumenBackground wash={wash} />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-lm-bg/20 backdrop-blur-[2px]"
+        className="pointer-events-none absolute inset-0 bg-lm-bg/20"
       />
       <div className="relative flex min-h-0 flex-1 flex-col px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-        {step === 1 ? null : <FlowHeader step={step} />}
-        <div className="scrollbar-hide mt-5 flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {step === 1 ? null : (
+          <FlowHeader step={step} showProgress={showProgress} />
+        )}
+        <div className="scrollbar-hide mt-5 flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
           <div className="flex min-h-full w-full flex-col">{children}</div>
         </div>
       </div>

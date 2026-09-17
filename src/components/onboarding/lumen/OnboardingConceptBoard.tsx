@@ -74,7 +74,12 @@ export function OnboardingConceptBoard({
   const renderScreen = () => {
     switch (step) {
       case "welcome":
-        return <LumenWelcomeScreen onStart={() => jumpTo("experience")} />;
+        return (
+          <LumenWelcomeScreen
+            onStart={() => jumpTo("experience")}
+            onExistingAccount={() => void navigate({ to: "/login" })}
+          />
+        );
       case "experience":
         return (
           <LumenExperienceScreen
@@ -88,9 +93,9 @@ export function OnboardingConceptBoard({
         return (
           <LumenSaveProfileScreen
             level={level}
-            saving={saving}
+            state={saving ? { status: "saving" } : { status: "signin" }}
+            onSignIn={handleSave}
             onBack={() => jumpTo("experience")}
-            onContinue={handleSave}
           />
         );
       case "ready":
@@ -228,8 +233,8 @@ export function OnboardingConceptBoard({
         Interactive visual prototype of the warm light concept. The four screens
         run as one flow: selection carries into the profile and completion
         states, and every action is live. Google sign-in and profile saving are
-        simulated inside this board only; the shipped onboarding flow,
-        authentication, and profile data are unchanged.
+        simulated inside this board only; the shipped onboarding flow now runs
+        the same screens.
       </p>
     </div>
   );

@@ -3,13 +3,12 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
-import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
+import { cloudflare } from '@cloudflare/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
-import { nyxServiceWorkerPlugin } from './scripts/nyx-service-worker-plugin'
 
 const config = defineConfig({
 	plugins: [
-		nitroV2Plugin(),
+		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		// this is the plugin that enables path aliases
 		viteTsConfigPaths({
 			projects: ['./tsconfig.json'],
@@ -17,12 +16,13 @@ const config = defineConfig({
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
-		nyxServiceWorkerPlugin(),
 		VitePWA({
 			registerType: 'autoUpdate',
 			manifestFilename: 'manifest.json',
+			// The app registers /sw.js itself; do not inject a second registration script.
+			injectRegister: false,
 			devOptions: {
-				enabled: true,
+				enabled: false,
 			},
 			includeAssets: ['favicon/**/*', 'favicon/splash/**/*'],
 			manifest: {
@@ -65,7 +65,9 @@ const config = defineConfig({
 			},
 			workbox: {
 				// SW generated post-build via scripts/generate-sw.mjs (TanStack Start + ssr)
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+				globPatterns: ['**/*.{ico,png,svg,webp,woff2,json}'],
+				globIgnores: ['favicon/splash/**', 'onboarding/**'],
+				cleanupOutdatedCaches: true,
 			},
 		}),
 	],

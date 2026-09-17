@@ -19,9 +19,10 @@ interface AddExerciseDrawerProps {
     category: ExerciseCategory,
     weight: number,
     reps: number
-  ) => void;
+  ) => Promise<boolean>;
   unit: WeightUnit;
   exercises: Exercise[];
+  isSaving?: boolean;
 }
 
 const COMMON_EXERCISES = [
@@ -45,6 +46,7 @@ export function AddExerciseDrawer({
   onAddSet,
   unit,
   exercises,
+  isSaving = false,
 }: AddExerciseDrawerProps) {
   const weightStep = getWeightStep(unit);
   const weightOptions = Array.from({ length: 80 }, (_, i) =>
@@ -55,15 +57,25 @@ export function AddExerciseDrawer({
   const [category, setCategory] = useState<ExerciseCategory>(inferExerciseCategory(COMMON_EXERCISES[0]));
   const [weight, setWeight] = useState(weightOptions[8].toString());
   const [reps, setReps] = useState("8");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commitFailed, setCommitFailed] = useState(false);
 
-  const handleAddSet = () => {
-    if (selectedExercise) {
-      onAddSet(
+  const handleAddSet = async () => {
+    if (!selectedExercise || isSubmitting) return;
+    setIsSubmitting(true);
+    setCommitFailed(false);
+    try {
+      const saved = await onAddSet(
         selectedExercise,
         category,
         convertWeightToLbs(parseFloat(weight), unit),
         parseInt(reps)
       );
+      if (!saved) {
+        setCommitFailed(true);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -77,6 +89,7 @@ export function AddExerciseDrawer({
     setCategory(inferExerciseCategory(COMMON_EXERCISES[0]));
     setWeight(weightOptions[8].toString());
     setReps("8");
+    setCommitFailed(false);
   };
 
   return (
@@ -236,9 +249,16 @@ export function AddExerciseDrawer({
                     </div>
                   </div>
 
+                  {commitFailed ? (
+                    <p className="w-full rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200">
+                      Couldn&apos;t save that set. Try again.
+                    </p>
+                  ) : null}
+
                   <button
                     onClick={handleAddSet}
-                    className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98]"
+                    disabled={isSaving || isSubmitting}
+                    className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50"
                   >
                     Log Set
                   </button>

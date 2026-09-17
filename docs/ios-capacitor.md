@@ -13,6 +13,8 @@ Nyx Fit ships to the App Store as a **Capacitor** native shell loading the deplo
 
 **Decision (2026-06-23):** Use **Capacitor 7** for the iOS wrapper. PWABuilder was not selected because its iOS output is unmaintained and our app requires SSR + Convex auth against the production host.
 
+The Cloudflare migration keeps this remote-shell model. Workers now hosts SSR and better-auth, with D1 and R2 bindings; see [Cloudflare setup](cloudflare-setup.md). Keep the same production origin to avoid changing the native wrapper configuration.
+
 ## Files
 
 | Path | Purpose |
@@ -28,21 +30,21 @@ Nyx Fit ships to the App Store as a **Capacitor** native shell loading the deplo
 
 - **macOS** with Xcode 15+ and CocoaPods
 - **Apple Developer Program** membership (stop condition — not required for scaffold)
-- Node.js 20+
+- Bun for project commands; Node.js 20+ for native tooling that requires it
 
 ## One-time setup (on Mac)
 
 ```bash
-npm install
-npm run ios:sync-assets
-npx cap add ios          # if ios/ not present
-npx cap sync ios
+bun install
+bun run ios:sync-assets
+bunx cap add ios          # if ios/ not present
+bunx cap sync ios
 ```
 
 Open in Xcode:
 
 ```bash
-npm run ios:open
+bun run ios:open
 ```
 
 Set **Signing & Capabilities** → Team → your Apple Developer team. Bundle identifier: `pro.webdevsam.fit`.
@@ -52,8 +54,8 @@ Set **Signing & Capabilities** → Team → your Apple Developer team. Bundle id
 After changing PWA icons or splash screens:
 
 ```bash
-npm run ios:sync-assets
-npx cap sync ios
+bun run ios:sync-assets
+bunx cap sync ios
 ```
 
 Icons mirror `vite.config.ts` manifest entries (`web-app-manifest-512x512.png`, splash PNGs).
@@ -69,7 +71,7 @@ server: {
 },
 ```
 
-Run `npm run dev` and `npx cap run ios` on a simulator.
+Run `bun run dev` and `bunx cap run ios` on a simulator after configuring local Cloudflare bindings and applying the D1 migrations.
 
 ## App Store submission
 

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Dumbbell } from "lucide-react";
 import type { Workout } from "@/lib/types";
-import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/convex/hooks";
+import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/api/hooks";
 import { WorkoutStatusCard } from "@/components/home";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { useState } from "react";
@@ -51,7 +51,7 @@ export const Route = createFileRoute("/workouts")({
 
 function WorkoutsPage() {
   const navigate = useNavigate();
-  const { workouts, isLoading } = useWorkouts();
+  const { workouts, isLoading, isError, refetch } = useWorkouts();
   const { activeWorkout } = useActiveWorkout();
   const { startWorkout } = useStartWorkout();
   const [isStarting, setIsStarting] = useState(false);
@@ -107,10 +107,42 @@ function WorkoutsPage() {
             onStartWorkout={handleStartWorkout}
           />
 
-          {isLoading ? (
-            <div className="text-zinc-500 px-1">Loading workouts...</div>
+          {isError && workouts.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
+              <p className="text-sm text-red-200">
+                Couldn&apos;t load your workouts. Check your connection and try
+                again.
+              </p>
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="min-h-11 rounded-xl bg-purple-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-purple-500"
+              >
+                Try again
+              </button>
+            </div>
           ) : (
-            <WorkoutList workouts={workouts} />
+            <>
+              {isError ? (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-200">
+                    Connection issue. Showing saved workouts.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : null}
+              {isLoading && workouts.length === 0 ? (
+                <div className="text-zinc-500 px-1">Loading workouts...</div>
+              ) : (
+                <WorkoutList workouts={workouts} />
+              )}
+            </>
           )}
         </div>
       </div>

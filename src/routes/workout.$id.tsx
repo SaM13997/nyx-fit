@@ -1,19 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
-
-import { Exercise, WorkoutSet } from "@/lib/types";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Exercise, WorkoutSet } from "@/lib/types";
 import { formatDuration } from "@/lib/utils";
 import { ArrowLeft, MoreHorizontal, Plus, Share2, Square } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ExerciseItem } from "@/components/ExerciseItem";
 import { SetDrawer } from "@/components/SetDrawer";
 import { AddExerciseDrawer } from "@/components/AddExerciseDrawer";
 import { RestTimer } from "@/components/RestTimer";
-import { api } from "convex/_generated/api";
-import { Id } from "convex/_generated/dataModel";
 import type { ExerciseCategory } from "@/lib/exerciseCategories";
-import { useCurrentProfile } from "@/lib/convex/hooks";
+import {
+  useCurrentProfile,
+  useUpdateWorkout,
+  useWorkout,
+  type WorkoutUpdates,
+} from "@/lib/api/hooks";
+import { useToast } from "@/lib/toast";
 
 export const Route = createFileRoute("/workout/$id")({
   component: WorkoutPage,
@@ -21,39 +23,95 @@ export const Route = createFileRoute("/workout/$id")({
 
 function WorkoutPage() {
   const { id } = Route.useParams();
-  const workout = useQuery(api.workouts.getWorkout, {
-    id: id as Id<"workouts">,
-  });
+  const { workout, isLoading, isError, refetch } = useWorkout(id);
   const { profile } = useCurrentProfile();
-  const updateWorkout = useMutation(api.workouts.updateWorkout);
+  const { updateWorkout } = useUpdateWorkout();
+  const { error: showError } = useToast();
   const weightUnit = profile?.weightUnit ?? "lbs";
 
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showEndWorkoutDialog, setShowEndWorkoutDialog] = useState(false);
+  const [isSavePending, setIsSavePending] = useState(false);
   const currentDurationRef = useRef(0);
+  const saveInFlightRef = useRef(false);
+  const revisionRef = useRef(workout?.revision ?? 0);
+
+  useEffect(() => {
+    if (workout !== null) {
+      revisionRef.current = workout.revision;
+    }
+  }, [workout]);
+
+  const saveWorkout = useCallback(
+    async (updates: WorkoutUpdates): Promise<boolean> => {
+      if (!workout || saveInFlightRef.current) return false;
+
+      saveInFlightRef.current = true;
+      setIsSavePending(true);
+
+      try {
+        const result = await updateWorkout({
+          id: workout.id,
+          revision: revisionRef.current,
+          updates,
+        });
+
+        if (!result.ok) {
+          showError(
+            "This workout changed elsewhere. Review the latest data and try again."
+          );
+          const refreshed = await refetch();
+          if (refreshed.data) {
+            revisionRef.current = refreshed.data.revision;
+          }
+          return false;
+        }
+
+        revisionRef.current = result.workout.revision;
+        return true;
+      } catch (e) {
+        console.error("Failed to save workout:", e);
+        showError(
+          "Couldn't save your workout. Check your connection and try again."
+        );
+        return false;
+      } finally {
+        saveInFlightRef.current = false;
+        setIsSavePending(false);
+      }
+    },
+    [workout, updateWorkout, showError, refetch]
+  );
 
   const handleEndWorkout = async () => {
     if (!workout) return;
 
-    // Save body parts to localStorage for next workout
-    if (workout.bodyPartWorkedOut && workout.bodyPartWorkedOut.length > 0) {
-      localStorage.setItem(
-        "lastWorkedBodyParts",
-        JSON.stringify(workout.bodyPartWorkedOut)
-      );
+    if (
+      typeof window !== "undefined" &&
+      workout.bodyPartWorkedOut &&
+      workout.bodyPartWorkedOut.length > 0
+    ) {
+      try {
+        window.localStorage.setItem(
+          "lastWorkedBodyParts",
+          JSON.stringify(workout.bodyPartWorkedOut)
+        );
+      } catch (e) {
+        console.error("Failed to store last worked body parts", e);
+      }
     }
 
-    await updateWorkout({
-      id: workout.id as Id<"workouts">,
-      updates: {
-        isActive: false,
-        endTime: new Date().toISOString(),
-        duration: currentDurationRef.current || workout.duration,
-      },
+    const saved = await saveWorkout({
+      isActive: false,
+      endTime: new Date().toISOString(),
+      duration: currentDurationRef.current || workout.duration,
     });
-    setShowEndWorkoutDialog(false);
+
+    if (saved) {
+      setShowEndWorkoutDialog(false);
+    }
   };
 
   const handleAddSet = async (
@@ -61,63 +119,48 @@ function WorkoutPage() {
     category: ExerciseCategory,
     weight: number,
     reps: number
-  ) => {
-    if (!workout) return;
+  ): Promise<boolean> => {
+    if (!workout) return false;
 
-    let exerciseId: string;
+    const newSet: WorkoutSet = {
+      id: uuidv4(),
+      weight,
+      reps,
+    };
     const existingExercise = workout.exercises.find((e) => e.name === name);
+    const newExercise: Exercise = {
+      id: uuidv4(),
+      name,
+      category,
+      sets: [newSet],
+    };
 
-    if (existingExercise) {
-      exerciseId = existingExercise.id;
-      const newSet: WorkoutSet = {
-        id: uuidv4(),
-        weight,
-        reps,
-      };
-      await updateWorkout({
-        id: workout.id as Id<"workouts">,
-        updates: {
-          exercises: workout.exercises.map((ex) =>
-            ex.id === exerciseId
-              ? { ...ex, category: ex.category ?? category, sets: [...ex.sets, newSet] }
-              : ex
-          ),
-        },
-      });
-    } else {
-      exerciseId = uuidv4();
-      const newExercise: Exercise = {
-        id: exerciseId,
-        name,
-        category,
-        sets: [
-          {
-            id: uuidv4(),
-            weight,
-            reps,
-          },
-        ],
-      };
-      await updateWorkout({
-        id: workout.id as Id<"workouts">,
-        updates: {
-          exercises: [...workout.exercises, newExercise],
-        },
-      });
-    }
+    const exercises = existingExercise
+      ? workout.exercises.map((ex) =>
+          ex.id === existingExercise.id
+            ? {
+                ...ex,
+                category: ex.category ?? category,
+                sets: [...ex.sets, newSet],
+              }
+            : ex
+        )
+      : [...workout.exercises, newExercise];
+
+    return saveWorkout({ exercises });
   };
 
-  const handleSetUpdate = async (exerciseId: string, sets: WorkoutSet[]) => {
-    if (!workout) return;
-    const updatedExercises = workout.exercises.map((ex) =>
+  const handleSetUpdate = async (
+    exerciseId: string,
+    sets: WorkoutSet[]
+  ): Promise<boolean> => {
+    if (!workout) return false;
+
+    const exercises = workout.exercises.map((ex) =>
       ex.id === exerciseId ? { ...ex, sets } : ex
     );
-    await updateWorkout({
-      id: workout.id as Id<"workouts">,
-      updates: {
-        exercises: updatedExercises,
-      },
-    });
+
+    return saveWorkout({ exercises });
   };
 
   const handleExerciseClick = (exerciseId: string) => {
@@ -130,12 +173,57 @@ function WorkoutPage() {
     [workout?.exercises]
   );
 
+  if (isLoading) {
+    return <div className="min-h-screen text-white p-4">Loading...</div>;
+  }
+
+  if (isError && !workout) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 text-white">
+        <p className="text-zinc-300">
+          Couldn&apos;t load this workout. Check your connection and try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => void refetch()}
+          className="min-h-11 rounded-xl bg-purple-600 px-6 font-semibold text-white transition-colors hover:bg-purple-500"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
   if (!workout) {
-    return <div className="min-h-screen  text-white p-4">Loading...</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4 text-white">
+        <p className="text-zinc-300">This workout no longer exists.</p>
+        <Link
+          to="/workouts"
+          className="flex min-h-11 items-center rounded-xl bg-white/10 px-6 font-semibold text-white transition-colors hover:bg-white/20"
+        >
+          Back to workouts
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen flex flex-col gap-2  px-4 pt-2 text-white font-sans">
+      {isError ? (
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
+          <p className="text-sm text-red-200">
+            Connection issue. Showing saved workout data.
+          </p>
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+          >
+            Try again
+          </button>
+        </div>
+      ) : null}
       {/* Header */}
       <header className="flex sticky top-0 items-center justify-between   bg-black/80 backdrop-blur-md z-30 py-4  px-4">
         <div className="flex items-center gap-4">
@@ -201,7 +289,9 @@ function WorkoutPage() {
             {workout.isActive ? (
               <button
                 onClick={() => setShowEndWorkoutDialog(true)}
-                className="group relative flex items-center justify-center h-14 w-14 rounded-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all active:scale-95"
+                disabled={isSavePending}
+                aria-label="End workout"
+                className="group relative flex items-center justify-center h-14 w-14 rounded-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
               >
                 <div className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Square className="h-5 w-5 text-red-500 fill-current relative z-10" />
@@ -277,7 +367,8 @@ function WorkoutPage() {
           </div>
           <button
             onClick={() => setShowAddExercise(true)}
-            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-lg shadow-purple-900/20"
+            disabled={isSavePending}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
           >
             <Plus className="h-4 w-4" />
             Add Exercise
@@ -297,7 +388,8 @@ function WorkoutPage() {
             </p>
             <button
               onClick={() => setShowAddExercise(true)}
-              className="bg-white text-black hover:bg-gray-200 rounded-xl px-6 py-3 font-bold text-sm transition-colors"
+              disabled={isSavePending}
+              className="bg-white text-black hover:bg-gray-200 rounded-xl px-6 py-3 font-bold text-sm transition-colors disabled:opacity-50"
             >
               Add Exercise
             </button>
@@ -324,6 +416,7 @@ function WorkoutPage() {
           unit={weightUnit}
           workout={workout}
           onUpdate={handleSetUpdate}
+          isSaving={isSavePending}
         />
       )}
 
@@ -333,6 +426,7 @@ function WorkoutPage() {
         onAddSet={handleAddSet}
         unit={weightUnit}
         exercises={workout.exercises}
+        isSaving={isSavePending}
       />
 
       {/* End Workout Confirmation Dialog */}
@@ -347,13 +441,15 @@ function WorkoutPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowEndWorkoutDialog(false)}
-                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl py-3.5 font-bold text-sm transition-colors"
+                disabled={isSavePending}
+                className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl py-3.5 font-bold text-sm transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEndWorkout}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl py-3.5 font-bold text-sm transition-colors shadow-lg shadow-red-900/20"
+                disabled={isSavePending}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl py-3.5 font-bold text-sm transition-colors shadow-lg shadow-red-900/20 disabled:opacity-50"
               >
                 End Workout
               </button>

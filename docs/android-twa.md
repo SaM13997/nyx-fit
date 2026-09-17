@@ -8,7 +8,7 @@ Nyx Fit ships to the Play Store as a [Trusted Web Activity](https://developer.ch
 |------|---------|
 | `builds/twa-manifest.json` | Bubblewrap config (host, theme, signing key path) |
 | `builds/assetlinks.config.json` | Single source for Digital Asset Links fingerprints |
-| `public/assetlinks.json` | Served at `/.well-known/assetlinks.json` (Vercel rewrite) |
+| `public/.well-known/assetlinks.json` | Served directly as a Cloudflare Worker static asset at `/.well-known/assetlinks.json` |
 | `scripts/sync-assetlinks.mjs` | Regenerates both assetlinks files from config |
 | `scripts/build-twa.sh` | Docker + Bubblewrap signed APK/AAB build |
 | `.github/workflows/twa-build.yml` | CI workflow (secrets only, no keystore in repo) |
@@ -42,7 +42,7 @@ Update **both**:
 Then sync public files:
 
 ```bash
-npm run twa:sync-assetlinks
+bun run twa:sync-assetlinks
 ```
 
 Verify with [Google's Asset Links tool](https://developers.google.com/digital-asset-links/tools/generator).

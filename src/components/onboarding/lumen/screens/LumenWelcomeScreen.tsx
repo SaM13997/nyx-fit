@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,7 +7,13 @@ import { BarsCard, Capsule } from "../artwork";
 import { lmBody, lmCaption, lmDisplay } from "../classes";
 import { lumenCopy } from "../config";
 
-export function LumenWelcomeScreen({ onStart }: { onStart: () => void }) {
+export function LumenWelcomeScreen({
+  onStart,
+  onExistingAccount,
+}: {
+  onStart: () => void;
+  onExistingAccount: () => void;
+}) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -46,7 +51,10 @@ export function LumenWelcomeScreen({ onStart }: { onStart: () => void }) {
         </motion.div>
       </div>
       <div className="relative flex shrink-0 flex-col">
-        <h1 className={cn(lmDisplay, "mt-3 text-lm-ink")}>
+        <h1
+          tabIndex={-1}
+          className={cn(lmDisplay, "mt-3 text-lm-ink focus:outline-none")}
+        >
           {lumenCopy.welcome.heading}
         </h1>
         <p className={cn(lmBody, "mt-3.5 max-w-[330px]")}>
@@ -56,17 +64,18 @@ export function LumenWelcomeScreen({ onStart }: { onStart: () => void }) {
           type="button"
           size="xl"
           onClick={onStart}
-          className="mt-7 w-full"
+          className="mt-7 w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
         >
           {lumenCopy.welcome.action}
           <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.75} />
         </Button>
         <Button
-          asChild
+          type="button"
           variant="link"
+          onClick={onExistingAccount}
           className="mt-1.5 min-h-11 self-center"
         >
-          <Link to="/login">{lumenCopy.welcome.existing}</Link>
+          {lumenCopy.welcome.existing}
         </Button>
       </div>
     </LumenShell>

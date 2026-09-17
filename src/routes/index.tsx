@@ -1,43 +1,59 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
+import { parseRedirectParam } from "@/lib/redirect";
 import {
   useActiveWorkout,
   useCurrentProfile,
   useStartWorkout,
   useWorkouts,
-} from "@/lib/convex/hooks";
+} from "@/lib/api/hooks";
 import { getEffectiveProfile } from "@/lib/profile";
 import { HomeHeader } from "@/components/home/HomeHeader";
 import { WeeklyAttendance } from "@/components/home/WeeklyAttendance";
 import { QuickActions } from "@/components/home/QuickActions";
 import { WorkoutStatusCard } from "@/components/home/WorkoutStatusCard";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
+  const navigate = useNavigate();
   const router = useRouter();
   const search: { redirect?: unknown } = router.state.location.search;
-  const redirect = typeof search.redirect === "string" ? search.redirect : undefined;
+  const redirect = parseRedirectParam(search.redirect);
   const { data: sessionData, isPending: isAuthPending } =
     authClient.useSession();
   const session = sessionData?.session;
 
-  const { workouts: allWorkouts, isLoading: isLoadingAllWorkouts } =
-    useWorkouts({
-      enabled: !!session,
+  useEffect(() => {
+    if (isAuthPending || session) return;
+    void navigate({
+      to: "/onboarding",
+      search: { redirect },
+      replace: true,
     });
-  const { activeWorkout, isLoading: isLoadingActiveWorkout } = useActiveWorkout(
-    {
-      enabled: !!session,
-    }
-  );
+  }, [isAuthPending, session, navigate, redirect]);
+
+  const {
+    workouts: allWorkouts,
+    isLoading: isLoadingAllWorkouts,
+    isError: isWorkoutsError,
+    refetch: refetchWorkouts,
+  } = useWorkouts({
+    enabled: !!session,
+  });
+  const {
+    activeWorkout,
+    isLoading: isLoadingActiveWorkout,
+    isError: isActiveWorkoutError,
+    refetch: refetchActiveWorkout,
+  } = useActiveWorkout({
+    enabled: !!session,
+  });
   const { profile } = useCurrentProfile({
     enabled: !!session,
   });
@@ -56,30 +72,12 @@ function HomePage() {
     }
   };
 
-  if (isAuthPending) {
+  if (isAuthPending || !session) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return (
-      <div className="bg-black px-4 py-6 min-h-screen text-white flex flex-col items-center justify-center gap-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-            Nyx Fitness
-          </h1>
-          <p className="text-zinc-400">
-            Track your workouts, monitor your progress.
-          </p>
-        </div>
-        <Link to="/onboarding" search={{ redirect }}>
-          <Button size="lg" className="font-semibold">
-            Get Started
-          </Button>
-        </Link>
+      <div className="theme-lumen flex min-h-screen items-center justify-center bg-lm-bg">
+        <p role="status" className="text-[16px] leading-6 text-lm-ink-soft">
+          Loading…
+        </p>
       </div>
     );
   }
@@ -96,6 +94,23 @@ function HomePage() {
           email={effectiveProfile.email}
           profilePicture={effectiveProfile.profilePicture}
         />
+        {isWorkoutsError || isActiveWorkoutError ? (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
+            <p className="text-sm text-red-200">
+              Couldn&apos;t load your workout data.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (isWorkoutsError) void refetchWorkouts();
+                if (isActiveWorkoutError) void refetchActiveWorkout();
+              }}
+              className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
         <WeeklyAttendance
           workouts={allWorkouts}
           isLoading={isLoadingAllWorkouts}

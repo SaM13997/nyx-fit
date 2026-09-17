@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ChevronLeft } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,10 @@ export function LumenExperienceScreen({
 
   return (
     <LumenShell step={2} wash="experience">
-      <h1 className={cn(lmScreenTitle, "text-lm-ink")}>
+      <h1
+        tabIndex={-1}
+        className={cn(lmScreenTitle, "text-lm-ink focus:outline-none")}
+      >
         {lumenCopy.experience.heading}
       </h1>
       <p className={cn(lmBody, "mt-3 max-w-[330px]")}>
@@ -53,32 +56,70 @@ export function LumenExperienceScreen({
           onValueChange={handleChange}
           className="gap-5"
         >
-          {lumenExperienceOptions.map((option, index) => (
-            <motion.div
-              key={option.value}
-              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.2,
-                ease: "easeOut",
-                delay: reduceMotion ? 0 : index * 0.04,
-              }}
-            >
-              <FieldLabel htmlFor={`lumen-level-${option.value}`}>
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    <FieldTitle>{option.label}</FieldTitle>
-                    <FieldDescription>{option.detail}</FieldDescription>
-                  </FieldContent>
-                  <RadioGroupItem
-                    id={`lumen-level-${option.value}`}
-                    value={option.value}
-                    aria-label={option.label}
-                  />
-                </Field>
-              </FieldLabel>
-            </motion.div>
-          ))}
+          {lumenExperienceOptions.map((option, index) => {
+            const checked = value === option.value;
+            return (
+              <motion.div
+                key={option.value}
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.2,
+                  ease: "easeOut",
+                  delay: reduceMotion ? 0 : index * 0.04,
+                }}
+              >
+                <FieldLabel
+                  htmlFor={`lumen-level-${option.value}`}
+                  className={cn(
+                    "relative cursor-pointer items-center bg-lm-card",
+                    "transition-[background-color,border-color,transform] duration-200 motion-reduce:transition-none active:scale-[0.99] motion-reduce:active:scale-100",
+                    "has-data-[state=checked]:border-lm-ink/15",
+                    "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-lm-ink",
+                  )}
+                >
+                  <Field orientation="horizontal">
+                    <FieldContent className="min-w-0">
+                      <FieldTitle>{option.label}</FieldTitle>
+                      <FieldDescription
+                        id={`lumen-level-${option.value}-description`}
+                      >
+                        {option.detail}
+                      </FieldDescription>
+                    </FieldContent>
+                    <span
+                      aria-hidden="true"
+                      className="relative flex size-8 shrink-0 items-center justify-center"
+                    >
+                      {checked ? (
+                        <motion.span
+                          initial={reduceMotion ? false : { scale: 0.7 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 320,
+                            damping: 22,
+                          }}
+                          className="flex size-8 items-center justify-center rounded-full bg-lm-lime text-lm-ink"
+                        >
+                          <Check className="size-[18px]" strokeWidth={3} />
+                        </motion.span>
+                      ) : (
+                        <span className="block size-7 rounded-full border-[1.5px] border-lm-ink-faint" />
+                      )}
+                    </span>
+                    <RadioGroupItem
+                      id={`lumen-level-${option.value}`}
+                      value={option.value}
+                      aria-label={option.label}
+                      aria-describedby={`lumen-level-${option.value}-description`}
+                      className="sr-only"
+                    />
+                  </Field>
+                </FieldLabel>
+              </motion.div>
+            );
+          })}
         </RadioGroup>
       </FieldSet>
 
@@ -89,6 +130,7 @@ export function LumenExperienceScreen({
           size="icon-xl"
           aria-label="Go back"
           onClick={onBack}
+          className="enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
         >
           <ChevronLeft aria-hidden="true" className="size-6" strokeWidth={2} />
         </Button>
@@ -98,7 +140,7 @@ export function LumenExperienceScreen({
             size="xl"
             onClick={onContinue}
             disabled={value === null}
-            className="w-full"
+            className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
           >
             {lumenCopy.experience.action}
             <ArrowRight

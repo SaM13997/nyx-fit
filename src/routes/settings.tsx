@@ -6,7 +6,7 @@ import {
   type AttendanceVariant,
 } from "@/lib/AppearanceContext";
 import { authClient } from "@/lib/auth-client";
-import { useCurrentProfile } from "@/lib/convex/hooks";
+import { useCurrentProfile } from "@/lib/api/hooks";
 import { getEffectiveProfile } from "@/lib/profile";
 import {
   ChevronRight,

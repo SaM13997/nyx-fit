@@ -1,14 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useConvex } from "convex/react";
 
 import { authClient } from "@/lib/auth-client";
-import {
-  useCurrentProfile,
-  useUpsertCurrentProfile,
-  useUploadUrl,
-} from "@/lib/convex/hooks";
-import { api } from "../../convex/_generated/api";
+import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
+import { uploadImageFile } from "@/lib/api/images";
 import type { FitnessLevel, Gender, WeightUnit } from "@/lib/types";
 import { getProfileFormDefaults, type ProfileFormValues } from "@/lib/profile";
 import { cn } from "@/lib/utils";
@@ -34,13 +29,18 @@ function validateProfileName(name: string) {
   return null
 }
 
+function toErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message.trim().length > 0
+    ? error.message
+    : fallback;
+}
+
 export const Route = createFileRoute("/settings_/profile")({
   component: ProfileDetailsPage,
 });
 
 function ProfileDetailsPage() {
   const navigate = useNavigate();
-  const convex = useConvex();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { success, error: toastError } = useToast();
 
@@ -53,7 +53,6 @@ function ProfileDetailsPage() {
     enabled: !!session,
   });
   const { upsertCurrentProfile } = useUpsertCurrentProfile();
-  const { generateUploadUrl } = useUploadUrl();
 
   const [form, setForm] = useState<ProfileFormValues | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -110,32 +109,12 @@ function ProfileDetailsPage() {
     setIsUploading(true);
 
     try {
-      // 1. Get upload URL
-      const postUrl = await generateUploadUrl();
-
-      // 2. Upload the file
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-
-      if (!result.ok) throw new Error("Upload failed");
-
-      const { storageId } = await result.json();
-
-      // 3. Get the public URL for the storage ID
-      const publicUrl = await convex.query(api.profiles.getStorageUrl, {
-        storageId,
-      });
-
-      if (publicUrl) {
-        setField("profilePicture", publicUrl);
-        success("Profile picture updated");
-      }
-    } catch (err: any) {
+      const publicUrl = await uploadImageFile(file);
+      setField("profilePicture", publicUrl);
+      success("Profile picture updated");
+    } catch (err: unknown) {
       console.error("Upload error:", err);
-      toastError(err?.message ?? "Failed to upload image.");
+      toastError(toErrorMessage(err, "Failed to upload image."));
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -180,8 +159,8 @@ function ProfileDetailsPage() {
 
       setForm(getProfileFormDefaults(saved, authUser));
       success("Profile settings saved successfully");
-    } catch (err: any) {
-      toastError(err?.message ?? "Failed to save profile.");
+    } catch (err: unknown) {
+      toastError(toErrorMessage(err, "Failed to save profile."));
     } finally {
       setIsSaving(false);
     }

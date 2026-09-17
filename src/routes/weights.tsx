@@ -7,12 +7,13 @@ import {
   useDeleteWeight,
   useWeightGoal,
   useCurrentProfile,
-} from "@/lib/convex/hooks";
-import { Suspense, lazy, useEffect, useState } from "react";
+} from "@/lib/api/hooks";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { WeightStatsCard } from "@/components/weights/WeightStatsCard";
 import { WeightHistoryList } from "@/components/weights/WeightHistoryList";
 import type { WeightEntry } from "@/lib/types";
 import { useToast } from "@/lib/toast";
+import { uploadImageFile } from "@/lib/api/images";
 
 const WeightChart = lazy(() =>
   import("@/components/weights/WeightChart").then((module) => ({
@@ -31,10 +32,8 @@ export const Route = createFileRoute("/weights")({
 });
 
 function WeightsPage() {
-  const { weights: weightDocuments, isLoading } = useWeights();
-  const { goal: goalDocument } = useWeightGoal();
-  const weights = weightDocuments.map((entry) => ({ ...entry, id: entry._id }));
-  const goal = goalDocument ? { ...goalDocument, id: goalDocument._id } : goalDocument;
+  const { weights, isLoading, isError, refetch } = useWeights();
+  const { goal } = useWeightGoal();
   const { profile } = useCurrentProfile();
   const { logWeight } = useLogWeight();
   const { updateWeight } = useUpdateWeight();
@@ -63,7 +62,7 @@ function WeightsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteWeight({ id: id as any });
+      await deleteWeight({ id });
     } catch (e) {
       showError("Couldn't delete that entry. Please try again.");
     }
@@ -73,34 +72,44 @@ function WeightsPage() {
     weight: number,
     date: string,
     note?: string,
-    photoStorageId?: string
-  ) => {
+    photo?: File
+  ): Promise<boolean> => {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       showError("You're offline. Reconnect before saving a weight entry.");
-      return;
+      return false;
     }
 
     try {
       setIsSaving(true);
+      const newNote = note !== undefined && note.length > 0 ? note : undefined;
+      const photoUrl = photo
+        ? await uploadImageFile(photo)
+        : editingEntry?.photoUrl;
       if (editingEntry) {
         await updateWeight({
-          id: editingEntry.id as any,
+          id: editingEntry.id,
           weight,
           date,
-          note,
-          photoUrl: photoStorageId,
+          note: note ?? "",
+          photoUrl,
         });
       } else {
         await logWeight({
           weight,
           date,
-          note,
-          photoUrl: photoStorageId,
+          note: newNote,
+          photoUrl,
         });
       }
       setIsDrawerOpen(false);
+      return true;
     } catch (e) {
-      showError("Couldn't save that entry. Please check your connection and try again.");
+      showError(
+        e instanceof Error && e.message.trim().length > 0
+          ? e.message
+          : "Couldn't save that entry. Please check your connection and try again."
+      );
+      return false;
     } finally {
       setIsSaving(false);
     }
@@ -108,6 +117,18 @@ function WeightsPage() {
 
   const latestWeight = weights.length > 0 ? weights[0].weight : undefined;
   const oldestWeight = weights.length > 0 ? weights[weights.length - 1].weight : undefined;
+  const drawerInitialValues = useMemo(
+    () =>
+      editingEntry
+        ? {
+            weight: editingEntry.weight,
+            date: editingEntry.date,
+            note: editingEntry.note,
+            photoUrl: editingEntry.photoUrl,
+          }
+        : undefined,
+    [editingEntry?.id],
+  );
 
   return (
     <div className="bg-black text-white font-sans relative min-h-screen overflow-x-clip pb-24">
@@ -146,47 +167,81 @@ function WeightsPage() {
             </p>
           </div>
 
-          <WeightStatsCard
-            currentWeight={latestWeight}
-            startWeight={oldestWeight}
-            unit={weightUnit}
-          />
-
-          <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
-            {isChartReady ? (
-              <Suspense
-                fallback={
-                  <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
-                }
-              >
-                <WeightChart weights={weights} goal={goal} unit={weightUnit} />
-              </Suspense>
-            ) : (
-              <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
-            )}
-          </div>
-
-          <WeightHistoryList
-            weights={weights}
-            unit={weightUnit}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-
-          {!isLoading && weights.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/5 p-8 text-center">
-              <h2 className="text-lg font-bold text-white break-words">No weigh-ins yet</h2>
+          {isError && weights.length === 0 ? (
+            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
+              <h2 className="text-lg font-bold text-white break-words">
+                Couldn&apos;t load your weigh-ins
+              </h2>
               <p className="mt-2 text-sm text-zinc-400 break-words">
-                Log your first entry to start tracking trends, changes, and milestones over time.
+                Check your connection and try again.
               </p>
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
+              >
+                Try again
+              </button>
             </div>
-          ) : null}
+          ) : (
+            <>
+              {isError ? (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-200">
+                    Connection issue. Showing saved weigh-ins.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : null}
+              <WeightStatsCard
+                currentWeight={latestWeight}
+                startWeight={oldestWeight}
+                unit={weightUnit}
+              />
 
-          {isLoading && (
-            <div className="text-center text-zinc-500 py-10">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 opacity-50" />
-              Loading history...
-            </div>
+              <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
+                {isChartReady ? (
+                  <Suspense
+                    fallback={
+                      <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+                    }
+                  >
+                    <WeightChart weights={weights} goal={goal} unit={weightUnit} />
+                  </Suspense>
+                ) : (
+                  <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+                )}
+              </div>
+
+              <WeightHistoryList
+                weights={weights}
+                unit={weightUnit}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+
+              {!isLoading && weights.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/5 p-8 text-center">
+                  <h2 className="text-lg font-bold text-white break-words">No weigh-ins yet</h2>
+                  <p className="mt-2 text-sm text-zinc-400 break-words">
+                    Log your first entry to start tracking trends, changes, and milestones over time.
+                  </p>
+                </div>
+              ) : null}
+
+              {isLoading && (
+                <div className="text-center text-zinc-500 py-10">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 opacity-50" />
+                  Loading history...
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -208,12 +263,7 @@ function WeightsPage() {
             onSave={handleSave}
             isSaving={isSaving}
             unit={weightUnit}
-            initialValues={editingEntry ? {
-              weight: editingEntry.weight,
-              date: editingEntry.date,
-              note: editingEntry.note,
-              photoUrl: editingEntry.photoUrl
-            } : undefined}
+            initialValues={drawerInitialValues}
           />
         </Suspense>
       ) : null}

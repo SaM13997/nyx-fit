@@ -1,6 +1,5 @@
 import { Trash2, Edit2 } from "lucide-react";
 import type { WeightEntry } from "@/lib/types";
-import { useStorageUrl } from "@/lib/convex/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { WeightUnit } from "@/lib/types";
@@ -92,8 +91,6 @@ function WeightHistoryItem({
   onDelete: (id: string) => void;
   onEdit: (entry: WeightEntry) => void;
 }) {
-  const { url } = useStorageUrl(entry.photoUrl as string); // Handle if undefined, hook is safe
-
   return (
     <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-between group">
       <div className="flex items-center gap-4">
@@ -101,10 +98,10 @@ function WeightHistoryItem({
             <span className="text-xl font-bold text-white">{formatWeight(entry.weight, unit)} <span className="text-sm font-normal text-zinc-500">{formatWeightUnit(unit)}</span></span>
             <span className="text-xs text-zinc-400">{formatLocaleDate(entry.date, { year: "numeric", month: "short", day: "numeric" })}</span>
           </div>
-        {url && (
+        {entry.photoUrl && (
           <div className="h-10 w-10 rounded-lg overflow-hidden border border-zinc-700 bg-zinc-800 relative">
             <img
-              src={url}
+              src={entry.photoUrl}
               alt="Progress"
               width="40"
               height="40"

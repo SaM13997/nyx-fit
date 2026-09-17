@@ -422,7 +422,17 @@ code {
 }
 }
 
-/* Onboarding concept ("Lumen") — warm light world, design-section only */
+/* Onboarding concept ("Lumen") — warm light world, shared by /onboarding and the design board */
+@keyframes lm-drift {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
 @layer components {
 .theme-lumen {
   --font-heading: "Space Grotesk", "DM Sans", system-ui, sans-serif;
@@ -507,5 +517,9 @@ code {
 
 .lm-shadow-lime {
   box-shadow: var(--lm-shadow-lime);
+}
+
+.lm-drift {
+  animation: lm-drift 34s ease-in-out infinite;
 }
 }

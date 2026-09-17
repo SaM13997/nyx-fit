@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { useConvexAuth } from "convex/react";
 import { MotionConfig, motion, useReducedMotion } from "framer-motion";
-import { LoginForm } from "@/components/login-form";
 import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
-import { useUpsertCurrentProfile } from "@/lib/convex/hooks";
+import { useUpsertCurrentProfile } from "@/lib/api/hooks";
+import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 import {
   clearLegacyStagedOnboarding,
   clearOnboardingDraft,
@@ -16,17 +14,17 @@ import {
   type ExperienceLevel,
   type StepId,
 } from "./config";
-import { WashBackground, type OnboardingWash } from "./kit/WashBackground";
-import { AuthError, AuthSaving } from "./screens/AuthStatus";
-import { DoneScreen } from "./screens/DoneScreen";
-import { ExperienceScreen } from "./screens/ExperienceScreen";
-import { OnboardingHeader } from "./screens/OnboardingHeader";
-import { WelcomeScreen } from "./screens/WelcomeScreen";
+import { LumenExperienceScreen } from "./lumen/screens/LumenExperienceScreen";
+import { LumenReadyScreen } from "./lumen/screens/LumenReadyScreen";
+import {
+  LumenSaveProfileScreen,
+  type LumenSaveProfileState,
+} from "./lumen/screens/LumenSaveProfileScreen";
+import { LumenWelcomeScreen } from "./lumen/screens/LumenWelcomeScreen";
 
 type EntryPath = "setup" | "existing";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-const SETUP_STEPS: StepId[] = ["welcome", "experience", "auth", "done"];
 const READINESS_TIMEOUT_MS = 10000;
 const SAVE_FALLBACK_ERROR =
   "We couldn't save your training experience. Check your connection and try again.";
@@ -35,22 +33,11 @@ const READINESS_TIMEOUT_ERROR =
 const DEGRADED_AUTH_DESCRIPTION =
   "Your answer can't be kept on this device, so it won't survive sign-in. Continue to sign in, then set your experience in profile settings.";
 
-const washByStep: Record<StepId, OnboardingWash> = {
-  welcome: "welcome",
-  experience: "experience",
-  auth: "auth",
-  done: "done",
-};
-
 export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const router = useRouter();
   const { data: sessionData, isPending: isSessionPending } =
     authClient.useSession();
   const session = sessionData?.session;
-  const {
-    isLoading: isConvexAuthLoading,
-    isAuthenticated: isConvexAuthenticated,
-  } = useConvexAuth();
   const { upsertCurrentProfile } = useUpsertCurrentProfile();
   const [step, setStep] = useState<StepId>("welcome");
   const [entryPath, setEntryPath] = useState<EntryPath | null>(null);
@@ -72,14 +59,18 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const firstScreenRef = useRef(true);
   const resumedRef = useRef(false);
   const reduceMotion = useReducedMotion();
-  const stepNumber = SETUP_STEPS.indexOf(step) + 1;
-  const showSetupProgress = entryPath !== "existing";
-  const doneAction =
-    !redirect || redirect === "/" ? copy.done.action : copy.done.continueAction;
+  const destination = redirect ?? "/";
   const authCallbackUrl = redirect
     ? `/onboarding?redirect=${encodeURIComponent(redirect)}`
     : "/onboarding";
-  const destination = redirect ?? "/";
+  const doneAction =
+    redirect && redirect !== "/" ? copy.done.continueAction : undefined;
+  const {
+    errorMessage: signInError,
+    isSubmitting,
+    signIn,
+    clearError: clearSignInError,
+  } = useGoogleSignIn(authCallbackUrl);
 
   const clearReadinessTimer = useCallback(() => {
     if (readinessTimerRef.current !== null) {
@@ -112,13 +103,13 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     clearLegacyStagedOnboarding();
     const draft = readOnboardingDraft();
     if (draft !== null) {
-      setEntryPath("setup");
-      setFitnessLevel(draft.fitnessLevel);
-      resumedRef.current = true;
-      if (draft.step === "auth" && draft.fitnessLevel !== null) {
+      if (draft.step === "auth") {
+        setEntryPath("setup");
+        setFitnessLevel(draft.fitnessLevel);
+        resumedRef.current = true;
         setStep("auth");
-      } else {
-        setStep("experience");
+      } else if (draft.fitnessLevel !== null) {
+        setFitnessLevel(draft.fitnessLevel);
       }
     }
     setInitialized(true);
@@ -133,7 +124,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
 
   useEffect(() => {
     if (saveLevel === null || saveStatus !== "saving") return;
-    if (isConvexAuthLoading || !isConvexAuthenticated) return;
+    if (isSessionPending || !session) return;
     if (mutatingRef.current) return;
     mutatingRef.current = true;
     clearReadinessTimer();
@@ -157,14 +148,14 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   }, [
     saveLevel,
     saveStatus,
-    isConvexAuthLoading,
-    isConvexAuthenticated,
+    isSessionPending,
+    session,
     upsertCurrentProfile,
     clearReadinessTimer,
   ]);
 
   useEffect(() => {
-    if (!initialized || isSessionPending || !session) return;
+    if (!initialized || !session) return;
     if (postAuthHandledRef.current) return;
     postAuthHandledRef.current = true;
     const draft = readOnboardingDraft();
@@ -182,7 +173,6 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
   }, [
     initialized,
-    isSessionPending,
     session,
     destination,
     router.history,
@@ -202,18 +192,24 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
   }, [initialized, entryPath, step, fitnessLevel, saveStatus]);
 
-  const goToStep = useCallback((target: StepId) => {
-    setStep(target);
-  }, []);
+  const goToStep = useCallback(
+    (target: StepId) => {
+      clearSignInError();
+      setStep(target);
+    },
+    [clearSignInError],
+  );
 
   useEffect(() => {
     if (typeof document === "undefined") return;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta === null) return;
     const previous = meta.getAttribute("content");
-    meta.setAttribute("content", "#FAF9FB");
+    meta.setAttribute("content", "#FAF9F7");
     return () => {
-      if (previous !== null) meta.setAttribute("content", previous);
+      if (previous !== null) {
+        meta.setAttribute("content", previous);
+      }
     };
   }, []);
 
@@ -230,11 +226,22 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     router.history.replace(destination);
   }, [clearReadinessTimer, destination, router.history]);
 
+  const authState: LumenSaveProfileState =
+    entryPath !== "existing" && saveStatus === "error"
+      ? { status: "error", message: saveError ?? SAVE_FALLBACK_ERROR }
+      : entryPath !== "existing" && saveStatus === "saving"
+        ? { status: "saving" }
+        : isSubmitting
+          ? { status: "signing-in" }
+          : signInError !== null
+            ? { status: "signin", message: signInError }
+            : { status: "signin" };
+
   const renderStep = () => {
     switch (step) {
       case "welcome":
         return (
-          <WelcomeScreen
+          <LumenWelcomeScreen
             onStart={() => {
               clearOnboardingDraft();
               clearLegacyStagedOnboarding();
@@ -251,52 +258,52 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         );
       case "experience":
         return (
-          <ExperienceScreen
+          <LumenExperienceScreen
             value={fitnessLevel}
             onChange={setFitnessLevel}
             onContinue={() => {
               if (fitnessLevel === null) return;
               goToStep("auth");
             }}
+            onBack={() => goToStep("welcome")}
           />
         );
       case "auth":
-        if (entryPath !== "existing" && saveStatus === "error") {
+        if (entryPath === "existing") {
           return (
-            <AuthError
-              message={saveError ?? SAVE_FALLBACK_ERROR}
-              onRetry={retrySave}
-              onAbandon={abandonSave}
+            <LumenSaveProfileScreen
+              level={null}
+              state={authState}
+              heading={copy.auth.existing.heading}
+              description={copy.auth.existing.description}
+              showArt={false}
+              showProgress={false}
+              onSignIn={signIn}
             />
           );
         }
-        if (entryPath !== "existing" && saveStatus !== "idle") {
-          return <AuthSaving />;
-        }
         return (
-          <LoginForm
-            heading={
-              entryPath === "existing"
-                ? copy.auth.existing.heading
-                : copy.auth.setup.heading
+          <LumenSaveProfileScreen
+            level={fitnessLevel}
+            state={authState}
+            description={storageAvailable ? undefined : DEGRADED_AUTH_DESCRIPTION}
+            onSignIn={signIn}
+            onRetry={retrySave}
+            onAbandon={abandonSave}
+            onBack={
+              authState.status === "signin"
+                ? () => goToStep("experience")
+                : undefined
             }
-            description={
-              entryPath === "existing"
-                ? copy.auth.existing.description
-                : storageAvailable
-                  ? copy.auth.setup.description
-                  : DEGRADED_AUTH_DESCRIPTION
-            }
-            callbackURL={authCallbackUrl}
-            variant="onboarding"
           />
         );
       case "done":
         return (
-          <DoneScreen
+          <LumenReadyScreen
+            level={fitnessLevel}
             action={doneAction}
             disabled={leaving}
-            onContinue={() => {
+            onOpenDashboard={() => {
               if (leavingRef.current) return;
               leavingRef.current = true;
               setLeaving(true);
@@ -311,61 +318,47 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   };
 
   const showLoadingShell =
-    !initialized || isSessionPending || (!!session && !authSettled);
-  const screenKey =
-    step === "auth" && entryPath === "setup" && saveStatus !== "idle"
-      ? `auth-${saveStatus}`
-      : step;
+    !initialized ||
+    (isSessionPending && !session) ||
+    (!!session && !authSettled);
 
   useEffect(() => {
     if (!initialized || showLoadingShell) return;
     const isInitialWelcome =
       firstScreenRef.current && step === "welcome" && !resumedRef.current;
     firstScreenRef.current = false;
-    window.scrollTo(0, 0);
+    if (typeof window !== "undefined") {
+      window.scrollTo(0, 0);
+    }
     if (isInitialWelcome) return;
     contentRef.current?.querySelector("h1")?.focus({ preventScroll: true });
-  }, [initialized, showLoadingShell, screenKey, step]);
+  }, [initialized, showLoadingShell, step]);
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="theme-onboarding relative isolate flex min-h-svh flex-col overflow-x-clip bg-ob-canvas">
-        <WashBackground wash={washByStep[step]} />
-        <div className="mx-auto flex w-full max-w-[390px] flex-1 flex-col px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-          {step !== "welcome" ? (
-            <OnboardingHeader
-              stepNumber={stepNumber}
-              totalSteps={SETUP_STEPS.length}
-              showRail={showSetupProgress}
-            />
-          ) : null}
-          <main
-            ref={contentRef}
-            className={cn(
-              "flex w-full flex-1 flex-col",
-              step !== "welcome" && "mt-6",
-            )}
-          >
-            {showLoadingShell ? (
+      <div className="theme-lumen fixed inset-0 z-50 flex justify-center overflow-hidden bg-lm-bg">
+        <main ref={contentRef} className="relative h-full w-full max-w-[390px]">
+          {showLoadingShell ? (
+            <div className="flex h-full items-center justify-center">
               <p
                 role="status"
-                className="w-full py-20 text-center text-ob-ink-secondary"
+                className="text-[16px] leading-6 text-lm-ink-soft"
               >
                 Loading…
               </p>
-            ) : (
-              <motion.div
-                key={screenKey}
-                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.16 }}
-                className="flex w-full flex-1 flex-col"
-              >
-                {renderStep()}
-              </motion.div>
-            )}
-          </main>
-        </div>
+            </div>
+          ) : (
+            <motion.div
+              key={step}
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.16 }}
+              className="h-full"
+            >
+              {renderStep()}
+            </motion.div>
+          )}
+        </main>
       </div>
     </MotionConfig>
   );

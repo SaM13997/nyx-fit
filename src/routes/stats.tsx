@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useWorkoutSummary, useExerciseStats } from "@/lib/convex/hooks";
+import { useWorkoutSummary, useExerciseStats } from "@/lib/api/hooks";
+import type { ExerciseStat } from "@/lib/types";
 import {
   Dumbbell,
   Flame,
@@ -17,10 +18,21 @@ export const Route = createFileRoute("/stats")({
 });
 
 function StatsPage() {
-  const { summary, isLoading: summaryLoading } = useWorkoutSummary();
-  const { stats: exerciseStats, isLoading: statsLoading } = useExerciseStats();
+  const {
+    summary,
+    isLoading: summaryLoading,
+    isError: summaryError,
+    refetch: refetchSummary,
+  } = useWorkoutSummary();
+  const {
+    stats: exerciseStats,
+    isLoading: statsLoading,
+    isError: statsError,
+    refetch: refetchStats,
+  } = useExerciseStats();
 
   const isLoading = summaryLoading || statsLoading;
+  const isError = summaryError || statsError;
 
   return (
     <div className="bg-black text-white font-sans min-h-screen pb-20">
@@ -44,14 +56,49 @@ function StatsPage() {
 
       <div className="relative px-4">
         <div className="mx-auto max-w-md space-y-6">
-          {isLoading ? (
+          {isError && !summary && exerciseStats.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-red-500/5 border border-red-500/20 text-center">
+              <p className="text-red-200 font-medium">
+                Couldn&apos;t load your stats.
+              </p>
+              <p className="text-red-200/70 text-sm mt-1">
+                Check your connection and try again.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (summaryError) void refetchSummary();
+                  if (statsError) void refetchStats();
+                }}
+                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
+              >
+                Try again
+              </button>
+            </div>
+          ) : isLoading && !summary && exerciseStats.length === 0 ? (
             <div className="text-center py-20">
               <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500" />
               <p className="text-zinc-500 mt-2">Loading stats...</p>
             </div>
           ) : summary ? (
             <>
-              <div className="space-y-3">
+              {isError ? (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-200">
+                    Connection issue. Showing saved stats.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (summaryError) void refetchSummary();
+                      if (statsError) void refetchStats();
+                    }}
+                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : null}              <div className="space-y-3">
                 <p className="text-sm text-zinc-400 font-medium px-1">
                   Your fitness journey at a glance
                 </p>
@@ -124,7 +171,7 @@ function StatsPage() {
 
                 {exerciseStats.length > 0 ? (
                   <div className="space-y-3">
-                    {exerciseStats
+                    {[...exerciseStats]
                       .sort((a, b) => b.totalSets - a.totalSets)
                       .slice(0, 10)
                       .map((stat) => (
@@ -270,7 +317,7 @@ function ExerciseStatCard({
   );
 }
 
-function WeeklyVolumeChart({ stats }: { stats: any[] }) {
+function WeeklyVolumeChart({ stats }: { stats: ExerciseStat[] }) {
   const weeks: { weekStart: string; totalVolume: number }[] = [];
   const weekMap = new Map<string, number>();
 

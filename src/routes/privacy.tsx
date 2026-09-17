@@ -74,8 +74,9 @@ function PrivacyPage() {
 
       <LegalSection title="How information is stored">
         <p>
-          Account and fitness data are stored in Convex, our backend database
-          provider. Authentication is handled through Better Auth and, when
+          Account and fitness data are stored in our Cloudflare-hosted database
+          (Cloudflare D1), and images you upload are kept in a private Cloudflare
+          R2 bucket. Authentication is handled through Better Auth and, when
           enabled, Google Sign-In. Data is transmitted over encrypted
           connections (HTTPS).
         </p>

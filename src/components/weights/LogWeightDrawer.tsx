@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Camera, Calendar, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useUploadUrl } from "@/lib/convex/hooks";
 import { WheelPicker } from "../wheel-picker";
 import { getYear, getMonth, getDate, lastDayOfMonth } from "date-fns";
 import type { WeightUnit } from "@/lib/types";
@@ -11,7 +10,7 @@ import { convertWeightFromLbs, convertWeightToLbs, formatWeightUnit } from "@/li
 interface LogWeightDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (weight: number, date: string, note?: string, photoStorageId?: string) => Promise<void>;
+  onSave: (weight: number, date: string, note?: string, photo?: File) => Promise<boolean>;
   isSaving: boolean;
   unit: WeightUnit;
   initialValues?: {
@@ -43,8 +42,6 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { generateUploadUrl } = useUploadUrl();
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -92,27 +89,9 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
     const dateISO = dateObj.toISOString();
 
     try {
-      let photoStorageId: string | undefined = undefined;
-
-      if (photo) {
-        setIsUploading(true);
-        const postUrl = await generateUploadUrl();
-        const result = await fetch(postUrl, {
-          method: "POST",
-          headers: { "Content-Type": photo.type },
-          body: photo,
-        });
-        if (!result.ok) throw new Error("Upload failed");
-        const { storageId } = await result.json();
-        photoStorageId = storageId;
-        setIsUploading(false);
-      }
-
-      await onSave(weightNum, dateISO, note, photoStorageId);
-      onClose();
+      await onSave(weightNum, dateISO, note, photo ?? undefined);
     } catch (e) {
       console.error("Error logging weight:", e);
-      setIsUploading(false);
     }
   };
 
@@ -249,13 +228,13 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
               {/* Submit Button */}
               <button
                 onClick={handleSubmit}
-                disabled={isSaving || isUploading}
+                disabled={isSaving}
                 className="w-full bg-linear-to-r from-orange-600 to-rose-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-orange-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
               >
-                {(isSaving || isUploading) ? (
+                {isSaving ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    {isUploading ? "Uploading..." : "Saving..."}
+                    Saving...
                   </>
                 ) : (
                   "Save Entry"

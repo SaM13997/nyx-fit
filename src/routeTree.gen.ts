@@ -26,6 +26,7 @@ import { Route as DesignScreensRouteImport } from './routes/design.screens'
 import { Route as DesignOnboardingRouteImport } from './routes/design.onboarding'
 import { Route as DesignLanguageRouteImport } from './routes/design.language'
 import { Route as DesignComponentsRouteImport } from './routes/design.components'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const WorkoutsRoute = WorkoutsRouteImport.update({
@@ -113,6 +114,11 @@ const DesignComponentsRoute = DesignComponentsRouteImport.update({
   path: '/components',
   getParentRoute: () => DesignRoute,
 } as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/workout/$id': typeof WorkoutIdRoute
   '/design/': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/workout/$id': typeof WorkoutIdRoute
   '/design': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/workout/$id': typeof WorkoutIdRoute
   '/design/': typeof DesignIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/workout/$id'
     | '/design/'
     | '/api/auth/$'
+    | '/api/images/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/workout/$id'
     | '/design'
     | '/api/auth/$'
+    | '/api/images/$'
   id:
     | '__root__'
     | '/'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/workout/$id'
     | '/design/'
     | '/api/auth/$'
+    | '/api/images/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   SettingsProfileRoute: typeof SettingsProfileRoute
   WorkoutIdRoute: typeof WorkoutIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiImagesSplatRoute: typeof ApiImagesSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -378,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignComponentsRouteImport
       parentRoute: typeof DesignRoute
     }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -421,6 +441,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsProfileRoute: SettingsProfileRoute,
   WorkoutIdRoute: WorkoutIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiImagesSplatRoute: ApiImagesSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

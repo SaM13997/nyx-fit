@@ -19,8 +19,6 @@ import { Route as LoginRoute } from "@/routes/login";
 const mocks = vi.hoisted(() => ({
   session: null as { session: { id: string } } | null,
   sessionPending: false,
-  convexLoading: true,
-  convexAuthenticated: false,
   social: vi.fn(),
   upsert: vi.fn(),
   historyReplace: vi.fn(),
@@ -31,6 +29,8 @@ const mocks = vi.hoisted(() => ({
 }));
 
 const motionMocks = vi.hoisted(() => ({ reducedMotion: false }));
+
+const scrollMocks = vi.hoisted(() => ({ scrollIntoView: vi.fn() }));
 
 function mockMatchMedia() {
   Object.defineProperty(window, "matchMedia", {
@@ -68,14 +68,7 @@ vi.mock("@/lib/auth-client", () => ({
   },
 }));
 
-vi.mock("convex/react", () => ({
-  useConvexAuth: () => ({
-    isLoading: mocks.convexLoading,
-    isAuthenticated: mocks.convexAuthenticated,
-  }),
-}));
-
-vi.mock("@/lib/convex/hooks", () => ({
+vi.mock("@/lib/api/hooks", () => ({
   useUpsertCurrentProfile: () => ({ upsertCurrentProfile: mocks.upsert }),
 }));
 
@@ -110,6 +103,7 @@ const GOOGLE_SUCCESS = {
 
 function signIn() {
   mocks.session = { session: { id: "session-1" } };
+  mocks.sessionPending = false;
 }
 
 function seedDraft(
@@ -137,10 +131,10 @@ function entrancePanel(): HTMLElement | null {
 
 async function reachSetupAuth() {
   fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
-  await findHeading("What is your training experience?");
+  await findHeading("Find your starting point.");
   fireEvent.click(screen.getByRole("radio", { name: /Intermediate/ }));
   fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-  await findHeading("Save your profile.");
+  await findHeading("Keep your momentum.");
 }
 
 function renderLoginRoute() {
@@ -154,8 +148,6 @@ function renderLoginRoute() {
 beforeEach(() => {
   mocks.session = null;
   mocks.sessionPending = false;
-  mocks.convexLoading = true;
-  mocks.convexAuthenticated = false;
   mocks.search = {};
   mocks.pathname = "/onboarding";
   motionMocks.reducedMotion = false;
@@ -164,6 +156,7 @@ beforeEach(() => {
   mocks.social.mockReset().mockResolvedValue(GOOGLE_SUCCESS);
   window.sessionStorage.clear();
   mockMatchMedia();
+  Element.prototype.scrollIntoView = scrollMocks.scrollIntoView;
   vi.spyOn(window, "scrollTo").mockImplementation(() => {});
 });
 
@@ -186,7 +179,7 @@ describe("onboarding google sign-in", () => {
     );
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toMatch(/temporarily unavailable/);
-    await findHeading("Save your profile.");
+    await findHeading("Keep your momentum.");
     expect(mocks.historyPush).not.toHaveBeenCalled();
     expect(mocks.historyReplace).not.toHaveBeenCalled();
     mocks.social.mockResolvedValueOnce(GOOGLE_SUCCESS);
@@ -207,7 +200,7 @@ describe("onboarding google sign-in", () => {
     );
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toMatch(/Network request failed/);
-    await findHeading("Save your profile.");
+    await findHeading("Keep your momentum.");
     expect(mocks.historyPush).not.toHaveBeenCalled();
     expect(mocks.historyReplace).not.toHaveBeenCalled();
     mocks.social.mockResolvedValueOnce(GOOGLE_SUCCESS);
@@ -215,6 +208,24 @@ describe("onboarding google sign-in", () => {
       screen.getByRole("button", { name: "Continue with Google" }),
     );
     await waitFor(() => expect(mocks.social).toHaveBeenCalledTimes(2));
+  });
+
+  it("clears a sign-in error when leaving and returning to the save screen", async () => {
+    render(<OnboardingFlow />);
+    await reachSetupAuth();
+    mocks.social.mockResolvedValueOnce({
+      data: null,
+      error: { message: "Google is temporarily unavailable." },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    );
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+    await findHeading("Find your starting point.");
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await findHeading("Keep your momentum.");
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("sends the encoded onboarding callback without local navigation on success", async () => {
@@ -262,7 +273,7 @@ describe("onboarding google sign-in", () => {
     );
     await findHeading("Welcome back.");
     expect(screen.queryByRole("progressbar")).toBeNull();
-    expect(screen.queryByText(/Step \d of 4/)).toBeNull();
+    expect(screen.queryByText(/Step \d of 3/)).toBeNull();
     fireEvent.click(
       screen.getByRole("button", { name: "Continue with Google" }),
     );
@@ -291,40 +302,62 @@ describe("onboarding questionnaire", () => {
     render(<OnboardingFlow />);
     await findHeading("Train with intent.");
     fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
-    await findHeading("What is your training experience?");
+    await findHeading("Find your starting point.");
     const intermediate = screen.getByRole("radio", {
       name: /Intermediate/,
     });
-    expect(intermediate instanceof HTMLInputElement).toBe(true);
+    expect(intermediate.getAttribute("aria-checked")).toBe("false");
     const next = screen.getByRole("button", { name: "Continue" });
     expect(
       next instanceof HTMLButtonElement && next.disabled,
     ).toBe(true);
     fireEvent.click(intermediate);
+    expect(intermediate.getAttribute("aria-checked")).toBe("true");
     expect(
-      screen.queryByRole("heading", { name: "Save your profile." }),
+      screen.queryByRole("heading", { name: "Keep your momentum." }),
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    const authHeading = await findHeading("Save your profile.");
+    const authHeading = await findHeading("Keep your momentum.");
     await waitFor(() => expect(document.activeElement).toBe(authHeading));
   });
 
-  it("restores a valid experience draft on remount", async () => {
+  it("starts on welcome and keeps a stored experience selection", async () => {
     seedDraft("experience", "beginner");
     render(<OnboardingFlow />);
-    await findHeading("What is your training experience?");
+    await findHeading("Train with intent.");
+    expect(
+      screen.queryByRole("heading", { name: "Find your starting point." }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
+    await findHeading("Find your starting point.");
     const kept = screen.getByRole("radio", { name: /Beginner/ });
-    expect(kept instanceof HTMLInputElement && kept.checked).toBe(true);
+    expect(kept.getAttribute("aria-checked")).toBe("true");
     expect(mocks.upsert).not.toHaveBeenCalled();
   });
 
   it("resumes directly on auth for a valid auth draft", async () => {
     seedDraft("auth", "advanced");
     render(<OnboardingFlow />);
-    await findHeading("Save your profile.");
+    await findHeading("Keep your momentum.");
     expect(
       screen.getByRole("button", { name: "Continue with Google" }),
     ).toBeTruthy();
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("returns from save to experience and keeps the chosen level", async () => {
+    render(<OnboardingFlow />);
+    fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
+    await findHeading("Find your starting point.");
+    fireEvent.click(screen.getByRole("radio", { name: /Advanced/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await findHeading("Keep your momentum.");
+    fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+    await findHeading("Find your starting point.");
+    const kept = screen.getByRole("radio", { name: /Advanced/ });
+    expect(kept.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    await findHeading("Keep your momentum.");
     expect(mocks.upsert).not.toHaveBeenCalled();
   });
 
@@ -372,13 +405,13 @@ describe("onboarding questionnaire", () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Set up my profile" }),
       );
-      await findHeading("What is your training experience?");
+      await findHeading("Find your starting point.");
       fireEvent.click(screen.getByRole("radio", { name: /Beginner/ }));
       fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-      await findHeading("Save your profile.");
+      await findHeading("Keep your momentum.");
       expect(screen.getByText(/can't be kept on this device/)).toBeTruthy();
       expect(
-        screen.queryByText(/save your training experience and track/),
+        screen.queryByText(/Save your profile and keep your workouts/),
       ).toBeNull();
       signIn();
       view.rerender(<OnboardingFlow />);
@@ -387,7 +420,7 @@ describe("onboarding questionnaire", () => {
       );
       expect(mocks.upsert).not.toHaveBeenCalled();
       expect(
-        screen.queryByRole("heading", { name: "Your profile is ready." }),
+        screen.queryByRole("heading", { name: "You’re ready to begin." }),
       ).toBeNull();
     } finally {
       if (descriptor) {
@@ -402,18 +435,16 @@ describe("onboarding questionnaire", () => {
 });
 
 describe("onboarding persistence", () => {
-  it("waits for convex readiness then saves exactly the chosen level", async () => {
+  it("waits for session readiness then saves exactly the chosen level", async () => {
     seedDraft("auth", "advanced");
     signIn();
-    mocks.convexLoading = true;
-    mocks.convexAuthenticated = false;
+    mocks.sessionPending = true;
     const view = render(<OnboardingFlow />);
     await screen.findByText("Saving your profile…");
     expect(mocks.upsert).not.toHaveBeenCalled();
-    mocks.convexLoading = false;
-    mocks.convexAuthenticated = true;
+    mocks.sessionPending = false;
     view.rerender(<OnboardingFlow />);
-    await findHeading("Your profile is ready.");
+    await findHeading("You’re ready to begin.");
     expect(mocks.upsert).toHaveBeenCalledExactlyOnceWith({
       updates: { fitnessLevel: "advanced" },
     });
@@ -424,8 +455,6 @@ describe("onboarding persistence", () => {
     mocks.upsert.mockRejectedValueOnce(new Error("Unavailable"));
     seedDraft("auth", "advanced");
     signIn();
-    mocks.convexLoading = false;
-    mocks.convexAuthenticated = true;
     render(<OnboardingFlow />);
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toMatch(/Unavailable/);
@@ -435,27 +464,57 @@ describe("onboarding persistence", () => {
     expect(mocks.upsert).toHaveBeenCalledTimes(1);
     expect(readRawDraft()).not.toBeNull();
     expect(
-      screen.queryByRole("heading", { name: "Your profile is ready." }),
+      screen.queryByRole("heading", { name: "You’re ready to begin." }),
     ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Retry saving" }));
-    await findHeading("Your profile is ready.");
+    await findHeading("You’re ready to begin.");
     expect(mocks.upsert).toHaveBeenCalledTimes(2);
     expect(mocks.upsert).toHaveBeenLastCalledWith({
       updates: { fitnessLevel: "advanced" },
     });
     expect(readRawDraft()).toBeNull();
-    const done = screen.getByRole("button", { name: "Open dashboard" });
+    const done = screen.getByRole("button", { name: "Get fit" });
     fireEvent.click(done);
     fireEvent.click(done);
     expect(mocks.historyReplace).toHaveBeenCalledExactlyOnceWith("/");
+  });
+
+  it("keeps the save screen mounted across status changes and reveals the action block", async () => {
+    mocks.upsert.mockRejectedValue(new Error("Unavailable"));
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    const heading = await findHeading("Keep your momentum.");
+    const panel = entrancePanel();
+    await screen.findByRole("alert");
+    expect(
+      screen.getByRole("heading", { name: "Keep your momentum." }),
+    ).toBe(heading);
+    expect(entrancePanel()).toBe(panel);
+    await waitFor(() =>
+      expect(scrollMocks.scrollIntoView).toHaveBeenCalledWith({
+        block: "nearest",
+      }),
+    );
+    const callsAfterError = scrollMocks.scrollIntoView.mock.calls.length;
+    expect(callsAfterError).toBeGreaterThanOrEqual(2);
+    fireEvent.click(screen.getByRole("button", { name: "Retry saving" }));
+    await waitFor(() =>
+      expect(scrollMocks.scrollIntoView.mock.calls.length).toBeGreaterThan(
+        callsAfterError,
+      ),
+    );
+    await screen.findByRole("alert");
+    expect(
+      screen.getByRole("heading", { name: "Keep your momentum." }),
+    ).toBe(heading);
+    expect(entrancePanel()).toBe(panel);
   });
 
   it("clears the draft on abandonment without claiming success", async () => {
     mocks.upsert.mockRejectedValue(new Error("Unavailable"));
     seedDraft("auth", "beginner");
     signIn();
-    mocks.convexLoading = false;
-    mocks.convexAuthenticated = true;
     render(<OnboardingFlow redirect="/workouts" />);
     await screen.findByRole("alert");
     fireEvent.click(
@@ -464,7 +523,7 @@ describe("onboarding persistence", () => {
     expect(readRawDraft()).toBeNull();
     expect(mocks.historyReplace).toHaveBeenCalledExactlyOnceWith("/workouts");
     expect(
-      screen.queryByRole("heading", { name: "Your profile is ready." }),
+      screen.queryByRole("heading", { name: "You’re ready to begin." }),
     ).toBeNull();
   });
 
@@ -472,6 +531,7 @@ describe("onboarding persistence", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     seedDraft("auth", "intermediary");
     signIn();
+    mocks.sessionPending = true;
     render(<OnboardingFlow />);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
@@ -502,8 +562,6 @@ describe("onboarding persistence", () => {
     );
     seedDraft("auth", "advanced");
     signIn();
-    mocks.convexLoading = false;
-    mocks.convexAuthenticated = true;
     const view = render(<OnboardingFlow />);
     await waitFor(() => expect(mocks.upsert).toHaveBeenCalledTimes(1));
     view.unmount();
@@ -517,6 +575,7 @@ describe("onboarding persistence", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     seedDraft("auth", "advanced");
     signIn();
+    mocks.sessionPending = true;
     const view = render(<OnboardingFlow />);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
@@ -535,19 +594,14 @@ describe("onboarding layout and motion", () => {
   it("keeps progress in sync with the visible screen", async () => {
     render(<OnboardingFlow />);
     await findHeading("Train with intent.");
-    expect(screen.queryByText("Built around you")).toBeNull();
-    expect(screen.queryByRole("progressbar")).toBeNull();
+    expect(screen.queryByText(/Step \d of 3/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
-    await findHeading("What is your training experience?");
-    expect(
-      screen.getByRole("progressbar").getAttribute("aria-valuenow"),
-    ).toBe("2");
+    await findHeading("Find your starting point.");
+    expect(screen.getByText("Step 1 of 3")).toBeTruthy();
     fireEvent.click(screen.getByRole("radio", { name: /Advanced/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
-    await findHeading("Save your profile.");
-    expect(
-      screen.getByRole("progressbar").getAttribute("aria-valuenow"),
-    ).toBe("3");
+    await findHeading("Keep your momentum.");
+    expect(screen.getByText("Step 2 of 3")).toBeTruthy();
   });
 
   it("mounts only the incoming screen during the entrance fade", async () => {
@@ -561,16 +615,16 @@ describe("onboarding layout and motion", () => {
       screen.queryByRole("button", { name: "Set up my profile" }),
     ).toBeNull();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    await findHeading("What is your training experience?");
+    await findHeading("Find your starting point.");
     fireEvent.click(screen.getByRole("radio", { name: /Beginner/ }));
     fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(
       screen.queryByRole("heading", {
-        name: "What is your training experience?",
+        name: "Find your starting point.",
       }),
     ).toBeNull();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    await findHeading("Save your profile.");
+    await findHeading("Keep your momentum.");
   });
 
   it("fades the incoming screen in under normal motion", async () => {
@@ -590,7 +644,7 @@ describe("onboarding layout and motion", () => {
     await findHeading("Train with intent.");
     expect(entrancePanel()?.style.opacity).not.toBe("0");
     fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
-    await findHeading("What is your training experience?");
+    await findHeading("Find your starting point.");
     expect(entrancePanel()?.style.opacity).not.toBe("0");
   });
 
@@ -609,8 +663,6 @@ describe("onboarding layout and motion", () => {
     expect(screen.queryByText("Install Nyx Fit")).toBeNull();
     expect(screen.queryByRole("link", { name: "Home" })).toBeNull();
     signIn();
-    mocks.convexLoading = false;
-    mocks.convexAuthenticated = true;
     view.rerender(
       <>
         <OnboardingFlow />

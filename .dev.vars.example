@@ -1,0 +1,10 @@
+# Copy to `.dev.vars` and fill in for local development.
+# `.dev.vars` is gitignored and is read by `bun run dev` (Cloudflare Vite plugin)
+# and by `bunx wrangler` commands.
+
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=replace-with-a-random-secret
+
+# Optional. Google sign-in stays disabled for local development until both are set.
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=

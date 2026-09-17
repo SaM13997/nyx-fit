@@ -1,11 +1,21 @@
 import { WorkoutSet, Workout, type WeightUnit } from "@/lib/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy, Minus, Plus, Trash2, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { formatWeight, formatWeightUnit, getWeightStep } from "@/lib/units";
 
 const DEFAULT_REP_DECREMENT = 2;
+const MAX_WEIGHT = 100000;
+const MAX_REPS = 10000;
+
+type SetField = "weight" | "reps";
+
+type SetDraft = {
+  setId: string;
+  field: SetField;
+  text: string;
+};
 
 interface SetDrawerProps {
   isOpen: boolean;
@@ -13,8 +23,18 @@ interface SetDrawerProps {
   exerciseId: string;
   unit: WeightUnit;
   workout: Workout;
-  onUpdate: (exerciseId: string, sets: WorkoutSet[]) => void;
+  onUpdate: (exerciseId: string, sets: WorkoutSet[]) => Promise<boolean>;
+  isSaving?: boolean;
 }
+
+const clampFieldValue = (value: number, field: SetField): number =>
+  field === "reps"
+    ? Math.min(MAX_REPS, Math.max(0, Math.round(value)))
+    : Math.min(MAX_WEIGHT, Math.max(0, value));
+
+const SAVE_FAILED_MESSAGE = "Couldn't save that change.";
+const REMOTE_CHANGE_MESSAGE =
+  "This workout changed elsewhere. Your unsaved edit was discarded.";
 
 export function SetDrawer({
   isOpen,
@@ -23,9 +43,15 @@ export function SetDrawer({
   unit,
   workout,
   onUpdate,
+  isSaving = false,
 }: SetDrawerProps) {
   const exercise = workout.exercises.find((e) => e.id === exerciseId);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
+  const [draft, setDraft] = useState<SetDraft | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commitError, setCommitError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
+  const revisionRef = useRef(workout.revision);
   const weightStep = getWeightStep(unit);
 
   useEffect(() => {
@@ -34,7 +60,52 @@ export function SetDrawer({
     }
   }, [exercise]);
 
+  useEffect(() => {
+    if (revisionRef.current === workout.revision) return;
+    revisionRef.current = workout.revision;
+
+    if (draft !== null) {
+      setCommitError(REMOTE_CHANGE_MESSAGE);
+    }
+
+    setDraft(null);
+  }, [draft, workout.revision]);
+
   if (!exercise) return null;
+
+  const controlsDisabled = isSaving || isSubmitting;
+
+  const runSubmit = async (nextSets: WorkoutSet[]) => {
+    if (submittingRef.current) return;
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
+      const saved = await onUpdate(exerciseId, nextSets);
+
+      if (saved) {
+        setSets(nextSets);
+        setDraft(null);
+        setCommitError(null);
+      } else {
+        setCommitError(SAVE_FAILED_MESSAGE);
+      }
+    } catch (e) {
+      console.error("Failed to save set change:", e);
+      setCommitError(SAVE_FAILED_MESSAGE);
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
+    }
+  };
+
+  const commitFieldValue = (setId: string, field: SetField, value: number) => {
+    const nextSets = sets.map((set) =>
+      set.id === setId ? { ...set, [field]: clampFieldValue(value, field) } : set
+    );
+    void runSubmit(nextSets);
+  };
 
   const handleAddSet = () => {
     const lastSet = sets[sets.length - 1];
@@ -43,9 +114,7 @@ export function SetDrawer({
       weight: lastSet ? lastSet.weight : 0,
       reps: lastSet ? lastSet.reps : 0,
     };
-    const newSets = [...sets, newSet];
-    setSets(newSets);
-    onUpdate(exerciseId, newSets);
+    void runSubmit([...sets, newSet]);
   };
 
   const handleAddIncrementedSet = () => {
@@ -58,12 +127,10 @@ export function SetDrawer({
 
     const newSet: WorkoutSet = {
       id: uuidv4(),
-      weight: lastSet.weight + weightStep,
+      weight: clampFieldValue(lastSet.weight + weightStep, "weight"),
       reps: Math.max(0, lastSet.reps - DEFAULT_REP_DECREMENT),
     };
-    const newSets = [...sets, newSet];
-    setSets(newSets);
-    onUpdate(exerciseId, newSets);
+    void runSubmit([...sets, newSet]);
   };
 
   const handleDuplicateLastSet = () => {
@@ -77,23 +144,50 @@ export function SetDrawer({
       ...lastSet,
       id: uuidv4(),
     };
-    const newSets = [...sets, duplicatedSet];
-    setSets(newSets);
-    onUpdate(exerciseId, newSets);
-  };
-
-  const handleUpdateSet = (setId: string, field: keyof WorkoutSet, value: number) => {
-    const newSets = sets.map((set) =>
-      set.id === setId ? { ...set, [field]: value } : set
-    );
-    setSets(newSets);
-    onUpdate(exerciseId, newSets);
+    void runSubmit([...sets, duplicatedSet]);
   };
 
   const handleDeleteSet = (setId: string) => {
-    const newSets = sets.filter((set) => set.id !== setId);
-    setSets(newSets);
-    onUpdate(exerciseId, newSets);
+    void runSubmit(sets.filter((set) => set.id !== setId));
+  };
+
+  const startDraft = (setId: string, field: SetField, value: number) => {
+    setDraft({ setId, field, text: String(value) });
+    setCommitError(null);
+  };
+
+  const updateDraft = (setId: string, field: SetField, text: string) => {
+    setDraft({ setId, field, text });
+    setCommitError(null);
+  };
+
+  const draftValue = (setId: string, field: SetField, value: number): string =>
+    draft !== null && draft.setId === setId && draft.field === field
+      ? draft.text
+      : String(value);
+
+  const commitDraft = () => {
+    if (draft === null) return;
+
+    const parsed = Number(draft.text);
+
+    if (!Number.isFinite(parsed)) {
+      setDraft(null);
+      return;
+    }
+
+    const nextValue = clampFieldValue(parsed, draft.field);
+
+    if (sets.some((set) => set.id === draft.setId && set[draft.field] === nextValue)) {
+      setDraft(null);
+      setCommitError(null);
+      return;
+    }
+
+    const nextSets = sets.map((set) =>
+      set.id === draft.setId ? { ...set, [draft.field]: nextValue } : set
+    );
+    void runSubmit(nextSets);
   };
 
   return (
@@ -144,34 +238,42 @@ export function SetDrawer({
                     <div className="flex items-center bg-black/40 rounded-lg p-1">
                       <button
                         onClick={() =>
-                          handleUpdateSet(
+                          commitFieldValue(
                             set.id,
                             "weight",
                              Math.max(0, set.weight - weightStep)
                            )
                          }
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors"
+                        disabled={controlsDisabled}
+                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <input
                         type="number"
-                        value={set.weight}
-                        onChange={(e) =>
-                          handleUpdateSet(
-                            set.id,
-                            "weight",
-                            Number(e.target.value)
-                          )
+                        value={draftValue(set.id, "weight", set.weight)}
+                        disabled={controlsDisabled}
+                        onFocus={() =>
+                          startDraft(set.id, "weight", set.weight)
                         }
-                        className="w-full bg-transparent text-center font-bold outline-none"
+                        onChange={(e) =>
+                          updateDraft(set.id, "weight", e.target.value)
+                        }
+                        onBlur={commitDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className="w-full bg-transparent text-center font-bold outline-none disabled:opacity-40"
                       />
                       <span className="pr-2 text-xs text-zinc-500">{formatWeight(set.weight, unit, 0)}</span>
                       <button
                           onClick={() =>
-                            handleUpdateSet(set.id, "weight", set.weight + weightStep)
+                            commitFieldValue(set.id, "weight", set.weight + weightStep)
                           }
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors"
+                        disabled={controlsDisabled}
+                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -181,29 +283,39 @@ export function SetDrawer({
                     <div className="flex items-center bg-black/40 rounded-lg p-1">
                       <button
                         onClick={() =>
-                          handleUpdateSet(
+                          commitFieldValue(
                             set.id,
                             "reps",
                             Math.max(0, set.reps - 1)
                           )
                         }
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors"
+                        disabled={controlsDisabled}
+                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <input
                         type="number"
-                        value={set.reps}
+                        value={draftValue(set.id, "reps", set.reps)}
+                        disabled={controlsDisabled}
+                        onFocus={() => startDraft(set.id, "reps", set.reps)}
                         onChange={(e) =>
-                          handleUpdateSet(set.id, "reps", Number(e.target.value))
+                          updateDraft(set.id, "reps", e.target.value)
                         }
-                        className="w-full bg-transparent text-center font-bold outline-none"
+                        onBlur={commitDraft}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className="w-full bg-transparent text-center font-bold outline-none disabled:opacity-40"
                       />
                       <button
                         onClick={() =>
-                          handleUpdateSet(set.id, "reps", set.reps + 1)
+                          commitFieldValue(set.id, "reps", set.reps + 1)
                         }
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors"
+                        disabled={controlsDisabled}
+                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
@@ -213,7 +325,8 @@ export function SetDrawer({
                     {index === sets.length - 1 && (
                       <button
                         onClick={handleDuplicateLastSet}
-                        className="p-2 text-zinc-300 hover:bg-white/10 rounded-lg transition-colors"
+                        disabled={controlsDisabled}
+                        className="p-2 text-zinc-300 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40"
                         aria-label="Duplicate last set"
                       >
                         <Copy className="h-4 w-4" />
@@ -221,7 +334,9 @@ export function SetDrawer({
                     )}
                     <button
                       onClick={() => handleDeleteSet(set.id)}
-                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                      disabled={controlsDisabled}
+                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-40"
+                      aria-label="Delete set"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -229,17 +344,35 @@ export function SetDrawer({
                 </div>
               ))}
 
+              {commitError !== null ? (
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-1.5">
+                  <p className="text-xs text-red-200">{commitError}</p>
+                  {draft !== null ? (
+                    <button
+                      type="button"
+                      onClick={commitDraft}
+                      disabled={controlsDisabled}
+                      className="min-h-11 rounded-lg border border-red-500/30 px-3 text-xs font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-40"
+                    >
+                      Retry
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleAddSet}
-                  className="w-full py-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold rounded-xl border border-purple-600/30 transition-colors flex items-center justify-center gap-2"
+                  disabled={controlsDisabled}
+                  className="w-full py-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold rounded-xl border border-purple-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <Plus className="h-5 w-5" />
                   Add Set
                 </button>
                 <button
                   onClick={handleAddIncrementedSet}
-                  className="w-full py-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-2"
+                  disabled={controlsDisabled}
+                  className="w-full py-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <Plus className="h-5 w-5" />
                   Auto +{formatWeight(weightStep, unit, unit === "kgs" ? 1 : 0)}/-2
