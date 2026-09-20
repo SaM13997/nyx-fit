@@ -11,6 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, Camera, Loader2, Save, User, Mail } from "lucide-react";
 import { useToast } from "@/lib/toast";
+import {
+  isNotificationSupported,
+  requestNotificationPermission,
+} from "@/lib/notifications";
 
 const MAX_PROFILE_NAME_LENGTH = 80;
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -119,6 +123,25 @@ function ProfileDetailsPage() {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleNotificationToggle = async (checked: boolean) => {
+    if (!checked) {
+      setField("notificationsEnabled", false);
+      return;
+    }
+    if (!isNotificationSupported()) {
+      toastError("Notifications are not supported on this browser.");
+      return;
+    }
+    const permission = await requestNotificationPermission();
+    if (permission !== "granted") {
+      toastError(
+        "Notifications are blocked. Allow them in your browser settings, then try again."
+      );
+      return;
+    }
+    setField("notificationsEnabled", true);
   };
 
   const canSubmit = useMemo(() => {
@@ -411,9 +434,7 @@ function ProfileDetailsPage() {
                 type="checkbox"
                 className="h-5 w-5 accent-purple-500 rounded-md"
                 checked={form.notificationsEnabled}
-                onChange={(e) =>
-                  setField("notificationsEnabled", e.target.checked)
-                }
+                onChange={(e) => void handleNotificationToggle(e.target.checked)}
               />
               <div className="flex-1">
                 <div className="font-medium text-white">Notifications</div>

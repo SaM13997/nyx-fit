@@ -13,6 +13,7 @@ import {
   User,
   Lock,
   Bell,
+  BellRing,
   Info,
   HelpCircle,
   FileText,
@@ -24,8 +25,17 @@ import {
   Type,
   Timer,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { useUpsertCurrentProfile } from "@/lib/api/hooks";
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  showSystemNotification,
+  type NotificationPermissionState,
+} from "@/lib/notifications";
+import { useToast } from "@/lib/toast";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -100,6 +110,96 @@ function SettingsPage() {
     setAttendanceSuccessThreshold,
   } = useAppearance();
 
+  const { upsertCurrentProfile } = useUpsertCurrentProfile();
+  const { error: showError } = useToast();
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermissionState>("unsupported");
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
+  const requestingRef = useRef(false);
+
+  useEffect(() => {
+    const refreshPermission = () =>
+      setNotificationPermission(getNotificationPermission());
+    refreshPermission();
+    document.addEventListener("visibilitychange", refreshPermission);
+    window.addEventListener("focus", refreshPermission);
+    return () => {
+      document.removeEventListener("visibilitychange", refreshPermission);
+      window.removeEventListener("focus", refreshPermission);
+    };
+  }, []);
+
+  const notificationEnabled =
+    (profile?.notificationsEnabled ?? false) &&
+    notificationPermission === "granted";
+
+  const notificationsDescription = (() => {
+    if (notificationPermission === "unsupported")
+      return "Not supported on this browser";
+    if (notificationPermission === "denied")
+      return "Blocked — allow notifications in your device settings";
+    if (notificationEnabled)
+      return "On — rest timer alerts appear on your device";
+    if (notificationPermission === "granted")
+      return "Off — tap to turn system notifications back on";
+    return "Off — tap to allow system notifications";
+  })();
+
+  const handleToggleNotifications = async () => {
+    if (!profile || requestingRef.current) return;
+
+    if (notificationEnabled) {
+      requestingRef.current = true;
+      try {
+        await upsertCurrentProfile({ updates: { notificationsEnabled: false } });
+      } finally {
+        requestingRef.current = false;
+      }
+      return;
+    }
+
+    if (notificationPermission === "unsupported") {
+      showError("Notifications are not supported on this browser.");
+      return;
+    }
+
+    if (notificationPermission === "denied") {
+      showError(
+        "Notifications are blocked. Allow them in your device settings, then try again."
+      );
+      return;
+    }
+
+    requestingRef.current = true;
+    setIsRequestingPermission(true);
+    try {
+      const permission = await requestNotificationPermission();
+      setNotificationPermission(permission);
+      if (permission === "granted") {
+        await upsertCurrentProfile({ updates: { notificationsEnabled: true } });
+      } else if (permission === "denied") {
+        showError(
+          "Notifications are blocked. Allow them in your device settings, then try again."
+        );
+      }
+    } finally {
+      requestingRef.current = false;
+      setIsRequestingPermission(false);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const shown = await showSystemNotification("Nyx Fit", {
+      body: "System notifications are working. Rest timer alerts will appear like this.",
+      tag: "nyx-test",
+    });
+    if (!shown) {
+      showError(
+        "Could not show a notification. Check your notification permission."
+      );
+    }
+  };
+
   const handleLogout = async () => {
     await authClient.signOut();
     navigate({ to: "/login" });
@@ -112,17 +212,23 @@ function SettingsPage() {
     onClick,
     value,
     isDestructive = false,
+    disabled = false,
   }: {
     icon: any;
     label: string;
     onClick?: () => void;
     value?: string;
     isDestructive?: boolean;
+    disabled?: boolean;
   }) => (
     <motion.button
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors"
+      disabled={disabled}
+      className={cn(
+        "w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors",
+        disabled && "opacity-50"
+      )}
     >
       <div className="flex items-center gap-3">
         <div
@@ -205,7 +311,30 @@ function SettingsPage() {
           onClick={() => navigate({ to: "/settings/profile" })}
         />
         <SettingsItem icon={Lock} label="Password" />
-        <SettingsItem icon={Bell} label="Notifications" />
+        <label className="w-full flex items-center justify-between gap-3 p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+          <span className="flex items-center gap-3 text-left">
+            <span className="h-10 w-10 rounded-full flex items-center justify-center bg-white/10 text-zinc-400">
+              <Bell size={20} />
+            </span>
+            <span className="flex flex-col">
+              <span className="font-medium text-zinc-200">Notifications</span>
+              <span className="text-xs text-zinc-500">
+                {notificationsDescription}
+              </span>
+            </span>
+          </span>
+          <Switch
+            checked={notificationEnabled}
+            disabled={!profile || isRequestingPermission}
+            onCheckedChange={() => void handleToggleNotifications()}
+          />
+        </label>
+        <SettingsItem
+          icon={BellRing}
+          label="Send test notification"
+          onClick={() => void handleTestNotification()}
+          disabled={!notificationEnabled}
+        />
       </div>
 
       <div className="space-y-2">
