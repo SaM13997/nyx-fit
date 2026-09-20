@@ -12,6 +12,10 @@ interface ExerciseItemProps {
 }
 
 export function ExerciseItem({ exercise, unit, onClick }: ExerciseItemProps) {
+  const totalVolume = exercise.sets.reduce(
+    (sum, set) => sum + set.weight * set.reps,
+    0
+  );
   return (
     <button
       onClick={onClick}
@@ -28,6 +32,9 @@ export function ExerciseItem({ exercise, unit, onClick }: ExerciseItemProps) {
             )}
             <p className="text-gray-400 text-sm">
               {formatCountLabel(exercise.sets.length, "Set")}
+              {totalVolume > 0
+                ? ` • ${formatWeight(totalVolume, unit, 0)} ${formatWeightUnit(unit)} total`
+                : null}
             </p>
           </div>
         </div>
