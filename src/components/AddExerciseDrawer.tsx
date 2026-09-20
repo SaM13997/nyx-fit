@@ -55,6 +55,8 @@ export function AddExerciseDrawer({
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [pickerExercise, setPickerExercise] = useState(COMMON_EXERCISES[0]);
   const [category, setCategory] = useState<ExerciseCategory>(inferExerciseCategory(COMMON_EXERCISES[0]));
+  const [customName, setCustomName] = useState("");
+  const [isCustomMode, setIsCustomMode] = useState(false);
   const [weight, setWeight] = useState(weightOptions[8].toString());
   const [reps, setReps] = useState("8");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,10 +85,14 @@ export function AddExerciseDrawer({
     ? exercises.find((e) => e.name === selectedExercise)?.sets.length || 0
     : 0;
 
+  const candidateExercise = isCustomMode ? customName.trim() : pickerExercise;
+
   const resetState = () => {
     setSelectedExercise(null);
     setPickerExercise(COMMON_EXERCISES[0]);
     setCategory(inferExerciseCategory(COMMON_EXERCISES[0]));
+    setCustomName("");
+    setIsCustomMode(false);
     setWeight(weightOptions[8].toString());
     setReps("8");
     setCommitFailed(false);
@@ -168,20 +174,51 @@ export function AddExerciseDrawer({
                   exit={{ opacity: 0, y: -20 }}
                   className="w-full flex flex-col items-center gap-6"
                 >
-                  <div className="relative h-48 w-full overflow-hidden">
-                    <WheelPicker
-                      options={COMMON_EXERCISES.map((ex) => ({
-                        value: ex,
-                        label: ex,
-                      }))}
-                      value={pickerExercise}
-                      onValueChange={(val) => {
-                        setPickerExercise(val);
-                        setCategory(inferExerciseCategory(val));
+                  {isCustomMode ? (
+                    <input
+                      type="text"
+                      value={customName}
+                      maxLength={120}
+                      placeholder="e.g. Chest Supported Row"
+                      aria-label="Custom exercise name"
+                      onChange={(e) => {
+                        setCustomName(e.target.value);
+                        setCategory(inferExerciseCategory(e.target.value));
                       }}
+                      className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
                     />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
-                  </div>
+                  ) : (
+                    <div className="relative h-48 w-full overflow-hidden">
+                      <WheelPicker
+                        options={COMMON_EXERCISES.map((ex) => ({
+                          value: ex,
+                          label: ex,
+                        }))}
+                        value={pickerExercise}
+                        onValueChange={(val) => {
+                          setPickerExercise(val);
+                          setCategory(inferExerciseCategory(val));
+                        }}
+                      />
+                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isCustomMode) {
+                        setCategory(inferExerciseCategory(pickerExercise));
+                      } else {
+                        setCategory(inferExerciseCategory(""));
+                      }
+                      setCustomName("");
+                      setIsCustomMode((open) => !open);
+                    }}
+                    className="min-h-11 text-sm font-semibold text-purple-300 transition-colors hover:text-purple-200"
+                  >
+                    {isCustomMode ? "Pick from the list instead" : "Type a custom exercise"}
+                  </button>
 
                   <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
@@ -208,10 +245,15 @@ export function AddExerciseDrawer({
                   </div>
 
                   <motion.button
-                    onClick={() => setSelectedExercise(pickerExercise)}
-                    className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20"
+                    onClick={() => {
+                      const name = isCustomMode ? customName.trim() : pickerExercise;
+                      if (!name) return;
+                      setSelectedExercise(name);
+                    }}
+                    disabled={!candidateExercise}
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
                   >
-                    Select {pickerExercise}
+                    {candidateExercise ? `Select ${candidateExercise}` : "Select an exercise"}
                   </motion.button>
                 </motion.div>
               ) : (

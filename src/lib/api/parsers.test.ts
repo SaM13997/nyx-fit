@@ -243,3 +243,23 @@ describe("image url rules", () => {
     expect(isExternalImageUrl("data:image/png;base64,AAAA")).toBe(false);
   });
 });
+
+describe("exercise name limits", () => {
+  it("rejects exercise names longer than 120 characters", () => {
+    const longName = "x".repeat(121);
+    expect(() =>
+      parseUpdateWorkoutInput({
+        id: WORKOUT_ID,
+        revision: 1,
+        updates: { exercises: [{ id: "ex-1", name: longName, sets: [] }] },
+      }),
+    ).toThrow();
+    expect(() =>
+      parseUpdateWorkoutInput({
+        id: WORKOUT_ID,
+        revision: 1,
+        updates: { exercises: [{ id: "ex-1", name: "x".repeat(120), sets: [] }] },
+      }),
+    ).not.toThrow();
+  });
+});

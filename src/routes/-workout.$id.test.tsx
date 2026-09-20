@@ -57,6 +57,17 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
+// Node >= 22 registers an experimental global `localStorage` getter that
+// resolves to undefined when --localstorage-file is not provided. Because
+// that key already exists on the worker global, vitest's jsdom environment
+// skips installing jsdom's own storage, so bare `localStorage` reads in the
+// route and RestTimer crash. Stub it so tests behave like the browser.
+vi.stubGlobal("localStorage", {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+});
+
 const makeWorkout = (revision: number, isActive: boolean): Workout => ({
   id: "workout-1",
   date: "2026-09-16T10:00:00.000Z",
@@ -157,5 +168,46 @@ describe("workout route saves", () => {
 
     await waitFor(() => expect(mocks.showError).toHaveBeenCalledTimes(1));
     expect(screen.getByText("End Workout?")).toBeTruthy();
+  });
+
+  it("merges a custom exercise into an existing card when the name matches", async () => {
+    mocks.workout = {
+      ...makeWorkout(1, true),
+      exercises: [
+        {
+          id: "exercise-1",
+          name: "Squat",
+          sets: [{ id: "set-1", weight: 100, reps: 5 }],
+        },
+      ],
+    };
+    mocks.updateWorkout.mockResolvedValue({ ok: true, workout: makeWorkout(2, true) });
+    renderWorkoutRoute();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Exercise" }));
+    fireEvent.click(screen.getByRole("button", { name: "Type a custom exercise" }));
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Custom exercise name" }),
+      { target: { value: "Squat" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Select Squat" }));
+    fireEvent.click(screen.getByRole("button", { name: "Log Set" }));
+
+    await waitFor(() => expect(mocks.updateWorkout).toHaveBeenCalledTimes(1));
+    expect(mocks.updateWorkout).toHaveBeenCalledWith({
+      id: "workout-1",
+      revision: 1,
+      updates: expect.objectContaining({
+        exercises: [
+          expect.objectContaining({
+            name: "Squat",
+            sets: [
+              { id: "set-1", weight: 100, reps: 5 },
+              expect.objectContaining({ weight: 45, reps: 8 }),
+            ],
+          }),
+        ],
+      }),
+    });
   });
 });
