@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { WheelPicker } from "./wheel-picker";
 import { Exercise, type WeightUnit } from "@/lib/types";
 import {
@@ -61,6 +61,9 @@ export function AddExerciseDrawer({
   const [reps, setReps] = useState("8");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commitFailed, setCommitFailed] = useState(false);
+  // Tracks a manual category override while typing a custom exercise name:
+  // typing keeps re-inferring only until the user picks a category themselves.
+  const categoryOverriddenRef = useRef(false);
 
   const handleAddSet = async () => {
     if (!selectedExercise || isSubmitting) return;
@@ -96,6 +99,7 @@ export function AddExerciseDrawer({
     setWeight(weightOptions[8].toString());
     setReps("8");
     setCommitFailed(false);
+    categoryOverriddenRef.current = false;
   };
 
   return (
@@ -182,8 +186,11 @@ export function AddExerciseDrawer({
                       placeholder="e.g. Chest Supported Row"
                       aria-label="Custom exercise name"
                       onChange={(e) => {
-                        setCustomName(e.target.value);
-                        setCategory(inferExerciseCategory(e.target.value));
+                        const nextName = e.target.value;
+                        setCustomName(nextName);
+                        if (!categoryOverriddenRef.current) {
+                          setCategory(inferExerciseCategory(nextName));
+                        }
                       }}
                       className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
                     />
@@ -198,6 +205,7 @@ export function AddExerciseDrawer({
                         onValueChange={(val) => {
                           setPickerExercise(val);
                           setCategory(inferExerciseCategory(val));
+                          categoryOverriddenRef.current = false;
                         }}
                       />
                       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
@@ -212,6 +220,7 @@ export function AddExerciseDrawer({
                       } else {
                         setCategory(inferExerciseCategory(""));
                       }
+                      categoryOverriddenRef.current = false;
                       setCustomName("");
                       setIsCustomMode((open) => !open);
                     }}
@@ -233,7 +242,10 @@ export function AddExerciseDrawer({
                     </div>
                     <select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value as ExerciseCategory)}
+                      onChange={(e) => {
+                        categoryOverriddenRef.current = true;
+                        setCategory(e.target.value as ExerciseCategory);
+                      }}
                       className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-purple-400"
                     >
                       {EXERCISE_CATEGORIES.map((option) => (

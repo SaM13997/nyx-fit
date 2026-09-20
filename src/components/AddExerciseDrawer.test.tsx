@@ -83,6 +83,39 @@ describe("custom exercise entry", () => {
     );
   });
 
+  it("keeps a manual category override while the name keeps changing", async () => {
+    onAddSet.mockResolvedValue(true);
+    renderDrawer();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Type a custom exercise" }),
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Custom exercise name" }),
+      { target: { value: "Belt Squat" } },
+    );
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "chest" },
+    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Custom exercise name" }),
+      { target: { value: "Belt Squat Press" } },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Select Belt Squat Press" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Log Set" }));
+
+    await waitFor(() =>
+      expect(onAddSet).toHaveBeenCalledWith(
+        "Belt Squat Press",
+        "chest",
+        45,
+        8,
+      ),
+    );
+  });
+
   it("disables selecting until a custom name is entered", () => {
     renderDrawer();
 
