@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { APP_VERSION } from "@/lib/version";
 import {
   useAppearance,
   type FontTheme,
@@ -357,7 +358,7 @@ function SettingsPage() {
         <h3 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider ml-2">
           Support
         </h3>
-        <SettingsItem icon={Info} label="About application" />
+        <SettingsItem icon={Info} label="About application" value={APP_VERSION} />
         <SettingsItem icon={HelpCircle} label="Help/FAQ" />
         <SettingsItem
           icon={Trash2}
