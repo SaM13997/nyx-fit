@@ -5,6 +5,11 @@ import { RotateCcw, X, Bell } from "lucide-react";
 import { RiRestTimeLine } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import { useAppearance } from "@/lib/AppearanceContext";
+import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  showSystemNotification,
+} from "@/lib/notifications";
 
 interface RestTimerProps {
   isActiveWorkout: boolean;
@@ -36,22 +41,9 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
       navigator.vibrate([500, 200, 500]);
     }
 
-    const title = "Rest over!";
-    const options = {
+    void showSystemNotification("Rest over!", {
       body: "Time for your next set!",
-      icon: "/favicon.ico",
-      badge: "/favicon.ico",
-      vibrate: [500, 200, 500],
-    };
-
-    // Try service worker notification first (better for background/Android/PWA)
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification(title, options);
-      });
-    } else if (Notification.permission === "granted") {
-      new Notification(title, options);
-    }
+    });
 
     setTimeout(() => setShowToast(false), 5000);
   }, []);
@@ -137,8 +129,8 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
       setTimeout(() => setShowTooltip(false), 4000);
     }
 
-    if (!isActive && Notification.permission === "default") {
-      Notification.requestPermission();
+    if (!isActive && getNotificationPermission() === "default") {
+      void requestNotificationPermission();
     }
 
     const nextActive = !isActive;
