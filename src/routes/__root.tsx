@@ -131,9 +131,12 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   beforeLoad: async () => {
-    const { userId } = await fetchAuth();
-
-    return { userId };
+    try {
+      const { userId } = await fetchAuth();
+      return { userId };
+    } catch {
+      return { userId: null };
+    }
   },
   component: RootComponent,
 });
