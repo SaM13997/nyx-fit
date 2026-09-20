@@ -21,6 +21,11 @@ import {
   type LumenSaveProfileState,
 } from "./lumen/screens/LumenSaveProfileScreen";
 import { LumenWelcomeScreen } from "./lumen/screens/LumenWelcomeScreen";
+import { lumenCopy } from "./lumen/config";
+import {
+  isNotificationSupported,
+  requestNotificationPermission,
+} from "@/lib/notifications";
 
 type EntryPath = "setup" | "existing";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -192,6 +197,55 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
   }, [initialized, entryPath, step, fitnessLevel, saveStatus]);
 
+  const [remindersEnabled, setRemindersEnabled] = useState(false);
+  const [remindersPending, setRemindersPending] = useState(false);
+  const [reminderError, setReminderError] = useState<string | null>(null);
+
+  const toggleReminders = useCallback(async () => {
+    if (remindersPending) return;
+
+    if (remindersEnabled) {
+      setReminderError(null);
+      setRemindersPending(true);
+      try {
+        await upsertCurrentProfile({ updates: { notificationsEnabled: false } });
+        setRemindersEnabled(false);
+      } catch {
+        setReminderError(lumenCopy.ready.remindersErrorSave);
+      } finally {
+        setRemindersPending(false);
+      }
+      return;
+    }
+
+    if (!isNotificationSupported()) {
+      setReminderError(lumenCopy.ready.remindersErrorUnsupported);
+      return;
+    }
+
+    setRemindersPending(true);
+    const permission = await requestNotificationPermission();
+    setRemindersPending(false);
+
+    if (permission === "granted") {
+      setReminderError(null);
+      setRemindersEnabled(true);
+      try {
+        await upsertCurrentProfile({ updates: { notificationsEnabled: true } });
+      } catch {
+        setReminderError(lumenCopy.ready.remindersErrorSave);
+      }
+      return;
+    }
+
+    if (permission === "denied") {
+      setReminderError(lumenCopy.ready.remindersErrorDenied);
+      return;
+    }
+
+    setReminderError(lumenCopy.ready.remindersErrorDismissed);
+  }, [remindersPending, remindersEnabled, upsertCurrentProfile]);
+
   const goToStep = useCallback(
     (target: StepId) => {
       clearSignInError();
@@ -303,6 +357,10 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
             level={fitnessLevel}
             action={doneAction}
             disabled={leaving}
+            remindersEnabled={remindersEnabled}
+            remindersPending={remindersPending}
+            reminderError={reminderError}
+            onToggleReminders={() => void toggleReminders()}
             onOpenDashboard={() => {
               if (leavingRef.current) return;
               leavingRef.current = true;

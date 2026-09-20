@@ -1,6 +1,7 @@
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Bell, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import type { ExperienceLevel } from "../../config";
 import { LumenShell } from "../LumenShell";
 import { LevelBarsIcon, RingsArt } from "../artwork";
@@ -11,11 +12,19 @@ export function LumenReadyScreen({
   level,
   action = lumenCopy.ready.action,
   disabled = false,
+  remindersEnabled,
+  remindersPending,
+  reminderError,
+  onToggleReminders,
   onOpenDashboard,
 }: {
   level: ExperienceLevel | null;
   action?: string;
   disabled?: boolean;
+  remindersEnabled: boolean;
+  remindersPending: boolean;
+  reminderError: string | null;
+  onToggleReminders: () => void;
   onOpenDashboard: () => void;
 }) {
   return (
@@ -50,6 +59,33 @@ export function LumenReadyScreen({
           >
             <Check className="size-4" strokeWidth={3} />
           </span>
+        </div>
+
+        <div className="lm-shadow-card mt-3 flex w-full items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
+          <span aria-hidden="true" className="shrink-0 text-lm-forest">
+            <Bell className="size-7" strokeWidth={1.5} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] leading-5 font-bold text-lm-ink">
+              {lumenCopy.ready.remindersTitle}
+            </span>
+            <span className="block text-[12px] leading-4 text-lm-ink-faint">
+              {lumenCopy.ready.remindersDescription}
+            </span>
+            {reminderError !== null ? (
+              <span
+                role="alert"
+                className="mt-1 block text-[12px] leading-4 text-red-600"
+              >
+                {reminderError}
+              </span>
+            ) : null}
+          </span>
+          <Switch
+            checked={remindersEnabled}
+            disabled={remindersPending}
+            onCheckedChange={onToggleReminders}
+          />
         </div>
 
         <div className="mt-auto w-full shrink-0 pt-6">

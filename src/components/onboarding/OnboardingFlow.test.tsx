@@ -164,6 +164,7 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("onboarding google sign-in", () => {
@@ -782,5 +783,75 @@ describe("standalone login", () => {
     expect(
       screen.getByRole("link", { name: "New here? Set up your profile" }),
     ).toBeTruthy();
+  });
+});
+
+function installFakeNotification(
+  permission: "granted" | "denied" | "default",
+) {
+  const requestPermission = vi.fn(async () => permission);
+  const FakeNotification = Object.assign(function (this: unknown) {}, {
+    permission,
+    requestPermission,
+  });
+  vi.stubGlobal("Notification", FakeNotification);
+  return requestPermission;
+}
+
+describe("onboarding reminders", () => {
+  it("requests permission and saves the reminders opt-in on the ready screen", async () => {
+    const requestPermission = installFakeNotification("granted");
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+    expect(mocks.upsert).toHaveBeenCalledExactlyOnceWith({
+      updates: { fitnessLevel: "advanced" },
+    });
+
+    fireEvent.click(screen.getByRole("switch"));
+
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenLastCalledWith({
+        updates: { notificationsEnabled: true },
+      }),
+    );
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows an error and skips persistence when permission is denied", async () => {
+    installFakeNotification("denied");
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+
+    fireEvent.click(screen.getByRole("switch"));
+
+    await screen.findByRole("alert");
+    expect(screen.getByRole("alert").textContent).toMatch(/blocked/);
+    expect(mocks.upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists the opt-out without requesting permission when reminders are already on", async () => {
+    installFakeNotification("granted");
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+
+    fireEvent.click(screen.getByRole("switch"));
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenLastCalledWith({
+        updates: { notificationsEnabled: true },
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("switch"));
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenLastCalledWith({
+        updates: { notificationsEnabled: false },
+      }),
+    );
   });
 });

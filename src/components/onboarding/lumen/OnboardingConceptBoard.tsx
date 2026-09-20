@@ -102,6 +102,10 @@ export function OnboardingConceptBoard({
         return (
           <LumenReadyScreen
             level={level}
+            remindersEnabled={false}
+            remindersPending={false}
+            reminderError={null}
+            onToggleReminders={() => {}}
             onOpenDashboard={() => void navigate({ to: "/" })}
           />
         );
