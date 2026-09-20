@@ -854,4 +854,41 @@ describe("onboarding reminders", () => {
       }),
     );
   });
+
+  it("ignores a second toggle while a request is pending", async () => {
+    const requestPermission = installFakeNotification("granted");
+    let resolvePermission: (
+      value: "granted" | "denied" | "default",
+    ) => void = () => {};
+    requestPermission.mockImplementationOnce(
+      () =>
+        new Promise<"granted" | "denied" | "default">((resolve) => {
+          resolvePermission = resolve;
+        }),
+    );
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+
+    const toggle = screen.getByRole("switch");
+    fireEvent.click(toggle);
+    expect(
+      toggle instanceof HTMLButtonElement && toggle.disabled,
+    ).toBe(true);
+    fireEvent.click(toggle);
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+    expect(mocks.upsert).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolvePermission("granted");
+    });
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenLastCalledWith({
+        updates: { notificationsEnabled: true },
+      }),
+    );
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+    expect(mocks.upsert).toHaveBeenCalledTimes(2);
+  });
 });
