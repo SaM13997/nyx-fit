@@ -3,9 +3,9 @@
  * vite-plugin-pwa skips SW generation for SSR builds (TanStack Start), so this
  * post-build step owns dist/client/sw.js.
  *
- * Scope: static assets, fonts, and the notificationclick handler (shared
- * source in src/lib/sw/generateSwConfig.ts). Authenticated HTML, API routes
- * and server functions stay network-only.
+ * Scope: static assets, fonts, the notificationclick handler, and an offline
+ * shell for the exact root URL (runtime network-first cache "nyx-shell").
+ * Authenticated HTML, API routes and server functions stay network-only.
  */
 import { existsSync } from "node:fs";
 import { writeFile } from "node:fs/promises";

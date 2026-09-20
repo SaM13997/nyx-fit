@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { generateSW } from "workbox-build";
 import {
   buildWorkboxConfig,
+  SHELL_URL_PATTERN,
   SW_NOTIFICATIONS_SOURCE,
 } from "./generateSwConfig";
 
@@ -41,5 +42,36 @@ describe("service worker generation config", () => {
     expect(warnings).toEqual([]);
     const generated = await readFile(path.join(workDir, "sw.js"), "utf8");
     expect(generated).toContain('"/sw-notifications.js"');
+  });
+});
+
+describe("offline shell route", () => {
+  it("matches only the bare origin root URL", () => {
+    expect(SHELL_URL_PATTERN.test("https://nyx-fit.example.com/")).toBe(true);
+    expect(SHELL_URL_PATTERN.test("https://nyx-fit.example.com")).toBe(true);
+    expect(SHELL_URL_PATTERN.test("http://localhost:3000/")).toBe(true);
+    expect(SHELL_URL_PATTERN.test("https://nyx-fit.example.com/workouts")).toBe(
+      false,
+    );
+    expect(
+      SHELL_URL_PATTERN.test("https://nyx-fit.example.com/api/auth/session"),
+    ).toBe(false);
+    expect(
+      SHELL_URL_PATTERN.test("https://nyx-fit.example.com/?redirect=%2Fstats"),
+    ).toBe(false);
+  });
+
+  it("caches the root document network-first so an offline cold start can serve the last shell", async () => {
+    const workDir = await mkdtemp(path.join(tmpdir(), "nyx-sw-"));
+    await writeFile(path.join(workDir, "favicon-96x96.png"), "png");
+    await generateSW({
+      ...buildWorkboxConfig(),
+      globDirectory: workDir,
+      swDest: path.join(workDir, "sw.js"),
+    });
+
+    const generated = await readFile(path.join(workDir, "sw.js"), "utf8");
+    expect(generated).toContain("nyx-shell");
+    expect(generated).toContain("NetworkFirst");
   });
 });

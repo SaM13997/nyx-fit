@@ -47,6 +47,9 @@ type WorkboxConfig = {
   runtimeCaching: RuntimeCaching[];
 };
 
+export const SHELL_CACHE_NAME = "nyx-shell";
+export const SHELL_URL_PATTERN = /^https?:\/\/[^/]+\/?$/;
+
 export function buildWorkboxConfig(): WorkboxConfig {
   return {
     globPatterns: ["**/*.{ico,png,svg,webp,woff2,json}"],
@@ -57,6 +60,16 @@ export function buildWorkboxConfig(): WorkboxConfig {
     sourcemap: false,
     importScripts: ["/sw-cleanup.js", "/sw-notifications.js"],
     runtimeCaching: [
+      {
+        urlPattern: SHELL_URL_PATTERN,
+        handler: "NetworkFirst",
+        options: {
+          cacheName: SHELL_CACHE_NAME,
+          networkTimeoutSeconds: 3,
+          expiration: { maxEntries: 1, maxAgeSeconds: 60 * 60 * 24 * 7 },
+          cacheableResponse: { statuses: [200] },
+        },
+      },
       {
         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
         handler: "CacheFirst",
