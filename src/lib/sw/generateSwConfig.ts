@@ -53,6 +53,8 @@ export const SHELL_URL_PATTERN = /^https?:\/\/[^/]+\/?$/;
 export function buildWorkboxConfig(): WorkboxConfig {
   return {
     globPatterns: ["**/*.{ico,png,svg,webp,woff2,json}"],
+    // Splash images are consumed by the native iOS shell and onboarding art is first-run
+    // UI served from the edge; neither is needed for precaching.
     globIgnores: ["favicon/splash/**", "onboarding/**"],
     cleanupOutdatedCaches: true,
     skipWaiting: true,
