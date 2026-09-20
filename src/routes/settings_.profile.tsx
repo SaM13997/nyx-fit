@@ -46,6 +46,7 @@ export const Route = createFileRoute("/settings_/profile")({
 function ProfileDetailsPage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const notificationRequestingRef = useRef(false);
   const { success, error: toastError } = useToast();
 
   const { data: sessionData, isPending: isAuthPending } =
@@ -130,18 +131,26 @@ function ProfileDetailsPage() {
       setField("notificationsEnabled", false);
       return;
     }
+    if (notificationRequestingRef.current) return;
     if (!isNotificationSupported()) {
       toastError("Notifications are not supported on this browser.");
       return;
     }
-    const permission = await requestNotificationPermission();
-    if (permission !== "granted") {
-      toastError(
-        "Notifications are blocked. Allow them in your browser settings, then try again."
-      );
-      return;
+    notificationRequestingRef.current = true;
+    try {
+      const permission = await requestNotificationPermission();
+      if (permission === "granted") {
+        setField("notificationsEnabled", true);
+      } else if (permission === "default") {
+        toastError("Permission was dismissed. Tap again to allow notifications.");
+      } else {
+        toastError(
+          "Notifications are blocked. Allow them in your device settings, then try again."
+        );
+      }
+    } finally {
+      notificationRequestingRef.current = false;
     }
-    setField("notificationsEnabled", true);
   };
 
   const canSubmit = useMemo(() => {

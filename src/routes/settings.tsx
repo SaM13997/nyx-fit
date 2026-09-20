@@ -7,7 +7,7 @@ import {
   type AttendanceVariant,
 } from "@/lib/AppearanceContext";
 import { authClient } from "@/lib/auth-client";
-import { useCurrentProfile } from "@/lib/api/hooks";
+import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
 import { getEffectiveProfile } from "@/lib/profile";
 import {
   ChevronRight,
@@ -29,7 +29,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
-import { useUpsertCurrentProfile } from "@/lib/api/hooks";
 import {
   getNotificationPermission,
   requestNotificationPermission,
@@ -182,6 +181,8 @@ function SettingsPage() {
         showError(
           "Notifications are blocked. Allow them in your device settings, then try again."
         );
+      } else if (permission === "default") {
+        showError("Permission was dismissed. Tap again to allow notifications.");
       }
     } finally {
       requestingRef.current = false;

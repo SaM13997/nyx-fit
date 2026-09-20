@@ -92,7 +92,7 @@ export const lumenCopy = {
     remindersDescription: "Rest timer alerts while you\u2019re away from the app.",
     remindersErrorUnsupported: "Notifications are not supported on this device.",
     remindersErrorDenied:
-      "Notifications are blocked. Allow them in your browser settings and try again.",
+      "Notifications are blocked. Allow them in your device settings and try again.",
     remindersErrorDismissed:
       "Permission was dismissed. Tap again to allow notifications.",
     remindersErrorSave: "Couldn\u2019t save that. Try again.",

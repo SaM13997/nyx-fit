@@ -153,6 +153,21 @@ describe("notifications settings", () => {
     );
   });
 
+  it("explains a dismissed prompt and does not persist the preference", async () => {
+    stubNotificationApi();
+    mocks.requestPermission.mockResolvedValue("default");
+    renderSettings();
+
+    fireEvent.click(screen.getByRole("switch"));
+
+    await waitFor(() =>
+      expect(mocks.showError).toHaveBeenCalledWith(
+        "Permission was dismissed. Tap again to allow notifications.",
+      ),
+    );
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
   it("turns notifications off without touching permission", async () => {
     stubNotificationApi();
     mocks.profile = { notificationsEnabled: true };
