@@ -6,18 +6,21 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ExerciseStat, WorkoutSummary } from "@/lib/types";
+import type { ExerciseStat, WeightUnit, Workout, WorkoutSummary } from "@/lib/types";
 import { Route } from "./stats";
 
 const mocks = vi.hoisted(() => ({
   summary: null as WorkoutSummary | null,
   stats: [] as ExerciseStat[],
+  workouts: [] as Workout[],
+  unit: "lbs" as WeightUnit,
   summaryLoading: false,
   statsLoading: false,
   summaryError: false,
   statsError: false,
   refetchSummary: vi.fn(),
   refetchStats: vi.fn(),
+  refetchWorkouts: vi.fn(),
 }));
 
 vi.mock("@/lib/api/hooks", () => ({
@@ -32,6 +35,18 @@ vi.mock("@/lib/api/hooks", () => ({
     isLoading: mocks.statsLoading,
     isError: mocks.statsError,
     refetch: mocks.refetchStats,
+  }),
+  useWorkouts: () => ({
+    workouts: mocks.workouts,
+    isLoading: false,
+    isError: false,
+    refetch: mocks.refetchWorkouts,
+  }),
+  useCurrentProfile: () => ({
+    profile: { weightUnit: mocks.unit },
+    isLoading: false,
+    isError: false,
+    refetch: mocks.refetchWorkouts,
   }),
 }));
 
@@ -66,12 +81,15 @@ const makeSummary = (): WorkoutSummary => ({
 beforeEach(() => {
   mocks.summary = makeSummary();
   mocks.stats = [];
+  mocks.workouts = [];
+  mocks.unit = "lbs";
   mocks.summaryLoading = false;
   mocks.statsLoading = false;
   mocks.summaryError = false;
   mocks.statsError = false;
   mocks.refetchSummary.mockReset();
   mocks.refetchStats.mockReset();
+  mocks.refetchWorkouts.mockReset();
 });
 
 afterEach(() => {
@@ -140,5 +158,62 @@ describe("stats page shell", () => {
     renderStats();
 
     expect(screen.getByRole("img", { name: /12\.0K volume/ })).toBeTruthy();
+  });
+});
+
+const makeWorkout = (overrides: Partial<Workout>): Workout => ({
+  id: "workout-1",
+  date: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+  duration: 3600,
+  isActive: false,
+  revision: 1,
+  exercises: [],
+  ...overrides,
+});
+
+describe("records and frequency", () => {
+  it("lists personal records converted to the display unit", () => {
+    mocks.stats = [
+      {
+        id: "Bench Press",
+        exerciseName: "Bench Press",
+        totalSets: 10,
+        totalReps: 50,
+        totalVolume: 5000,
+        maxWeight: 500,
+        maxWeightReps: 5,
+        lastPerformedAt: "2026-09-20T10:00:00.000Z",
+        weeklyHistory: [],
+      },
+    ];
+    mocks.unit = "kgs";
+    renderStats();
+
+    expect(screen.getByText("Personal Records")).toBeTruthy();
+    expect(screen.getAllByText("Bench Press")).toHaveLength(2);
+    expect(screen.getByText("226.8 kgs × 5")).toBeTruthy();
+  });
+
+  it("shows training frequency counts for the trailing window", () => {
+    mocks.workouts = [
+      makeWorkout({ bodyPartWorkedOut: ["chest"] }),
+      makeWorkout({ id: "workout-2", bodyPartWorkedOut: ["chest"] }),
+      makeWorkout({ id: "workout-3", bodyPartWorkedOut: ["legs"] }),
+    ];
+    renderStats();
+
+    expect(screen.getByText("Training Frequency")).toBeTruthy();
+    expect(screen.getByText(/Chest/)).toBeTruthy();
+    expect(screen.getByText("2 sessions")).toBeTruthy();
+    expect(screen.getByText("1 session")).toBeTruthy();
+  });
+
+  it("hides both sections when there is nothing to show", () => {
+    mocks.stats = [];
+    mocks.workouts = [];
+    renderStats();
+
+    expect(screen.queryByText("Personal Records")).toBeNull();
+    expect(screen.queryByText("Training Frequency")).toBeNull();
   });
 });

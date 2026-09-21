@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useWorkoutSummary, useExerciseStats } from "@/lib/api/hooks";
-import type { ExerciseStat } from "@/lib/types";
+import {
+  useWorkoutSummary,
+  useExerciseStats,
+  useWorkouts,
+  useCurrentProfile,
+} from "@/lib/api/hooks";
+import { formatExerciseCategory } from "@/lib/exerciseCategories";
+import { bodyPartFrequency, topPersonalRecords } from "@/lib/stats";
+import type { ExerciseStat, WeightUnit } from "@/lib/types";
+import { convertWeightFromLbs, formatWeight, formatWeightUnit } from "@/lib/units";
+import { formatCountLabel } from "@/lib/utils";
 import {
   Dumbbell,
   Flame,
@@ -30,9 +39,14 @@ function StatsPage() {
     isError: statsError,
     refetch: refetchStats,
   } = useExerciseStats();
+  const { workouts } = useWorkouts();
+  const { profile } = useCurrentProfile();
+  const unit = profile?.weightUnit ?? "lbs";
 
   const isLoading = summaryLoading || statsLoading;
   const isError = summaryError || statsError;
+  const records = topPersonalRecords(exerciseStats);
+  const frequency = bodyPartFrequency(workouts, new Date());
 
   return (
     <div className="bg-black text-white font-sans min-h-screen pb-24 overflow-x-clip">
@@ -185,6 +199,7 @@ function StatsPage() {
                           maxWeight={stat.maxWeight}
                           totalVolume={stat.totalVolume}
                           lastPerformed={stat.lastPerformedAt}
+                          unit={unit}
                         />
                       ))}
                   </div>
@@ -197,6 +212,50 @@ function StatsPage() {
                   </div>
                 )}
               </div>
+
+              {records.length > 0 ? (
+                <div className="pt-4">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-orange-500" />
+                    Personal Records
+                  </h2>
+                  <div className="space-y-3">
+                    {records.map((record) => (
+                      <div
+                        key={record.exerciseName}
+                        className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50 flex items-center justify-between gap-3"
+                      >
+                        <span className="font-bold text-white truncate">{record.exerciseName}</span>
+                        <span className="text-sm font-semibold text-orange-400 whitespace-nowrap">
+                          {formatWeight(record.maxWeight, unit)} {formatWeightUnit(unit)} × {record.maxWeightReps}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {frequency.length > 0 ? (
+                <div className="pt-4">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-orange-500" />
+                    Training Frequency
+                  </h2>
+                  <div className="space-y-3">
+                    {frequency.map((entry) => (
+                      <div
+                        key={entry.bodyPart}
+                        className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50 flex items-center justify-between gap-3"
+                      >
+                        <span className="font-bold text-white">{formatExerciseCategory(entry.bodyPart)}</span>
+                        <span className="text-sm text-zinc-400 whitespace-nowrap">
+                          {formatCountLabel(entry.sessions, "session")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {exerciseStats.length > 0 && (
                 <div className="pt-4">
@@ -270,12 +329,14 @@ function ExerciseStatCard({
   maxWeight,
   totalVolume,
   lastPerformed,
+  unit,
 }: {
   name: string;
   totalSets: number;
   maxWeight: number;
   totalVolume: number;
   lastPerformed: string;
+  unit: WeightUnit;
 }) {
   const formatVolume = (vol: number) => {
     if (vol >= 1000000) return `${(vol / 1000000).toFixed(1)}M`;
@@ -308,11 +369,11 @@ function ExerciseStatCard({
           <div className="text-[10px] uppercase text-zinc-500">Sets</div>
         </div>
         <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-emerald-400">{maxWeight}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Max lbs</div>
+          <div className="text-lg font-bold text-emerald-400">{formatWeight(maxWeight, unit, 0)}</div>
+          <div className="text-[10px] uppercase text-zinc-500">Max {formatWeightUnit(unit)}</div>
         </div>
         <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-blue-400">{formatVolume(totalVolume)}</div>
+          <div className="text-lg font-bold text-blue-400">{formatVolume(convertWeightFromLbs(totalVolume, unit))}</div>
           <div className="text-[10px] uppercase text-zinc-500">Volume</div>
         </div>
       </div>
