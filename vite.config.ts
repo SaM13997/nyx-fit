@@ -7,6 +7,11 @@ import { cloudflare } from '@cloudflare/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
 
 const config = defineConfig({
+	server: {
+		allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(",")
+			.map((host) => host.trim())
+			.filter(Boolean),
+	},
 	plugins: [
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		// this is the plugin that enables path aliases
