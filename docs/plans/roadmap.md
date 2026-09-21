@@ -46,21 +46,20 @@ Item tags: `[done]` verified in `dev-pwa` code, `[open]` not built anywhere,
 
 ## Immediate fixes in this repo (from the Cloudflare follow-up review, re-verified)
 
-1. `[open]` P1-ish correctness: empty `updates` still bumps `revision`
-   (`buildWorkoutUpdate`, `src/lib/api/store.server.ts:400-402` always writes
-   `"revision" = "revision" + 1`). Short-circuit empty-updates saves and add a parser test.
-2. `[open]` P2: `dev-dist/` is tracked (`registerSW.js`, `sw.js`, stale Workbox precache).
-   `git rm -r --cached dev-dist` + add to `.gitignore`.
-3. `[open]` P2: in-place sort mutates the TanStack Query cache
-   (`src/routes/stats.tsx:175`). Copy before sorting.
-4. `[open]` P2 batch, verify then fix: reactivation UNIQUE error still mapped as revision
-   `conflict` in `store.server.ts`; success path of `handleStartWorkout` never resets
-   `isStarting` (`src/routes/index.tsx:66-73`); dead `setWeightGoal` server-fn trio with no
-   UI caller (`src/lib/api/functions.ts:127` etc.); stale duplicate `public/assetlinks.json`
-   (canonical copy now lives at `public/.well-known/assetlinks.json`).
-5. `[open]` P3 decision: adopt `.gitattributes` (`* text=auto eol=lf`). Note the tradeoff:
-   ~30 legacy files are committed with CRLF and will show one-time normalization diffs as
-   they get touched.
+Resolved 2026-09-21:
+1. `[done]` Empty-updates saves now CAS-check the provided revision before returning the
+   current row unchanged; a stale no-op revision returns `conflict`
+   (`src/lib/api/store.server.ts`).
+2. `[done]` `dev-dist/` untracked and ignored.
+3. `[done]` The stats sort was already cache-safe (copy before sort); no change needed.
+4. `[done]` Reactivation UNIQUE failures now return a distinct `active-exists` reason
+   instead of revision `conflict`; `isStarting` resets in a `finally`; the dead
+   `setWeightGoal` trio is deleted. `public/assetlinks.json` is intentional dual-write
+   output of `scripts/sync-assetlinks.mjs` (verified), not a stale duplicate.
+
+Open decision:
+- `[open]` P3: adopt `.gitattributes` (`* text=auto eol=lf`). Note the tradeoff: ~30 legacy
+  files are committed with CRLF and will show one-time normalization diffs as they get touched.
 
 ## Lane status and open backlog
 
@@ -75,9 +74,8 @@ Item tags: `[done]` verified in `dev-pwa` code, `[open]` not built anywhere,
 ### Lane 2: Core Logging
 - `[done]` Edit after finish, category inference + select, wheel pickers, rest timer with
   configurable duration, duplicate set, body-part grouping, custom names, per-exercise volume.
-- `[open]` Quick-adjust steppers (+1/-1 reps, +5/-5 lbs) in the set editor. Exists only on the
-  unmerged `feature/core-logging-speed` branch (`c6c44d1`); small salvage task.
-- `[open]` Search/filter in the exercise picker. Also branch-only (`c6c44d1`).
+- `[done]` Quick-adjust steppers (weight ± unit step, reps ± 1) and exercise-picker search,
+  ported from `c6c44d1` on 2026-09-21.
 - `[open]` Auto-progression on duplicate/next set (e.g. weight +5, reps -2, values editable in
   settings). Duplicate currently copies the last set verbatim (`SetDrawer.tsx:136-148`).
 - `[open]` Guided workouts (pre-defined templates per level, check-off flow). Marked paid
@@ -138,22 +136,19 @@ Firestore/RxDB todo experiments, its recharts chart bugfixes (nyx-fit's chart is
 different implementation), and its install-prompt/service-worker era code. Behavior
 parity items were already ported by `2026-09-20-port-nyx-fitness-gaps.md`.
 
-## Branch hygiene (confirm before deleting)
+## Branch hygiene (updated 2026-09-21)
 
-- Fully merged into `dev-pwa`, safe to delete: `androidbuild`, `auth-components`,
-  `polish-round`, `stats`, `master`.
-- Unmerged with partially superseded content: `feature/foundation-mode-ready-shells`
-  (2 commits), `feature/core-logging-speed` (`c6c44d1` + merge). Their features largely
-  re-landed in `dev-pwa` through independent commits; the only un-ported pieces are the
-  quick-adjust steppers and picker search listed under Lane 2. Salvage those two, then
-  delete the branches; do not merge them wholesale (they predate the Cloudflare migration).
-- Unmerged, likely stale, confirm: `dev-opencode`, `dev-opencode-stats`, `expo-app`,
-  `ios-and-android-ft-add`, `androidbuild` history.
+- Deleted after salvage: `feature/foundation-mode-ready-shells`, `feature/core-logging-speed`
+  (tips preserved as tags `archive/foundation-mode-ready-shells`, `archive/core-logging-speed`).
+- Deleted as fully merged: `androidbuild`, `auth-components`, `polish-round`, `stats`, `master`.
+- Remaining, unmerged and likely stale, awaiting confirmation: `dev-opencode`,
+  `dev-opencode-stats`, `expo-app`, `ios-and-android-ft-add`.
 
 ## Repo deprecation checklist
 
-- nyx-fitness: add a deprecation banner to its README pointing here, push any uncommitted
-  work, archive the GitHub repo. (Needs user action/approval; outside this repo.)
+- nyx-fitness: deprecation banner + pre-deprecation snapshot committed locally on master
+  (39aeb0c, bdb21a4, 2026-09-21). Pending user credentials: `git push origin master`, then
+  `gh repo archive SaM13997/nyx-fitness --yes` (gh was not authenticated in this environment).
 - nyx-fit-final (Expo prototype): decide archive vs keep; its unique deferred items are
   already merged above. No code to port; the 33-template exercise catalog idea overlaps
   nyx-fit's existing picker data.
