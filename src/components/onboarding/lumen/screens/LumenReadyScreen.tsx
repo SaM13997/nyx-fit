@@ -41,7 +41,7 @@ export function LumenReadyScreen({
           {lumenCopy.ready.heading}
         </h1>
 
-        <div className="lm-shadow-card mt-6 flex w-full items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
+        <div className="lm-shadow-card mt-6 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
           <span aria-hidden="true" className="shrink-0 text-lm-forest">
             <LevelBarsIcon count={3} tone="lime" className="size-7" />
           </span>
@@ -61,7 +61,7 @@ export function LumenReadyScreen({
           </span>
         </div>
 
-        <div className="lm-shadow-card mt-3 flex w-full items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
+        <div className="lm-shadow-card mt-3 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
           <span aria-hidden="true" className="shrink-0 text-lm-forest">
             <Bell className="size-7" strokeWidth={1.5} />
           </span>
@@ -81,11 +81,14 @@ export function LumenReadyScreen({
               </span>
             ) : null}
           </span>
-          <Switch
-            checked={remindersEnabled}
-            disabled={remindersPending}
-            onCheckedChange={onToggleReminders}
-          />
+          <label className="-mx-1.5 -my-3 flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center">
+            <Switch
+              aria-label="Reminders"
+              checked={remindersEnabled}
+              disabled={remindersPending}
+              onCheckedChange={onToggleReminders}
+            />
+          </label>
         </div>
 
         <div className="mt-auto w-full shrink-0 pt-6">

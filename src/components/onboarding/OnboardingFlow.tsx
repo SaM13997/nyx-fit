@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { MotionConfig, motion, useReducedMotion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
-import { useUpsertCurrentProfile } from "@/lib/api/hooks";
+import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 import {
   clearLegacyStagedOnboarding,
@@ -108,14 +108,10 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     clearLegacyStagedOnboarding();
     const draft = readOnboardingDraft();
     if (draft !== null) {
-      if (draft.step === "auth") {
-        setEntryPath("setup");
-        setFitnessLevel(draft.fitnessLevel);
-        resumedRef.current = true;
-        setStep("auth");
-      } else if (draft.fitnessLevel !== null) {
-        setFitnessLevel(draft.fitnessLevel);
-      }
+      setEntryPath("setup");
+      setFitnessLevel(draft.fitnessLevel);
+      resumedRef.current = true;
+      setStep(draft.step);
     }
     setInitialized(true);
     return () => {
@@ -197,11 +193,23 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
   }, [initialized, entryPath, step, fitnessLevel, saveStatus]);
 
+  const { profile } = useCurrentProfile({ enabled: step === "done" });
   const [remindersEnabled, setRemindersEnabled] = useState(false);
   const [remindersPending, setRemindersPending] = useState(false);
   const [reminderError, setReminderError] = useState<string | null>(null);
+  const remindersHydratedRef = useRef(false);
+  const remindersTouchedRef = useRef(false);
+
+  useEffect(() => {
+    if (step !== "done" || profile === null) return;
+    if (remindersHydratedRef.current) return;
+    remindersHydratedRef.current = true;
+    if (remindersTouchedRef.current) return;
+    setRemindersEnabled(profile.notificationsEnabled);
+  }, [step, profile]);
 
   const toggleReminders = useCallback(async () => {
+    remindersTouchedRef.current = true;
     if (remindersPending) return;
 
     if (remindersEnabled) {

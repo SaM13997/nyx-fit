@@ -18,7 +18,7 @@ export function LumenWelcomeScreen({
 
   return (
     <LumenShell step={1} wash="welcome">
-      <div className="relative -mx-6 flex flex-1 items-center justify-center px-6 py-8">
+      <div className="relative -mx-6 flex min-h-60 flex-1 items-center justify-center px-6 py-8">
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

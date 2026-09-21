@@ -28,7 +28,7 @@ function FlowHeader({
   showProgress: boolean;
 }) {
   return (
-    <header>
+    <header className="px-6">
       <div className="flex h-11 items-center justify-center">
         <p className="font-heading text-[17px] leading-6 font-semibold tracking-[-0.01em] text-lm-ink">
           Nyx Fit
@@ -57,12 +57,12 @@ export function LumenShell({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-lm-bg/20"
       />
-      <div className="relative flex min-h-0 flex-1 flex-col px-6 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <div className="relative flex min-h-0 flex-1 flex-col pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {step === 1 ? null : (
           <FlowHeader step={step} showProgress={showProgress} />
         )}
         <div className="scrollbar-hide mt-5 flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
-          <div className="flex min-h-full w-full flex-col">{children}</div>
+          <div className="flex min-h-full w-full flex-col px-6">{children}</div>
         </div>
       </div>
     </div>

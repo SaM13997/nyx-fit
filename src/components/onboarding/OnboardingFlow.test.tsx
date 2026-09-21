@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   sessionPending: false,
   social: vi.fn(),
   upsert: vi.fn(),
+  profile: null as { notificationsEnabled: boolean } | null,
   historyReplace: vi.fn(),
   historyPush: vi.fn(),
   navigate: vi.fn(),
@@ -70,6 +71,12 @@ vi.mock("@/lib/auth-client", () => ({
 
 vi.mock("@/lib/api/hooks", () => ({
   useUpsertCurrentProfile: () => ({ upsertCurrentProfile: mocks.upsert }),
+  useCurrentProfile: () => ({
+    profile: mocks.profile,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
 }));
 
 vi.mock("@tanstack/react-router", async (importOriginal) => {
@@ -148,6 +155,7 @@ function renderLoginRoute() {
 beforeEach(() => {
   mocks.session = null;
   mocks.sessionPending = false;
+  mocks.profile = null;
   mocks.search = {};
   mocks.pathname = "/onboarding";
   motionMocks.reducedMotion = false;
@@ -322,15 +330,13 @@ describe("onboarding questionnaire", () => {
     await waitFor(() => expect(document.activeElement).toBe(authHeading));
   });
 
-  it("starts on welcome and keeps a stored experience selection", async () => {
+  it("resumes directly on experience for a valid experience draft", async () => {
     seedDraft("experience", "beginner");
     render(<OnboardingFlow />);
-    await findHeading("Train with intent.");
-    expect(
-      screen.queryByRole("heading", { name: "Find your starting point." }),
-    ).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Set up my profile" }));
     await findHeading("Find your starting point.");
+    expect(
+      screen.queryByRole("heading", { name: "Train with intent." }),
+    ).toBeNull();
     const kept = screen.getByRole("radio", { name: /Beginner/ });
     expect(kept.getAttribute("aria-checked")).toBe("true");
     expect(mocks.upsert).not.toHaveBeenCalled();
@@ -890,5 +896,44 @@ describe("onboarding reminders", () => {
     );
     expect(requestPermission).toHaveBeenCalledTimes(1);
     expect(mocks.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it("hydrates the reminders toggle from the saved profile", async () => {
+    installFakeNotification("granted");
+    mocks.profile = { notificationsEnabled: true };
+    seedDraft("auth", "advanced");
+    signIn();
+    render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+
+    await waitFor(() =>
+      expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe(
+        "true",
+      ),
+    );
+    expect(mocks.upsert).toHaveBeenCalledExactlyOnceWith({
+      updates: { fitnessLevel: "advanced" },
+    });
+  });
+
+  it("keeps a toggle made before the saved profile arrives", async () => {
+    installFakeNotification("granted");
+    seedDraft("auth", "advanced");
+    signIn();
+    const view = render(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+
+    fireEvent.click(screen.getByRole("switch"));
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenLastCalledWith({
+        updates: { notificationsEnabled: true },
+      }),
+    );
+
+    mocks.profile = { notificationsEnabled: false };
+    view.rerender(<OnboardingFlow />);
+    expect(
+      screen.getByRole("switch").getAttribute("aria-checked"),
+    ).toBe("true");
   });
 });
