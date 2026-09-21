@@ -82,12 +82,16 @@ Open decision:
   feature in the original roadmap; belongs behind Lane 5 gating. Large epic, needs its own plan.
 
 ### Lane 3: Progress
-- `[open]` Weights chart polish: uniform x-padding, W/M/Y range buttons (week view was broken in
-  the old app; re-verify here), integer y-axis labels, 3-month range (explicitly deferred from
-  the port plan to this lane).
-- `[open]` Stats page alignment with the workouts/weights design language; record surfacing
-  (PRs), volume trends, body-part training frequency.
-- `[verify]` Exercise-specific progression charts and body-weight correlation.
+- `[done]` Weights chart polish (2026-09-21): quarter (fixed 90-day) range, integer y-axis
+  ticks, uniform x-padding, honest empty-range state; fixed the silent fallback-to-all-history
+  and the year-range future-entry leak. Chart geometry check in `bun run dev` still pending
+  (manual verification, see the epic plan).
+- `[done]` Stats shell aligned with the weights design language; volume bars get accessible
+  names; personal records and 8-week body-part training frequency derived client-side from
+  existing endpoints (2026-09-21, `docs/superpowers/plans/2026-09-21-progress-pages-polish.md`).
+  The hardcoded "Max lbs" card is now unit-aware.
+- `[deferred]` Exercise-specific progression charts and body-weight correlation — reasons
+  stated in the epic plan (low value vs jsdom cost; correlation needs a methodology decision).
 
 ### Lane 4: Mode System
 - `[open]` Mode system v1: beginner/intermediate/advanced/coach behavior differences (defaults,
