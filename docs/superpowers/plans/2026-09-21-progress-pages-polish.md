@@ -4,7 +4,7 @@
 
 **Goal:** Polish the progress surfaces — the weights chart range selector (including the 3-month range explicitly deferred from `2026-09-20-port-nyx-fitness-gaps.md`), stats page alignment with the workouts/weights design language, and record surfacing (personal records, body-part training frequency) using existing endpoints only.
 
-**Architecture:** All chart range/bucketing math is extracted into one pure module (`src/components/weights/chartRanges.ts`) consumed by `WeightChart`; chart *rendering* is never the test seam (recharts `ResponsiveContainer` cannot be measured in jsdom — no ResizeObserver — so tests mock the recharts render layer at that stated seam and assert only the component's own UI and state). Stats record/frequency derivation is one pure module (`src/lib/stats.ts`) over data the existing `useExerciseStats` / `useWorkouts` endpoints already return; zero server changes and zero schema changes.
+**Architecture:** All chart range/bucketing math is extracted into one pure module (`src/lib/chartRanges.ts` — placed in `src/lib/` during implementation so its tests run in the server/node vitest project, like `units.ts`) consumed by `WeightChart`; chart *rendering* is never the test seam (recharts `ResponsiveContainer` cannot be measured in jsdom — no ResizeObserver — so tests mock the recharts render layer at that stated seam and assert only the component's own UI and state). Stats record/frequency derivation is one pure module (`src/lib/stats.ts`) over data the existing `useExerciseStats` / `useWorkouts` endpoints already return; zero server changes and zero schema changes.
 
 **Tech Stack:** React 19 + TypeScript strict, TanStack Start/Router, recharts 3.8.0 (already in `package.json:61` — no new dependencies), date-fns 4.x, Tailwind v4, TanStack Query hooks, vitest two-project setup (ui/jsdom for `src/**` except `src/lib`; server/node for `src/lib/**`), Bun for all commands.
 
@@ -71,8 +71,8 @@ Five input classes / failure modes no task's happy path exercises. Each is pinne
 ### Task 1: Pure chart-range module (`chartRanges.ts`)
 
 **Files:**
-- Create: `src/components/weights/chartRanges.ts`
-- Test: `src/components/weights/chartRanges.test.ts` (create; ui/jsdom project — pure functions, no DOM needed)
+- Create: `src/lib/chartRanges.ts`
+- Test: `src/lib/chartRanges.test.ts` (create; server/node project — pure functions, no DOM needed)
 
 **Interfaces:**
 - Consumes: `WeightEntry` from `@/lib/types`.
@@ -105,7 +105,7 @@ Behavior contract: `filterWeightsForRange` keeps entries with `rangeStart <= ent
 
 - [ ] **Step 1: Write the failing test**
 
-Create `src/components/weights/chartRanges.test.ts`:
+Create `src/lib/chartRanges.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -187,12 +187,12 @@ Worked examples (independent of the implementation): `integerTicks(148.2, 166.7)
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `bun run test src/components/weights/chartRanges.test.ts`
+Run: `bun run test src/lib/chartRanges.test.ts`
 Expected: FAIL — `Failed to resolve import "./chartRanges"` (module does not exist).
 
 - [ ] **Step 3: Write the module**
 
-Create `src/components/weights/chartRanges.ts`:
+Create `src/lib/chartRanges.ts`:
 
 ```ts
 import type { WeightEntry } from "@/lib/types";
@@ -253,7 +253,7 @@ export function integerTicks(min: number, max: number): number[] {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `bun run test src/components/weights/chartRanges.test.ts`
+Run: `bun run test src/lib/chartRanges.test.ts`
 Expected: PASS (8 tests).
 
 - [ ] **Step 5: Run the gates**
