@@ -35,8 +35,8 @@ function StatsPage() {
   const isError = summaryError || statsError;
 
   return (
-    <div className="bg-black text-white font-sans min-h-screen pb-20">
-      <div className="relative h-[30vh] pointer-events-none overflow-hidden">
+    <div className="bg-black text-white font-sans min-h-screen pb-24 overflow-x-clip">
+      <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         <div
           className="absolute inset-0 animated-hex-bg opacity-50"
           style={{ "--c": "#f97316" } as any}
@@ -47,7 +47,7 @@ function StatsPage() {
 
         <div className="relative flex flex-col justify-end h-full px-4 pt-12">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-5xl font-bold tracking-tighter text-orange-500">
+            <h1 className="text-6xl font-bold tracking-tighter text-orange-500">
               Stats
             </h1>
           </div>
@@ -56,6 +56,12 @@ function StatsPage() {
 
       <div className="relative px-4">
         <div className="mx-auto max-w-md space-y-6">
+          <div className="px-1">
+            <p className="text-sm text-zinc-400 font-medium">
+              Your fitness journey at a glance
+            </p>
+          </div>
+
           {isError && !summary && exerciseStats.length === 0 ? (
             <div className="p-8 rounded-3xl bg-red-500/5 border border-red-500/20 text-center">
               <p className="text-red-200 font-medium">
@@ -98,11 +104,8 @@ function StatsPage() {
                     Try again
                   </button>
                 </div>
-              ) : null}              <div className="space-y-3">
-                <p className="text-sm text-zinc-400 font-medium px-1">
-                  Your fitness journey at a glance
-                </p>
-
+              ) : null}
+              <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <StatCard
                     icon={<Dumbbell className="w-5 h-5" />}
@@ -353,7 +356,12 @@ function WeeklyVolumeChart({ stats }: { stats: ExerciseStat[] }) {
         {last8Weeks.map((week, i) => {
           const height = maxVolume > 0 ? (week.totalVolume / maxVolume) * 100 : 0;
           return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <div
+              key={i}
+              className="flex-1 flex flex-col items-center gap-1"
+              role="img"
+              aria-label={`Week of ${formatWeek(week.weekStart)}: ${(week.totalVolume / 1000).toFixed(1)}K volume`}
+            >
               <div
                 className="w-full bg-gradient-to-t from-orange-600 to-orange-500 rounded-t-sm relative group"
                 style={{ height: `${height}%`, minHeight: "4px" }}
