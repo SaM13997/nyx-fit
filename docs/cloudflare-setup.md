@@ -45,6 +45,10 @@ bun run dev
 - Google sign-in stays disabled until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are
   present. To exercise it locally, add both to `.dev.vars` and register
   `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI.
+  `.env` / `.env.local` are not read by the Worker runtime — auth env must live in
+  `.dev.vars`, otherwise better-auth fails with `Provider not found`.
+- A fresh local D1 database without migrations fails better-auth with
+  `no such table: verification`; run the migrations command above before first sign-in.
 - `.dev.vars` is gitignored. Do not commit real credentials.
 
 Useful commands:
