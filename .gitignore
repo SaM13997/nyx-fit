@@ -43,3 +43,4 @@ builds/app-release-unsigned-aligned.apk
 *.apk
 *.aab
 *.idsig
+dev-dist/
