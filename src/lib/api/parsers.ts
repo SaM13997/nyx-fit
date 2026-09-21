@@ -55,16 +55,9 @@ export type UpdateWeightInput = {
   photoUrl?: string;
 };
 
-export type SetWeightGoalInput = {
-  targetWeight: number;
-  weeklyGoal: number;
-  startDate: string;
-  startWeight: number;
-};
-
 export type WorkoutUpdateOutcome =
   | { ok: true; workout: Workout }
-  | { ok: false; reason: "conflict" };
+  | { ok: false; reason: "conflict" | "active-exists" };
 
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const IMAGE_URL_PATTERN = /^\/api\/images\/([A-Za-z0-9_-]{1,64})\/([A-Za-z0-9_-]{1,64})\.(png|jpg|webp|gif)$/;
@@ -418,16 +411,4 @@ export const parseDeleteWeightInput = (input: unknown): DeleteWeightInput => {
     throw new Error("Weight identifier is required.");
   }
   return { id: readId(input.id) };
-};
-
-export const parseSetWeightGoalInput = (input: unknown): SetWeightGoalInput => {
-  if (!isRecord(input)) {
-    throw new Error("Weight goal is required.");
-  }
-  return {
-    targetWeight: readFiniteNumber(input.targetWeight, "Target weight", 0, 100000),
-    weeklyGoal: readFiniteNumber(input.weeklyGoal, "Weekly goal", -100, 100),
-    startDate: readTimestamp(input.startDate, "Start date"),
-    startWeight: readFiniteNumber(input.startWeight, "Start weight", 0, 100000),
-  };
 };

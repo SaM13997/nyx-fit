@@ -15,7 +15,6 @@ import {
   isOwnedImageUrl,
   isSameOriginImageUrl,
   type ProfileUpdatesInput,
-  type SetWeightGoalInput,
   type UpdateWeightInput,
   type UpdateWorkoutInput,
   type WorkoutUpdateOutcome,
@@ -93,6 +92,9 @@ const changesOf = (result: unknown): number => {
 
 const isConstraintFailure = (error: unknown): boolean =>
   error instanceof Error && /constraint/i.test(error.message);
+
+const isSingleActiveWorkoutConstraint = (error: unknown): boolean =>
+  error instanceof Error && /unique constraint failed: workouts\.userId/i.test(error.message);
 
 const normalizeNote = (value: string | null | undefined): string | null | undefined => {
   if (value === undefined) return undefined;
@@ -445,6 +447,7 @@ export const updateWorkoutForUser = async (
   if (values.length === 0) {
     const current = await getWorkoutForUser(db, userId, input.id);
     if (current === null) throw new Error("Workout not found");
+    if (current.revision !== input.revision) return { ok: false, reason: "conflict" };
     return { ok: true, workout: current };
   }
 
@@ -457,6 +460,9 @@ export const updateWorkoutForUser = async (
       .bind(...values, input.id, userId, input.revision)
       .first();
   } catch (error) {
+    if (isSingleActiveWorkoutConstraint(error)) {
+      return { ok: false, reason: "active-exists" };
+    }
     if (isConstraintFailure(error)) return { ok: false, reason: "conflict" };
     throw error;
   }
@@ -580,30 +586,6 @@ export const getWeightGoalForUser = async (
     .bind(userId)
     .first();
   return row === null || row === undefined ? null : toWeightGoal(row);
-};
-
-export const setWeightGoalForUser = async (
-  db: Queryable,
-  userId: string,
-  input: SetWeightGoalInput,
-): Promise<WeightGoal> => {
-  const row = await db
-    .prepare(
-      'insert into "weightGoals" ("id", "userId", "targetWeight", "weeklyGoal", "startDate", "startWeight") ' +
-        "values (?, ?, ?, ?, ?, ?) " +
-        'on conflict ("userId") do update set "targetWeight" = excluded."targetWeight", "weeklyGoal" = excluded."weeklyGoal", "startDate" = excluded."startDate", "startWeight" = excluded."startWeight" ' +
-        "returning *",
-    )
-    .bind(
-      newId(),
-      userId,
-      input.targetWeight,
-      input.weeklyGoal,
-      input.startDate,
-      input.startWeight,
-    )
-    .first();
-  return toWeightGoal(row);
 };
 
 const getWeekStart = (date: Date): string => {

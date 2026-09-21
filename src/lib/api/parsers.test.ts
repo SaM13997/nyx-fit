@@ -7,7 +7,6 @@ import {
   parseGetWeightsInput,
   parseGetWorkoutInput,
   parseLogWeightInput,
-  parseSetWeightGoalInput,
   parseStartWorkoutInput,
   parseUpdateWeightInput,
   parseUpdateWorkoutInput,
@@ -202,25 +201,6 @@ describe("weight input parsing", () => {
       updates: { notes: "  felt strong  " },
     });
     expect(notedWorkout.updates.notes).toBe("felt strong");
-  });
-
-  it("validates weight goals", () => {
-    expect(() =>
-      parseSetWeightGoalInput({
-        targetWeight: 175,
-        weeklyGoal: -1,
-        startDate: "2026-09-16",
-        startWeight: 185,
-      }),
-    ).not.toThrow();
-    expect(() =>
-      parseSetWeightGoalInput({
-        targetWeight: 175,
-        weeklyGoal: -500,
-        startDate: "2026-09-16",
-        startWeight: 185,
-      }),
-    ).toThrow();
   });
 });
 

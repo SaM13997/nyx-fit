@@ -13,7 +13,6 @@ import {
   listWeightEntriesForUser,
   listWorkoutsForUser,
   logWeightForUser,
-  setWeightGoalForUser,
   startWorkoutForUser,
   updateWeightForUser,
   updateWorkoutForUser,
@@ -166,6 +165,13 @@ const checkRevisionConflicts = async () => {
   assert.equal(noop.revision, accepted.revision);
   assert.equal(noop.duration, 90);
 
+  const staleNoop = await updateWorkoutForUser(db, USER_A, {
+    id: workout.id,
+    revision: workout.revision,
+    updates: {},
+  });
+  assert.deepEqual(staleNoop, { ok: false, reason: "conflict" });
+
   const stale = await updateWorkoutForUser(db, USER_A, {
     id: workout.id,
     revision: workout.revision,
@@ -280,27 +286,48 @@ const checkWeightEntries = async () => {
   assert.deepEqual(await deleteWeightForUser(db, USER_A, older.id), { id: older.id });
 };
 
-const checkWeightGoals = async () => {
+const checkWeightGoalRead = async () => {
   const { database, db } = createStore();
-  const created = await setWeightGoalForUser(db, USER_A, {
-    targetWeight: 175,
-    weeklyGoal: -1,
-    startDate: "2026-09-01",
-    startWeight: 185,
+  assert.equal(await getWeightGoalForUser(db, USER_A), null);
+  database
+    .prepare(
+      'insert into "weightGoals" ("id", "userId", "targetWeight", "weeklyGoal", "startDate", "startWeight") values (?, ?, ?, ?, ?, ?)',
+    )
+    .run("goal-1", USER_A, 175, -1, "2026-09-01", 185);
+  const goal = await getWeightGoalForUser(db, USER_A);
+  assert.equal(goal.id, "goal-1");
+  assert.equal(goal.targetWeight, 175);
+  assert.equal(await getWeightGoalForUser(db, USER_B), null);
+};
+
+const checkReactivationConflict = async () => {
+  const { database, db } = createStore();
+  const first = await startWorkoutForUser(db, USER_A, ["chest"]);
+  const ended = expectAccepted(
+    await updateWorkoutForUser(db, USER_A, {
+      id: first.id,
+      revision: first.revision,
+      updates: { isActive: false },
+    }),
+  );
+  const second = await startWorkoutForUser(db, USER_A, ["back"]);
+  assert.notEqual(second.id, first.id);
+
+  const outcome = await updateWorkoutForUser(db, USER_A, {
+    id: first.id,
+    revision: ended.revision,
+    updates: { isActive: true },
   });
-  const updated = await setWeightGoalForUser(db, USER_A, {
-    targetWeight: 170,
-    weeklyGoal: -1.5,
-    startDate: "2026-09-02",
-    startWeight: 184.5,
-  });
-  assert.equal(updated.id, created.id);
-  assert.equal(updated.targetWeight, 170);
+  assert.deepEqual(outcome, { ok: false, reason: "active-exists" });
   assert.equal(
-    countRows(database, 'select count(*) as total from "weightGoals" where "userId" = ?', USER_A),
+    countRows(
+      database,
+      'select count(*) as total from "workouts" where "userId" = ? and "isActive" = 1',
+      USER_A,
+    ),
     1,
   );
-  assert.equal(await getWeightGoalForUser(db, USER_B), null);
+  assert.equal((await getWorkoutForUser(db, USER_A, first.id)).isActive, false);
 };
 
 const checkProfiles = async () => {
@@ -527,9 +554,10 @@ const CHECKS = [
   ["ownership scoping", checkOwnership],
   ["single active workout", checkSingleActiveWorkout],
   ["revision conflicts", checkRevisionConflicts],
+  ["reactivation conflict", checkReactivationConflict],
   ["note clearing", checkNoteClearing],
   ["weight entries", checkWeightEntries],
-  ["weight goals", checkWeightGoals],
+  ["weight goal read", checkWeightGoalRead],
   ["profiles", checkProfiles],
   ["profile upsert race", checkProfileUpsertRace],
   ["summary fold", checkSummaryFold],

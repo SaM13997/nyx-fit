@@ -12,7 +12,6 @@ import {
   parseGetWeightsInput,
   parseGetWorkoutInput,
   parseLogWeightInput,
-  parseSetWeightGoalInput,
   parseStartWorkoutInput,
   parseUpdateWeightInput,
   parseUpdateWorkoutInput,
@@ -123,14 +122,6 @@ export const getWeightGoal = createServerFn({ method: "GET" }).handler(
     return withUserContext(({ db, userId }) => getWeightGoalForUser(db, userId));
   },
 );
-
-export const setWeightGoal = createServerFn({ method: "POST" })
-  .inputValidator(parseSetWeightGoalInput)
-  .handler(async ({ data }): Promise<WeightGoal> => {
-    const { withUserMutationContext } = await import("./context.server");
-    const { setWeightGoalForUser } = await import("./store.server");
-    return withUserMutationContext(({ db, userId }) => setWeightGoalForUser(db, userId, data));
-  });
 
 export const getWorkoutSummary = createServerFn({ method: "GET" }).handler(
   async (): Promise<WorkoutSummary> => {

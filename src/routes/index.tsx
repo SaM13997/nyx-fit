@@ -68,6 +68,7 @@ function HomePage() {
       await startWorkout({ bodyPartWorkedOut: bodyParts });
     } catch (error) {
       console.error("Failed to start workout:", error);
+    } finally {
       setIsStarting(false);
     }
   };
