@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import type { EmailAuthValues } from "@/lib/use-email-auth";
 import type { ExperienceLevel } from "../../config";
+import { EmailAuthReveal } from "../EmailAuthReveal";
 import { GoogleColorMark } from "../GoogleColorMark";
 import { LumenShell } from "../LumenShell";
 import { ProfileCardArt } from "../artwork";
@@ -17,6 +19,14 @@ export type LumenSaveProfileState =
   | { status: "signing-in" }
   | { status: "saving" }
   | { status: "error"; message: string };
+
+export type LumenEmailAuth = {
+  mode: "signup" | "signin";
+  errorMessage: string | null;
+  isSubmitting: boolean;
+  onSubmit: (values: EmailAuthValues) => void;
+  onCollapse: () => void;
+};
 
 function LumenLegalRow({ className }: { className?: string }) {
   return (
@@ -57,6 +67,7 @@ export function LumenSaveProfileScreen({
   description = lumenCopy.save.description,
   showArt = true,
   showProgress = true,
+  emailAuth,
   onRetry,
   onAbandon,
   onBack,
@@ -68,11 +79,13 @@ export function LumenSaveProfileScreen({
   description?: string;
   showArt?: boolean;
   showProgress?: boolean;
+  emailAuth?: LumenEmailAuth;
   onRetry?: () => void;
   onAbandon?: () => void;
   onBack?: () => void;
 }) {
   const pending = state.status === "signing-in" || state.status === "saving";
+  const emailSubmitting = emailAuth?.isSubmitting ?? false;
   const errorMessage =
     state.status === "error"
       ? state.message
@@ -141,7 +154,7 @@ export function LumenSaveProfileScreen({
         ) : (
           <>
             <div className="flex items-center gap-3">
-              {state.status === "signin" && onBack ? (
+              {state.status === "signin" && !pending && !emailSubmitting && onBack ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -163,7 +176,7 @@ export function LumenSaveProfileScreen({
                   variant="card"
                   size="xl"
                   onClick={onSignIn}
-                  disabled={pending}
+                  disabled={pending || emailSubmitting}
                   aria-busy={pending ? true : undefined}
                   className="h-auto min-h-14 w-full px-4 py-2.5 text-center leading-tight whitespace-normal enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
                 >
@@ -186,6 +199,16 @@ export function LumenSaveProfileScreen({
                 </Button>
               </div>
             </div>
+            {emailAuth && state.status === "signin" ? (
+              <EmailAuthReveal
+                mode={emailAuth.mode}
+                onSubmit={emailAuth.onSubmit}
+                errorMessage={emailAuth.errorMessage}
+                isSubmitting={emailAuth.isSubmitting}
+                onCollapse={emailAuth.onCollapse}
+                className="mt-1.5"
+              />
+            ) : null}
             <LumenLegalRow className="mt-2" />
           </>
         )}

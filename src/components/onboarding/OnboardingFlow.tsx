@@ -5,6 +5,11 @@ import { authClient } from "@/lib/auth-client";
 import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 import {
+  useEmailAuth,
+  type EmailAuthMode,
+  type EmailAuthValues,
+} from "@/lib/use-email-auth";
+import {
   clearLegacyStagedOnboarding,
   clearOnboardingDraft,
   copy,
@@ -76,6 +81,20 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     signIn,
     clearError: clearSignInError,
   } = useGoogleSignIn(authCallbackUrl);
+  const emailMode: EmailAuthMode =
+    entryPath === "existing" ? "signin" : "signup";
+  const {
+    errorMessage: emailError,
+    isSubmitting: isEmailSubmitting,
+    submit: submitEmail,
+    clearError: clearEmailError,
+  } = useEmailAuth(emailMode);
+  const handleEmailSubmit = useCallback(
+    (values: EmailAuthValues) => {
+      void submitEmail(values);
+    },
+    [submitEmail],
+  );
 
   const clearReadinessTimer = useCallback(() => {
     if (readinessTimerRef.current !== null) {
@@ -257,9 +276,10 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const goToStep = useCallback(
     (target: StepId) => {
       clearSignInError();
+      clearEmailError();
       setStep(target);
     },
-    [clearSignInError],
+    [clearSignInError, clearEmailError],
   );
 
   useEffect(() => {
@@ -341,6 +361,13 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
               showArt={false}
               showProgress={false}
               onSignIn={signIn}
+              emailAuth={{
+                mode: emailMode,
+                errorMessage: emailError,
+                isSubmitting: isEmailSubmitting,
+                onSubmit: handleEmailSubmit,
+                onCollapse: clearEmailError,
+              }}
             />
           );
         }
@@ -350,6 +377,13 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
             state={authState}
             description={storageAvailable ? undefined : DEGRADED_AUTH_DESCRIPTION}
             onSignIn={signIn}
+            emailAuth={{
+              mode: emailMode,
+              errorMessage: emailError,
+              isSubmitting: isEmailSubmitting,
+              onSubmit: handleEmailSubmit,
+              onCollapse: clearEmailError,
+            }}
             onRetry={retrySave}
             onAbandon={abandonSave}
             onBack={

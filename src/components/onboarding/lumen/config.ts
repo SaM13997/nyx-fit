@@ -84,6 +84,30 @@ export const lumenCopy = {
     cardLabel: "Training experience",
     capsule: "Your progress, together.",
     action: "Continue with Google",
+    emailAction: {
+      signup: "Sign up with email instead",
+      signin: "Sign in with email instead",
+    },
+    emailForm: {
+      nameLabel: "Name",
+      namePlaceholder: "Optional",
+      emailLabel: "Email",
+      emailPlaceholder: "you@example.com",
+      passwordLabel: "Password",
+      passwordPlaceholder: {
+        signup: "At least 8 characters",
+        signin: "Your password",
+      },
+      submit: { signup: "Create account", signin: "Sign in" },
+      submitting: {
+        signup: "Creating your account…",
+        signin: "Signing you in…",
+      },
+      tryAgain: "Try again",
+      collapse: "Back to Google",
+      emailRequired: "Enter your email address.",
+      passwordRequired: "Enter your password.",
+    },
   },
   ready: {
     heading: "You\u2019re ready to begin.",

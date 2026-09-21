@@ -6,6 +6,8 @@ import { GoogleButton } from "@/components/onboarding/kit/GoogleButton";
 import { InlineAlert } from "@/components/onboarding/kit/InlineAlert";
 import { LegalRow } from "@/components/onboarding/kit/LegalRow";
 import { obBody, obScreenTitle } from "@/components/onboarding/kit/classes";
+import { EmailAuthReveal } from "@/components/onboarding/lumen/EmailAuthReveal";
+import { useEmailAuth, type EmailAuthValues } from "@/lib/use-email-auth";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 
 type LoginFormProps = React.ComponentProps<"div"> & {
@@ -26,6 +28,15 @@ export function LoginForm({
   const { errorMessage, isSubmitting, signIn } = useGoogleSignIn(
     callbackURL ?? "",
   );
+  const {
+    errorMessage: emailError,
+    isSubmitting: isEmailSubmitting,
+    submit: submitEmail,
+    clearError: clearEmailError,
+  } = useEmailAuth("signin");
+  const handleEmailSubmit = (values: EmailAuthValues) => {
+    void submitEmail(values);
+  };
 
   if (variant === "onboarding") {
     return (
@@ -75,7 +86,7 @@ export function LoginForm({
       <Button
         type="button"
         onClick={signIn}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isEmailSubmitting}
         className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold h-12 rounded-xl text-base transition-all active:scale-[0.98] shadow-lg shadow-purple-900/20 gap-3"
       >
         {isSubmitting ? (
@@ -92,6 +103,16 @@ export function LoginForm({
           </>
         )}
       </Button>
+      {isSubmitting ? null : (
+        <EmailAuthReveal
+          mode="signin"
+          tone="login"
+          onSubmit={handleEmailSubmit}
+          errorMessage={emailError}
+          isSubmitting={isEmailSubmitting}
+          onCollapse={clearEmailError}
+        />
+      )}
       <div className="text-center text-xs text-gray-500 break-words">
         By clicking continue, you agree to our{" "}
         <Link

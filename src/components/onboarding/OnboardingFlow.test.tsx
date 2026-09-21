@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
   session: null as { session: { id: string } } | null,
   sessionPending: false,
   social: vi.fn(),
+  signInEmail: vi.fn(),
+  signUpEmail: vi.fn(),
   upsert: vi.fn(),
   profile: null as { notificationsEnabled: boolean } | null,
   historyReplace: vi.fn(),
@@ -65,7 +67,8 @@ vi.mock("@/lib/auth-client", () => ({
       data: mocks.session,
       isPending: mocks.sessionPending,
     }),
-    signIn: { social: mocks.social },
+    signIn: { social: mocks.social, email: mocks.signInEmail },
+    signUp: { email: mocks.signUpEmail },
   },
 }));
 
@@ -105,6 +108,11 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
 
 const GOOGLE_SUCCESS = {
   data: { url: "https://accounts.google.com/o/oauth2/auth", redirect: true },
+  error: null,
+};
+
+const EMAIL_SUCCESS = {
+  data: { user: { id: "user-1" } },
   error: null,
 };
 
@@ -162,6 +170,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.upsert.mockReset().mockResolvedValue(undefined);
   mocks.social.mockReset().mockResolvedValue(GOOGLE_SUCCESS);
+  mocks.signInEmail.mockReset().mockResolvedValue(EMAIL_SUCCESS);
+  mocks.signUpEmail.mockReset().mockResolvedValue(EMAIL_SUCCESS);
   window.sessionStorage.clear();
   mockMatchMedia();
   Element.prototype.scrollIntoView = scrollMocks.scrollIntoView;
@@ -303,6 +313,182 @@ describe("onboarding google sign-in", () => {
     );
     expect(mocks.upsert).not.toHaveBeenCalled();
     expect(readRawDraft()).toBeNull();
+  });
+});
+
+async function openEmailForm(triggerName: string) {
+  fireEvent.click(screen.getByRole("button", { name: triggerName }));
+  return screen.findByRole("textbox", { name: "Email" });
+}
+
+function fillEmailForm(values: {
+  email: string;
+  password: string;
+  name?: string;
+}) {
+  fireEvent.change(screen.getByRole("textbox", { name: "Email" }), {
+    target: { value: values.email },
+  });
+  fireEvent.change(screen.getByLabelText("Password"), {
+    target: { value: values.password },
+  });
+  if (values.name !== undefined) {
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: values.name },
+    });
+  }
+}
+
+describe("onboarding email auth", () => {
+  it("reveals the form, collapses back to the trigger, and submits signup values", async () => {
+    render(<OnboardingFlow />);
+    await reachSetupAuth();
+    expect(screen.queryByRole("textbox", { name: "Email" })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Create account" }),
+    ).toBeNull();
+
+    await openEmailForm("Sign up with email instead");
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("textbox", { name: "Email" }),
+      ),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to Google" }));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole("button", { name: "Sign up with email instead" }),
+      ),
+    );
+    expect(screen.queryByRole("textbox", { name: "Email" })).toBeNull();
+
+    await openEmailForm("Sign up with email instead");
+    fillEmailForm({
+      email: "  trainee@example.com  ",
+      password: "hunter2hunter2",
+      name: "  Trainee  ",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() =>
+      expect(mocks.signUpEmail).toHaveBeenCalledExactlyOnceWith({
+        email: "trainee@example.com",
+        password: "hunter2hunter2",
+        name: "Trainee",
+      }),
+    );
+    expect(mocks.signInEmail).not.toHaveBeenCalled();
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("surfaces the auth error verbatim and permits retry", async () => {
+    render(<OnboardingFlow />);
+    await reachSetupAuth();
+    mocks.signUpEmail.mockResolvedValueOnce({
+      data: null,
+      error: { message: "User already exists" },
+    });
+    await openEmailForm("Sign up with email instead");
+    fillEmailForm({
+      email: "taken@example.com",
+      password: "hunter2hunter2",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/User already exists/);
+    await findHeading("Keep your momentum.");
+    expect(mocks.upsert).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    await waitFor(() =>
+      expect(mocks.signUpEmail).toHaveBeenCalledTimes(2),
+    );
+  });
+
+  it("signs an existing account in with email and follows the session", async () => {
+    const view = render(<OnboardingFlow redirect="/workouts?filter=recent" />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "I already have an account" }),
+    );
+    await findHeading("Welcome back.");
+    await openEmailForm("Sign in with email instead");
+    fillEmailForm({
+      email: "member@example.com",
+      password: "hunter2hunter2",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await waitFor(() =>
+      expect(mocks.signInEmail).toHaveBeenCalledExactlyOnceWith({
+        email: "member@example.com",
+        password: "hunter2hunter2",
+      }),
+    );
+    expect(mocks.signUpEmail).not.toHaveBeenCalled();
+    expect(mocks.upsert).not.toHaveBeenCalled();
+    signIn();
+    view.rerender(<OnboardingFlow redirect="/workouts?filter=recent" />);
+    await waitFor(() =>
+      expect(mocks.historyReplace).toHaveBeenCalledExactlyOnceWith(
+        "/workouts?filter=recent",
+      ),
+    );
+    expect(mocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("saves the chosen level after email sign-up signs in", async () => {
+    seedDraft("auth", "advanced");
+    const view = render(<OnboardingFlow />);
+    await findHeading("Keep your momentum.");
+    await openEmailForm("Sign up with email instead");
+    fillEmailForm({
+      email: "newcomer@example.com",
+      password: "hunter2hunter2",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() =>
+      expect(mocks.signUpEmail).toHaveBeenCalledExactlyOnceWith({
+        email: "newcomer@example.com",
+        password: "hunter2hunter2",
+        name: "newcomer",
+      }),
+    );
+    expect(mocks.upsert).not.toHaveBeenCalled();
+    signIn();
+    view.rerender(<OnboardingFlow />);
+    await findHeading("You’re ready to begin.");
+    expect(mocks.upsert).toHaveBeenCalledExactlyOnceWith({
+      updates: { fitnessLevel: "advanced" },
+    });
+  });
+
+  it("hides the back control while an email sign-up is in flight", async () => {
+    seedDraft("auth", "advanced");
+    render(<OnboardingFlow />);
+    await findHeading("Keep your momentum.");
+    expect(screen.getByRole("button", { name: "Go back" })).toBeTruthy();
+    let resolveSignUp: (value: {
+      data: null;
+      error: { message: string };
+    }) => void = () => {};
+    mocks.signUpEmail.mockImplementationOnce(
+      () =>
+        new Promise<{ data: null; error: { message: string } }>((resolve) => {
+          resolveSignUp = resolve;
+        }),
+    );
+    await openEmailForm("Sign up with email instead");
+    fillEmailForm({
+      email: "newcomer@example.com",
+      password: "hunter2hunter2",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(mocks.signUpEmail).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("button", { name: "Go back" })).toBeNull();
+    await act(async () => {
+      resolveSignUp({ data: null, error: { message: "User already exists" } });
+    });
+    await screen.findByRole("alert");
+    expect(screen.getByRole("button", { name: "Go back" })).toBeTruthy();
   });
 });
 
@@ -789,6 +975,61 @@ describe("standalone login", () => {
     expect(
       screen.getByRole("link", { name: "New here? Set up your profile" }),
     ).toBeTruthy();
+  });
+
+  it("signs in with email and blocks a parallel google request", async () => {
+    let resolveEmail: (value: typeof EMAIL_SUCCESS) => void = () => {};
+    mocks.signInEmail.mockImplementationOnce(
+      () =>
+        new Promise<typeof EMAIL_SUCCESS>((resolve) => {
+          resolveEmail = resolve;
+        }),
+    );
+    render(<LoginForm />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Sign in with email instead" }),
+    );
+    await screen.findByRole("textbox", { name: "Email" });
+    fireEvent.change(screen.getByRole("textbox", { name: "Email" }), {
+      target: { value: "member@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "hunter2hunter2" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    await waitFor(() =>
+      expect(mocks.signInEmail).toHaveBeenCalledExactlyOnceWith({
+        email: "member@example.com",
+        password: "hunter2hunter2",
+      }),
+    );
+    const google = screen.getByRole("button", {
+      name: "Continue with Google",
+    });
+    expect(google instanceof HTMLButtonElement && google.disabled).toBe(true);
+    fireEvent.click(google);
+    expect(mocks.social).not.toHaveBeenCalled();
+    await act(async () => {
+      resolveEmail(EMAIL_SUCCESS);
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(mocks.historyPush).not.toHaveBeenCalled();
+  });
+
+  it("hides the email option while google is in flight", async () => {
+    mocks.social.mockImplementationOnce(() => new Promise(() => {}));
+    render(<LoginForm />);
+    expect(
+      screen.getByRole("button", { name: "Sign in with email instead" }),
+    ).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    );
+    await screen.findByRole("button", { name: "Signing in with Google..." });
+    expect(
+      screen.queryByRole("button", { name: "Sign in with email instead" }),
+    ).toBeNull();
+    expect(screen.queryByRole("textbox", { name: "Email" })).toBeNull();
   });
 });
 
