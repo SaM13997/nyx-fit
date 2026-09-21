@@ -6,8 +6,13 @@ import { v4 as uuidv4 } from "uuid";
 import { formatWeight, formatWeightUnit, getWeightStep } from "@/lib/units";
 
 const DEFAULT_REP_DECREMENT = 2;
+const MIN_REPS = 1;
+const MIN_WEIGHT = 0;
 const MAX_WEIGHT = 100000;
 const MAX_REPS = 10000;
+
+const STEPPER_BUTTON_CLASS =
+  "flex h-11 flex-1 items-center justify-center rounded-md text-zinc-300 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:opacity-40";
 
 type SetField = "weight" | "reps";
 
@@ -31,6 +36,18 @@ const clampFieldValue = (value: number, field: SetField): number =>
   field === "reps"
     ? Math.min(MAX_REPS, Math.max(0, Math.round(value)))
     : Math.min(MAX_WEIGHT, Math.max(0, value));
+
+const canNudgeFieldValue = (
+  value: number,
+  field: SetField,
+  delta: number
+): boolean => {
+  const next = value + delta;
+
+  return field === "reps"
+    ? next >= MIN_REPS && next <= MAX_REPS
+    : next >= MIN_WEIGHT && next <= MAX_WEIGHT;
+};
 
 const SAVE_FAILED_MESSAGE = "Couldn't save that change.";
 const REMOTE_CHANGE_MESSAGE =
@@ -105,6 +122,14 @@ export function SetDrawer({
       set.id === setId ? { ...set, [field]: clampFieldValue(value, field) } : set
     );
     void runSubmit(nextSets);
+  };
+
+  const nudgeFieldValue = (setId: string, field: SetField, delta: number) => {
+    const target = sets.find((set) => set.id === setId);
+
+    if (!target) return;
+
+    commitFieldValue(setId, field, target[field] + delta);
   };
 
   const handleAddSet = () => {
@@ -234,21 +259,8 @@ export function SetDrawer({
                   <div className="col-span-1 text-center font-bold text-gray-500">
                     {index + 1}
                   </div>
-                  <div className="col-span-4">
+                  <div className="col-span-4 space-y-1">
                     <div className="flex items-center bg-black/40 rounded-lg p-1">
-                      <button
-                        onClick={() =>
-                          commitFieldValue(
-                            set.id,
-                            "weight",
-                             Math.max(0, set.weight - weightStep)
-                           )
-                         }
-                        disabled={controlsDisabled}
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
                       <input
                         type="number"
                         value={draftValue(set.id, "weight", set.weight)}
@@ -265,35 +277,39 @@ export function SetDrawer({
                             e.currentTarget.blur();
                           }
                         }}
-                        className="w-full bg-transparent text-center font-bold outline-none disabled:opacity-40"
+                        className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
                       />
                       <span className="pr-2 text-xs text-zinc-500">{formatWeight(set.weight, unit, 0)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
                       <button
-                          onClick={() =>
-                            commitFieldValue(set.id, "weight", set.weight + weightStep)
-                          }
-                        disabled={controlsDisabled}
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
+                        type="button"
+                        aria-label="Decrease weight"
+                        onClick={() => nudgeFieldValue(set.id, "weight", -weightStep)}
+                        disabled={
+                          controlsDisabled ||
+                          !canNudgeFieldValue(set.weight, "weight", -weightStep)
+                        }
+                        className={STEPPER_BUTTON_CLASS}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Increase weight"
+                        onClick={() => nudgeFieldValue(set.id, "weight", weightStep)}
+                        disabled={
+                          controlsDisabled ||
+                          !canNudgeFieldValue(set.weight, "weight", weightStep)
+                        }
+                        className={STEPPER_BUTTON_CLASS}
                       >
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
-                  <div className="col-span-4">
+                  <div className="col-span-4 space-y-1">
                     <div className="flex items-center bg-black/40 rounded-lg p-1">
-                      <button
-                        onClick={() =>
-                          commitFieldValue(
-                            set.id,
-                            "reps",
-                            Math.max(0, set.reps - 1)
-                          )
-                        }
-                        disabled={controlsDisabled}
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
                       <input
                         type="number"
                         value={draftValue(set.id, "reps", set.reps)}
@@ -308,14 +324,31 @@ export function SetDrawer({
                             e.currentTarget.blur();
                           }
                         }}
-                        className="w-full bg-transparent text-center font-bold outline-none disabled:opacity-40"
+                        className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
                       />
+                    </div>
+                    <div className="flex items-center gap-1">
                       <button
-                        onClick={() =>
-                          commitFieldValue(set.id, "reps", set.reps + 1)
+                        type="button"
+                        aria-label="Decrease reps"
+                        onClick={() => nudgeFieldValue(set.id, "reps", -1)}
+                        disabled={
+                          controlsDisabled ||
+                          !canNudgeFieldValue(set.reps, "reps", -1)
                         }
-                        disabled={controlsDisabled}
-                        className="p-2 hover:bg-white/10 rounded-md transition-colors disabled:opacity-40"
+                        className={STEPPER_BUTTON_CLASS}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Increase reps"
+                        onClick={() => nudgeFieldValue(set.id, "reps", 1)}
+                        disabled={
+                          controlsDisabled ||
+                          !canNudgeFieldValue(set.reps, "reps", 1)
+                        }
+                        className={STEPPER_BUTTON_CLASS}
                       >
                         <Plus className="h-4 w-4" />
                       </button>

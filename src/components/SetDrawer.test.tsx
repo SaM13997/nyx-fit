@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SetDrawer } from "./SetDrawer";
-import type { Workout, WorkoutSet } from "@/lib/types";
+import type { Workout, WorkoutSet, WeightUnit } from "@/lib/types";
 
 type UpdateHandler = (
   exerciseId: string,
@@ -33,13 +33,17 @@ const makeWorkout = (
   ],
 });
 
-function renderDrawer(workout: Workout, onUpdate: UpdateHandler) {
+function renderDrawer(
+  workout: Workout,
+  onUpdate: UpdateHandler,
+  unit: WeightUnit = "lbs",
+) {
   return render(
     <SetDrawer
       isOpen
       onClose={() => {}}
       exerciseId="exercise-1"
-      unit="lbs"
+      unit={unit}
       workout={workout}
       onUpdate={onUpdate}
     />,
@@ -143,5 +147,96 @@ describe("set drawer editing", () => {
     await waitFor(() => expect(screen.getByDisplayValue("200")).toBeTruthy());
     expect(screen.getByText(/This workout changed elsewhere/)).toBeTruthy();
     expect(onUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe("quick-adjust steppers", () => {
+  it("nudges reps and weight a step at a time without opening the field", async () => {
+    const onUpdate = vi.fn<UpdateHandler>().mockResolvedValue(true);
+    renderDrawer(makeWorkout(1, 100, 5), onUpdate);
+
+    fireEvent.click(screen.getByRole("button", { name: "Increase reps" }));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenLastCalledWith("exercise-1", [
+        { id: "set-1", weight: 100, reps: 6 },
+      ]),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Decrease weight" }));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenLastCalledWith("exercise-1", [
+        { id: "set-1", weight: 95, reps: 6 },
+      ]),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Increase weight" }));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenLastCalledWith("exercise-1", [
+        { id: "set-1", weight: 100, reps: 6 },
+      ]),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Decrease reps" }));
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenLastCalledWith("exercise-1", [
+        { id: "set-1", weight: 100, reps: 5 },
+      ]),
+    );
+
+    expect(onUpdate).toHaveBeenCalledTimes(4);
+  });
+
+  it("steps the weight by the display unit", async () => {
+    const onUpdate = vi.fn<UpdateHandler>().mockResolvedValue(true);
+    renderDrawer(makeWorkout(1, 100, 5), onUpdate, "kgs");
+
+    fireEvent.click(screen.getByRole("button", { name: "Increase weight" }));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith("exercise-1", [
+        { id: "set-1", weight: 102.5, reps: 5 },
+      ]),
+    );
+  });
+
+  it("disables the steppers that cannot move any further", async () => {
+    const onUpdate = vi.fn<UpdateHandler>().mockResolvedValue(true);
+    renderDrawer(makeWorkout(1, 0, 1), onUpdate);
+
+    const decreaseWeight = screen.getByRole<HTMLButtonElement>("button", {
+      name: "Decrease weight",
+    });
+    const decreaseReps = screen.getByRole<HTMLButtonElement>("button", {
+      name: "Decrease reps",
+    });
+
+    expect(decreaseWeight.disabled).toBe(true);
+    expect(decreaseReps.disabled).toBe(true);
+
+    fireEvent.click(screen.getByRole("button", { name: "Increase reps" }));
+
+    await waitFor(() =>
+      expect(onUpdate).toHaveBeenCalledWith("exercise-1", [
+        { id: "set-1", weight: 0, reps: 2 },
+      ]),
+    );
+  });
+
+  it("disables the increment steppers at the ceiling", () => {
+    const onUpdate = vi.fn<UpdateHandler>().mockResolvedValue(true);
+    renderDrawer(makeWorkout(1, 100000, 10000), onUpdate);
+
+    expect(
+      screen.getByRole<HTMLButtonElement>("button", { name: "Increase weight" })
+        .disabled,
+    ).toBe(true);
+    expect(
+      screen.getByRole<HTMLButtonElement>("button", { name: "Increase reps" })
+        .disabled,
+    ).toBe(true);
+    expect(
+      screen.getByRole<HTMLButtonElement>("button", { name: "Decrease reps" })
+        .disabled,
+    ).toBe(false);
   });
 });

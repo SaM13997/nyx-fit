@@ -134,3 +134,75 @@ describe("custom exercise entry", () => {
     expect(selectButton.disabled).toBe(true);
   });
 });
+
+describe("preset exercise search", () => {
+  it("filters the preset list case-insensitively and logs the picked result", async () => {
+    onAddSet.mockResolvedValue(true);
+    renderDrawer();
+
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search exercises" }),
+      { target: { value: "CURL" } },
+    );
+
+    expect(screen.getByRole("button", { name: /Bicep Curl/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /Squat/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /Bicep Curl/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Log Set" }));
+
+    await waitFor(() =>
+      expect(onAddSet).toHaveBeenCalledWith("Bicep Curl", "arms", 45, 8),
+    );
+  });
+
+  it("returns to the wheel picker when the search is cleared", () => {
+    renderDrawer();
+    const search = screen.getByRole<HTMLInputElement>("textbox", {
+      name: "Search exercises",
+    });
+
+    fireEvent.change(search, { target: { value: "dead" } });
+    expect(screen.getByRole("button", { name: /Deadlift/ })).toBeTruthy();
+    expect(document.querySelector("[data-rwp]")).toBeNull();
+
+    fireEvent.change(search, { target: { value: "" } });
+    expect(document.querySelector("[data-rwp]")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: /Deadlift/ })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Select Bench Press" }),
+    ).toBeTruthy();
+  });
+
+  it("shows an empty state while nothing matches", () => {
+    renderDrawer();
+
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search exercises" }),
+      { target: { value: "zzz" } },
+    );
+
+    expect(screen.getByText("No exercises match that search.")).toBeTruthy();
+  });
+
+  it("keeps custom entry usable after a search with no matches", () => {
+    renderDrawer();
+
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Search exercises" }),
+      { target: { value: "zzz" } },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Type a custom exercise" }),
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Custom exercise name" }),
+      { target: { value: "Belt Squat" } },
+    );
+
+    expect(
+      screen.getByRole<HTMLButtonElement>("button", { name: "Select Belt Squat" })
+        .disabled,
+    ).toBe(false);
+  });
+});

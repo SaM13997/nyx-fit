@@ -57,6 +57,7 @@ export function AddExerciseDrawer({
   const [category, setCategory] = useState<ExerciseCategory>(inferExerciseCategory(COMMON_EXERCISES[0]));
   const [customName, setCustomName] = useState("");
   const [isCustomMode, setIsCustomMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [weight, setWeight] = useState(weightOptions[8].toString());
   const [reps, setReps] = useState("8");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,12 +91,37 @@ export function AddExerciseDrawer({
 
   const candidateExercise = isCustomMode ? customName.trim() : pickerExercise;
 
+  const searchTerm = searchQuery.trim().toLowerCase();
+  const filteredExercises =
+    !isCustomMode && searchTerm !== ""
+      ? COMMON_EXERCISES.filter((name) =>
+          name.toLowerCase().includes(searchTerm),
+        )
+      : null;
+
+  const hasNoSearchMatches =
+    filteredExercises !== null && filteredExercises.length === 0;
+
+  const selectLabel = hasNoSearchMatches
+    ? "No matching exercises"
+    : candidateExercise
+      ? `Select ${candidateExercise}`
+      : "Select an exercise";
+
+  const handleSearchSelect = (name: string) => {
+    setPickerExercise(name);
+    setCategory(inferExerciseCategory(name));
+    categoryOverriddenRef.current = false;
+    setSelectedExercise(name);
+  };
+
   const resetState = () => {
     setSelectedExercise(null);
     setPickerExercise(COMMON_EXERCISES[0]);
     setCategory(inferExerciseCategory(COMMON_EXERCISES[0]));
     setCustomName("");
     setIsCustomMode(false);
+    setSearchQuery("");
     setWeight(weightOptions[8].toString());
     setReps("8");
     setCommitFailed(false);
@@ -170,7 +196,7 @@ export function AddExerciseDrawer({
               </div>
             </div>
 
-            <div className="p-6 flex flex-col items-center gap-8">
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-8">
               {!selectedExercise ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -195,20 +221,55 @@ export function AddExerciseDrawer({
                       className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
                     />
                   ) : (
-                    <div className="relative h-48 w-full overflow-hidden">
-                      <WheelPicker
-                        options={COMMON_EXERCISES.map((ex) => ({
-                          value: ex,
-                          label: ex,
-                        }))}
-                        value={pickerExercise}
-                        onValueChange={(val) => {
-                          setPickerExercise(val);
-                          setCategory(inferExerciseCategory(val));
-                          categoryOverriddenRef.current = false;
-                        }}
+                    <div className="w-full space-y-3">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        placeholder="Search exercises"
+                        aria-label="Search exercises"
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
                       />
-                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+
+                      {filteredExercises === null ? (
+                        <div className="relative h-48 w-full overflow-hidden">
+                          <WheelPicker
+                            options={COMMON_EXERCISES.map((ex) => ({
+                              value: ex,
+                              label: ex,
+                            }))}
+                            value={pickerExercise}
+                            onValueChange={(val) => {
+                              setPickerExercise(val);
+                              setCategory(inferExerciseCategory(val));
+                              categoryOverriddenRef.current = false;
+                            }}
+                          />
+                          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+                        </div>
+                      ) : (
+                        <div className="h-48 w-full space-y-2 overflow-y-auto">
+                          {hasNoSearchMatches ? (
+                            <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+                              No exercises match that search.
+                            </p>
+                          ) : (
+                            filteredExercises.map((name) => (
+                              <button
+                                key={name}
+                                type="button"
+                                onClick={() => handleSearchSelect(name)}
+                                className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl bg-white/5 px-4 text-left transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+                              >
+                                <span className="font-medium text-white">{name}</span>
+                                <span className="text-xs text-zinc-500">
+                                  {formatExerciseCategory(inferExerciseCategory(name))}
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -262,10 +323,10 @@ export function AddExerciseDrawer({
                       if (!name) return;
                       setSelectedExercise(name);
                     }}
-                    disabled={!candidateExercise}
+                    disabled={!candidateExercise || hasNoSearchMatches}
                     className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
                   >
-                    {candidateExercise ? `Select ${candidateExercise}` : "Select an exercise"}
+                    {selectLabel}
                   </motion.button>
                 </motion.div>
               ) : (
