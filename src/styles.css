@@ -83,14 +83,15 @@ code {
   --color-ob-bar-rest: var(--ob-bar-rest);
   --color-flow-bg: var(--flow-bg);
   --color-flow-card: var(--flow-card);
+  --color-flow-panel: var(--flow-panel);
   --color-flow-ink: var(--flow-ink);
   --color-flow-ink-soft: var(--flow-ink-soft);
   --color-flow-ink-faint: var(--flow-ink-faint);
   --color-flow-line: var(--flow-line);
-  --color-flow-lavender: var(--flow-lavender);
+  --color-flow-blush: var(--flow-blush);
   --color-flow-mint: var(--flow-mint);
-  --color-flow-lime: var(--flow-lime);
-  --color-flow-forest: var(--flow-forest);
+  --color-flow-cyan: var(--flow-cyan);
+  --color-flow-teal: var(--flow-teal);
   --color-flow-tomato: var(--flow-tomato);
   --color-flow-bar-rest: var(--flow-bar-rest);
   --color-flow-disabled: var(--flow-disabled);
@@ -423,41 +424,30 @@ code {
 }
 
 /* Onboarding flow world, shared by /onboarding and the design board */
-@keyframes flow-drift {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.03);
-  }
-}
-
 @layer components {
 .theme-flow {
-  --font-heading: "Space Grotesk", "DM Sans", system-ui, sans-serif;
-  --font-sans: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Chakra Petch", "Titillium Web", system-ui, sans-serif;
+  --font-sans: "Titillium Web", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-  --flow-bg: #faf9f7;
+  --flow-bg: #ddeef0;
   --flow-card: #ffffff;
-  --flow-ink: #171719;
-  --flow-ink-soft: #5f5e63;
-  --flow-ink-faint: #6e6d73;
-  --flow-line: rgba(23, 23, 25, 0.07);
-  --flow-lavender: #ddd4fa;
-  --flow-lime: #c8f65c;
-  --flow-mint: #d9f0e4;
-  --flow-forest: #1a683d;
+  --flow-panel: #191c20;
+  --flow-ink: #23262c;
+  --flow-ink-soft: #4f555f;
+  --flow-ink-faint: #60666f;
+  --flow-line: rgba(35, 38, 44, 0.1);
+  --flow-blush: #f6d9dc;
+  --flow-mint: #c9ebdb;
+  --flow-cyan: #2ac8e0;
+  --flow-teal: #146b73;
   --flow-tomato: #f34e32;
-  --flow-bar-rest: #eae8ee;
-  --flow-disabled: #edece8;
-  --flow-disabled-ink: #808086;
+  --flow-bar-rest: #c4dde2;
+  --flow-disabled: #e8edef;
+  --flow-disabled-ink: #6e747c;
 
   --flow-shadow-card: 0 1px 2px rgba(23, 23, 25, 0.05), 0 14px 34px rgba(23, 23, 25, 0.08);
   --flow-shadow-float: 0 2px 8px rgba(23, 23, 25, 0.06), 0 28px 64px rgba(23, 23, 25, 0.13);
   --flow-shadow-action: 0 10px 24px rgba(23, 23, 25, 0.18);
-  --flow-shadow-lime: 0 1px 2px rgba(23, 23, 25, 0.05), 0 14px 34px rgba(23, 23, 25, 0.08),
-    0 10px 30px -6px rgba(154, 205, 48, 0.45);
 
   --background: var(--flow-bg);
   --foreground: var(--flow-ink);
@@ -471,14 +461,14 @@ code {
   --secondary-foreground: var(--flow-ink);
   --muted: var(--flow-bar-rest);
   --muted-foreground: var(--flow-ink-soft);
-  --accent: color-mix(in oklab, var(--flow-lime) 30%, white);
+  --accent: color-mix(in oklab, var(--flow-cyan) 30%, white);
   --accent-foreground: var(--flow-ink);
   --destructive: var(--flow-tomato);
   --border: var(--flow-line);
   --input: color-mix(in oklab, var(--flow-ink) 46%, white);
   --ring: var(--flow-ink);
-  --chart-1: var(--flow-lime);
-  --chart-2: var(--flow-forest);
+  --chart-1: var(--flow-cyan);
+  --chart-2: var(--flow-teal);
   --chart-3: var(--flow-tomato);
   --chart-4: var(--flow-ink-soft);
   --chart-5: var(--flow-ink);
@@ -499,7 +489,7 @@ code {
 
 .theme-flow::selection,
 .theme-flow ::selection {
-  background: var(--flow-lime);
+  background: var(--flow-cyan);
   color: var(--flow-ink);
 }
 
@@ -515,11 +505,30 @@ code {
   box-shadow: var(--flow-shadow-action);
 }
 
-.flow-shadow-lime {
-  box-shadow: var(--flow-shadow-lime);
+.flow-band {
+  border-radius: 28px 28px 0 0;
+  background: var(--flow-panel);
+  color: #ffffff;
 }
 
-.flow-drift {
-  animation: flow-drift 34s ease-in-out infinite;
+.flow-band :focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.flow-field-top {
+  height: 46%;
+}
+
+.flow-field-blush {
+  background: #fbe9f4;
+}
+
+.flow-field-cyan {
+  background: #dff6fa;
+}
+
+.flow-field-mint {
+  background: #ddf8ed;
 }
 }

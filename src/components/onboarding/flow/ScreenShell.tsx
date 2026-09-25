@@ -14,7 +14,7 @@ function StepProgress({ step }: { step: 2 | 3 | 4 }) {
           key={value}
           aria-hidden="true"
           value={value <= segment ? 100 : 0}
-          className="h-1.5 flex-1"
+          className="h-1.5 flex-1 bg-flow-bar-rest"
         />
       ))}
     </div>
@@ -30,8 +30,8 @@ function FlowHeader({
 }) {
   return (
     <header className="px-6">
-      <div className="flex h-10 items-center justify-center">
-        <p className="font-heading text-[17px] leading-6 font-semibold tracking-[-0.01em] text-flow-ink">
+      <div className="flex h-8 items-center justify-center">
+        <p className="font-heading text-[15px] leading-5 font-semibold tracking-[0.08em] text-flow-ink-soft uppercase">
           Nyx Fit
         </p>
       </div>
@@ -81,7 +81,7 @@ export function ScreenShell({
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.24, ease: "easeOut" }}
-          className="shrink-0 px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+          className="flow-band shrink-0 px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           {footer}
         </motion.div>

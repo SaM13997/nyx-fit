@@ -62,8 +62,8 @@ function DesignOnboardingPage() {
   return (
     <div className="theme-flow min-h-full bg-flow-bg">
       <BoardSection
-        title="Onboarding — warm light concept"
-        description="Four steps, one live prototype. Warm off-white surfaces, lavender and mint ribbons, ink actions, lime selection. Switch screens, resize the stage, and walk the flow end to end."
+        title="Onboarding — pastel replay concept"
+        description="Four steps, one live prototype. Pale cyan field with blush and mint illustrated panels, minimalist line-art faces with a training cue, charcoal action dock, white pill CTAs, mint/cyan/ink choices. Switch screens, resize the stage, and walk the flow end to end."
       >
         <OnboardingConceptBoard />
       </BoardSection>

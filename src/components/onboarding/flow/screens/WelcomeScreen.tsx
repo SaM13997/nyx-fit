@@ -3,8 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScreenShell } from "../ScreenShell";
-import { BarsCard, Capsule } from "../artwork";
-import { body, caption, display } from "../classes";
+import { body, ctaPill, display, focusRingLight } from "../classes";
 import { flowCopy } from "../config";
 
 export function WelcomeScreen({
@@ -23,65 +22,53 @@ export function WelcomeScreen({
         <>
           <h1
             tabIndex={-1}
-            className={cn(display, "text-flow-ink focus:outline-none")}
+            className={cn(display, "text-white focus:outline-none")}
           >
             {flowCopy.welcome.heading}
           </h1>
-          <p className={cn(body, "mt-2.5 max-w-[330px]")}>
+          <p className={cn(body, "mt-2.5 max-w-[330px] text-white/80")}>
             {flowCopy.welcome.description}
           </p>
           <Button
             type="button"
+            variant="card"
             size="xl"
             onClick={onStart}
-            className="mt-6 w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+            className={cn(
+              ctaPill,
+              "mt-6 w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100",
+            )}
           >
             {flowCopy.welcome.action}
             <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.75} />
           </Button>
-          <Button
+          <button
             type="button"
-            variant="link"
             onClick={onExistingAccount}
-            className="mt-1.5 min-h-11 self-center"
+            className={cn(
+              focusRingLight,
+              "mt-1.5 flex w-full min-h-11 items-center justify-center self-center rounded-full text-[14px] leading-5 font-semibold text-white/85 hover:text-white",
+            )}
           >
             {flowCopy.welcome.existing}
-          </Button>
+          </button>
         </>
       }
     >
-      <div className="relative -mx-6 flex min-h-60 flex-1 items-center justify-center px-6 py-5">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="relative"
-        >
-          <motion.div
-            animate={reduceMotion ? undefined : { y: [0, -7, 0] }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <BarsCard
-              heights={[20, 30, 26, 42, 54, 68]}
-              tones={["rest", "rest", "lavender", "mint", "lime", "tomato"]}
-              caption={
-                <>
-                  <span className={cn(caption, "text-flow-ink")}>
-                    {flowCopy.welcome.art.effort}
-                  </span>
-                  <span className={cn(caption, "text-flow-ink")}>
-                    {flowCopy.welcome.art.progress}
-                  </span>
-                </>
-              }
-              className="w-[288px] -rotate-[4deg]"
-            />
-          </motion.div>
-          <Capsule className="absolute -right-[12px] -bottom-8">
-            {flowCopy.welcome.capsule}
-          </Capsule>
-        </motion.div>
-      </div>
+      <motion.div
+        aria-hidden="true"
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flow-shadow-card mx-auto mt-2 flex h-9 items-center gap-2.5 rounded-full bg-white/85 pr-4 pl-2.5 text-flow-ink"
+      >
+        <span className="flex size-[22px] items-center justify-center rounded-full bg-flow-cyan">
+          <span className="size-2 rounded-full bg-flow-ink" />
+        </span>
+        <span className="text-[12px] leading-4 font-semibold">
+          {flowCopy.welcome.capsule}
+        </span>
+      </motion.div>
     </ScreenShell>
   );
 }

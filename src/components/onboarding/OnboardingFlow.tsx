@@ -317,7 +317,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta === null) return;
     const previous = meta.getAttribute("content");
-    meta.setAttribute("content", "#FAF9F7");
+    meta.setAttribute("content", "#DDEEF0");
     return () => {
       if (previous !== null) {
         meta.setAttribute("content", previous);

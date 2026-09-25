@@ -37,14 +37,15 @@ const toneClasses: Record<
 > = {
   flow: {
     trigger:
-      "w-full text-[15px] leading-5 font-semibold text-flow-ink-soft hover:text-flow-ink",
+      "w-full text-[15px] leading-5 font-semibold text-flow-ink-soft hover:text-flow-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flow-ink",
     label: "text-[13px] leading-4 font-semibold text-flow-ink",
     input:
-      "h-11 rounded-md border-flow-line bg-flow-card px-3.5 text-[16px] text-flow-ink placeholder:text-flow-ink-faint focus-visible:border-flow-ink focus-visible:ring-flow-ink/20",
-    submit: "w-full",
+      "h-11 rounded-full border-flow-ink/50 bg-flow-card px-4 text-[16px] text-flow-ink placeholder:text-flow-ink-faint focus-visible:border-flow-ink focus-visible:ring-flow-ink/20",
+    submit:
+      "w-full rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flow-ink",
     collapse:
-      "w-full text-[13px] leading-4 font-semibold text-flow-ink-soft hover:text-flow-ink",
-    error: "text-flow-tomato",
+      "w-full text-[13px] leading-4 font-semibold text-flow-ink-soft hover:text-flow-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-flow-ink",
+    error: "text-[#b2391f]",
   },
   login: {
     trigger: "w-full text-sm font-semibold text-zinc-300 hover:text-white",
@@ -118,6 +119,7 @@ export function EmailAuthReveal({
     if (open) {
       interactedRef.current = true;
       emailInputRef.current?.focus({ preventScroll: true });
+      emailInputRef.current?.scrollIntoView({ block: "nearest" });
       return;
     }
     if (interactedRef.current) {

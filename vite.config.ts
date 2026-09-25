@@ -8,9 +8,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const config = defineConfig({
 	server: {
-		allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(",")
-			.map((host) => host.trim())
-			.filter(Boolean),
+		allowedHosts: [
+			"devhub.cobbler-tritone.ts.net",
+			...(process.env.VITE_ALLOWED_HOSTS?.split(",")
+				.map((host) => host.trim())
+				.filter(Boolean) ?? []),
+		],
 	},
 	plugins: [
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),

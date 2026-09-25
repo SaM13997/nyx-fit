@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import type { ExperienceLevel } from "../../config";
 import { ScreenShell } from "../ScreenShell";
-import { LevelBarsIcon, RingsArt } from "../artwork";
-import { screenTitle } from "../classes";
+import { CheerArt, LevelBarsIcon } from "../artwork";
+import { ctaPill, screenTitle } from "../classes";
 import { flowCopy, levelLabel } from "../config";
 
 export function ReadyScreen({
@@ -33,10 +33,14 @@ export function ReadyScreen({
       footer={
         <Button
           type="button"
+          variant="card"
           size="xl"
           onClick={onOpenDashboard}
           disabled={disabled}
-          className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+          className={cn(
+            ctaPill,
+            "w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100",
+          )}
         >
           {action}
           <ArrowRight
@@ -49,7 +53,7 @@ export function ReadyScreen({
     >
       <div className="flex min-h-full flex-col items-center text-center">
         <div className="flex flex-1 items-center justify-center py-2">
-          <RingsArt />
+          <CheerArt />
         </div>
 
         <h1
@@ -59,9 +63,9 @@ export function ReadyScreen({
           {flowCopy.ready.heading}
         </h1>
 
-        <div className="flow-shadow-card mt-5 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-flow-line bg-white p-4 text-left">
-          <span aria-hidden="true" className="shrink-0 text-flow-forest">
-            <LevelBarsIcon count={3} tone="lime" className="size-7" />
+        <div className="flow-shadow-card mt-5 flex w-full items-center gap-3.5 rounded-[22px] border border-flow-line bg-white p-4 text-left">
+          <span aria-hidden="true" className="shrink-0 text-flow-teal">
+            <LevelBarsIcon count={3} tone="cyan" className="size-7" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-[12px] leading-4 text-flow-ink-faint">
@@ -73,14 +77,14 @@ export function ReadyScreen({
           </span>
           <span
             aria-hidden="true"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-flow-lime text-flow-ink"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-flow-cyan text-flow-ink"
           >
             <Check className="size-4" strokeWidth={3} />
           </span>
         </div>
 
-        <div className="flow-shadow-card mt-2.5 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-flow-line bg-white p-4 text-left">
-          <span aria-hidden="true" className="shrink-0 text-flow-forest">
+        <div className="flow-shadow-card mt-2.5 flex w-full items-center gap-3.5 rounded-[22px] border border-flow-line bg-white p-4 text-left">
+          <span aria-hidden="true" className="shrink-0 text-flow-teal">
             <Bell className="size-7" strokeWidth={1.5} />
           </span>
           <span className="min-w-0 flex-1">

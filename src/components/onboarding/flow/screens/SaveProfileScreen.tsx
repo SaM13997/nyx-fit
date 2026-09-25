@@ -11,7 +11,7 @@ import { EmailAuthReveal } from "../EmailAuthReveal";
 import { GoogleColorMark } from "../GoogleColorMark";
 import { ScreenShell } from "../ScreenShell";
 import { ProfileCardArt } from "../artwork";
-import { body, screenTitle } from "../classes";
+import { body, ctaPill, focusRingLight, screenTitle } from "../classes";
 import { flowCopy } from "../config";
 
 export type SaveProfileState =
@@ -32,18 +32,30 @@ function LegalRow({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        "text-center text-[12px] leading-4 font-medium break-words text-flow-ink-soft",
+        "text-center text-[12px] leading-4 font-medium break-words text-white/75",
         className,
       )}
     >
       By continuing, you agree to our{" "}
-      <Button asChild variant="link" size="xs" className="min-w-11 min-h-11 px-1 underline">
-        <Link to="/terms">Terms</Link>
-      </Button>{" "}
+      <Link
+        to="/terms"
+        className={cn(
+          focusRingLight,
+          "inline-flex min-h-11 min-w-11 items-center rounded-full px-1 underline",
+        )}
+      >
+        Terms
+      </Link>{" "}
       and{" "}
-      <Button asChild variant="link" size="xs" className="min-w-11 min-h-11 px-1 underline">
-        <Link to="/privacy">Privacy Policy</Link>
-      </Button>
+      <Link
+        to="/privacy"
+        className={cn(
+          focusRingLight,
+          "inline-flex min-h-11 min-w-11 items-center rounded-full px-1 underline",
+        )}
+      >
+        Privacy Policy
+      </Link>
       .
     </p>
   );
@@ -51,7 +63,7 @@ function LegalRow({ className }: { className?: string }) {
 
 function ErrorAlert({ message }: { message: string }) {
   return (
-    <Alert className="mt-6 border-flow-tomato">
+    <Alert className="mt-4 border-flow-tomato bg-flow-card">
       <AlertDescription className="text-flow-ink break-words">
         {message}
       </AlertDescription>
@@ -123,20 +135,26 @@ export function SaveProfileScreen({
             <>
               <Button
                 type="button"
+                variant="card"
                 size="xl"
                 onClick={onRetry}
-                className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+                className={cn(
+                  ctaPill,
+                  "w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100",
+                )}
               >
                 Retry saving
               </Button>
-              <Button
+              <button
                 type="button"
-                variant="link"
                 onClick={onAbandon}
-                className="mt-1.5 min-h-11 w-full"
+                className={cn(
+                  focusRingLight,
+                  "mt-1.5 flex w-full min-h-11 items-center justify-center rounded-full text-[14px] leading-5 font-semibold text-white/85 hover:text-white",
+                )}
               >
                 Continue without saving
-              </Button>
+              </button>
             </>
           ) : (
             <>
@@ -145,20 +163,22 @@ export function SaveProfileScreen({
                 !pending &&
                 !emailSubmitting &&
                 onBack ? (
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    size="icon-xl"
                     aria-label="Go back"
                     onClick={onBack}
-                    className="enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+                    className={cn(
+                      "flex size-12 shrink-0 items-center justify-center rounded-full bg-white/12 text-white",
+                      "enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100",
+                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                    )}
                   >
                     <ChevronLeft
                       aria-hidden="true"
                       className="size-6"
                       strokeWidth={2}
                     />
-                  </Button>
+                  </button>
                 ) : null}
                 <div className="min-w-0 flex-1">
                   <Button
@@ -168,7 +188,10 @@ export function SaveProfileScreen({
                     onClick={onSignIn}
                     disabled={pending || emailSubmitting}
                     aria-busy={pending ? true : undefined}
-                    className="h-auto min-h-14 w-full px-4 py-2.5 text-center leading-tight whitespace-normal enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+                    className={cn(
+                      ctaPill,
+                      "h-auto min-h-14 w-full px-4 py-2.5 text-center leading-tight whitespace-normal enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100",
+                    )}
                   >
                     {state.status === "saving" ? (
                       <>
@@ -189,16 +212,6 @@ export function SaveProfileScreen({
                   </Button>
                 </div>
               </div>
-              {emailAuth && state.status === "signin" ? (
-                <EmailAuthReveal
-                  mode={emailAuth.mode}
-                  onSubmit={emailAuth.onSubmit}
-                  errorMessage={emailAuth.errorMessage}
-                  isSubmitting={emailAuth.isSubmitting}
-                  onCollapse={emailAuth.onCollapse}
-                  className="mt-1.5"
-                />
-              ) : null}
               <LegalRow className="mt-2" />
             </>
           )}
@@ -212,13 +225,24 @@ export function SaveProfileScreen({
         {heading}
       </h1>
 
+      <p className={cn(body, "mt-2.5 max-w-[330px]")}>{description}</p>
+
       {showArt ? (
-        <div className="relative mt-2 flex min-h-[280px] flex-1 items-center justify-center py-4">
+        <div className="flex min-h-[264px] flex-1 items-center justify-center py-4 [@media(max-height:620px)]:hidden">
           <ProfileCardArt level={level} />
         </div>
       ) : null}
 
-      <p className={cn(body, "mt-2.5 max-w-[330px]")}>{description}</p>
+      {emailAuth && state.status === "signin" ? (
+        <EmailAuthReveal
+          mode={emailAuth.mode}
+          onSubmit={emailAuth.onSubmit}
+          errorMessage={emailAuth.errorMessage}
+          isSubmitting={emailAuth.isSubmitting}
+          onCollapse={emailAuth.onCollapse}
+          className="mt-3"
+        />
+      ) : null}
     </ScreenShell>
   );
 }

@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { BarbellCue, FaceSvg } from "./artwork";
 import type { FlowStep } from "./config";
 
 export type BackgroundDirection = "forward" | "back";
@@ -7,11 +8,11 @@ export type BackgroundDirection = "forward" | "back";
 export const BackgroundDirectionContext =
   createContext<BackgroundDirection>("forward");
 
-const backgroundSrc: Record<FlowStep, string> = {
-  welcome: "/onboarding/1.png",
-  experience: "/onboarding/4.png",
-  save: "/onboarding/2.png",
-  ready: "/onboarding/3.png",
+const sceneFields: Record<FlowStep, string> = {
+  welcome: "flow-field-blush",
+  experience: "flow-field-cyan",
+  save: "flow-field-mint",
+  ready: "flow-field-mint",
 };
 
 const SLIDE_DISTANCE = 44;
@@ -29,7 +30,6 @@ export function OnboardingBackground({
 }) {
   const reduceMotion = useReducedMotion();
   const offscreen = reduceMotion ? undefined : slideX(direction);
-
   return (
     <div
       aria-hidden="true"
@@ -38,44 +38,27 @@ export function OnboardingBackground({
       <AnimatePresence initial={false}>
         <motion.div
           key={step}
-          initial={
-            offscreen === undefined
-              ? { opacity: 0 }
-              : { opacity: 0, x: offscreen, scale: 1.04 }
-          }
-          animate={
-            offscreen === undefined
-              ? { opacity: 1 }
-              : { opacity: 1, x: 0, scale: 1 }
-          }
+          initial={offscreen === undefined ? { opacity: 0 } : { opacity: 0, x: offscreen }}
+          animate={offscreen === undefined ? { opacity: 1 } : { opacity: 1, x: 0 }}
           exit={
             offscreen === undefined
-              ? { opacity: 0, transition: { duration: 0.12, ease: "easeIn" } }
-              : {
-                  opacity: 0,
-                  x: -offscreen * 0.3,
-                  scale: 1.01,
-                  transition: {
-                    duration: 0.3,
-                    ease: "easeIn",
-                    opacity: { duration: 0.12, ease: "easeIn" },
-                  },
-                }
+              ? { opacity: 0, transition: { duration: 0.14, ease: "easeIn" } }
+              : { opacity: 0, x: 0, transition: { duration: 0.14, ease: "easeIn" } }
           }
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          transition={{ duration: 0.28, ease: "easeOut" }}
           className="absolute inset-0"
         >
-          <img
-            src={backgroundSrc[step]}
-            alt=""
-            draggable={false}
-            decoding="async"
-            fetchPriority={step === "welcome" ? "high" : undefined}
-            className="flow-drift absolute inset-0 size-full object-cover object-top select-none motion-reduce:animate-none"
-          />
+          <div className={`flow-field-top ${sceneFields[step]}`} />
+          {step === "welcome" ? (
+            <div className="absolute inset-x-0 top-[10%] flex justify-center">
+              <div className="relative w-[min(64vw,260px)] rounded-full bg-[#f4b2dc] text-flow-ink">
+                <FaceSvg mood="effort" className="w-full" />
+                <BarbellCue className="absolute -top-[6%] -right-[4%] w-[32%] -rotate-[12deg]" />
+              </div>
+            </div>
+          ) : null}
         </motion.div>
       </AnimatePresence>
-      <div className="absolute inset-0 bg-flow-bg/20 backdrop-blur-[6px]" />
     </div>
   );
 }

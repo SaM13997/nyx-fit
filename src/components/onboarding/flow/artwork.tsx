@@ -1,17 +1,14 @@
-import type { ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Bookmark, Check, UserRound } from "lucide-react";
+import { Check, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ExperienceLevel } from "../config";
 import { flowCopy, levelLabel } from "./config";
-import { caption } from "./classes";
 
-export type LevelBarsTone = "lavender" | "lime" | "ink";
+export type LevelBarsTone = "cyan" | "ink";
 
 const levelBarColors: Record<LevelBarsTone, string> = {
-  lavender: "#B9A9F2",
-  lime: "#9FD34B",
-  ink: "#2B2B30",
+  cyan: "#2AC8E0",
+  ink: "#23262C",
 };
 
 export function LevelBarsIcon({
@@ -46,178 +43,107 @@ export function LevelBarsIcon({
   );
 }
 
-export type BarTone = "rest" | "lavender" | "mint" | "lime" | "ink" | "tomato";
+export function SegmentedBar({ className }: { className?: string }) {
+  return (
+    <div aria-hidden="true" className={cn("flex h-1.5 gap-1", className)}>
+      <span className="flex-1 rounded-full bg-flow-ink" />
+      <span className="flex-1 rounded-full bg-flow-ink" />
+      <span className="flex-1 rounded-full bg-flow-bar-rest" />
+    </div>
+  );
+}
 
-export const barToneClass: Record<BarTone, string> = {
-  rest: "bg-flow-bar-rest",
-  lavender: "bg-flow-lavender",
-  mint: "bg-flow-mint",
-  lime: "bg-flow-lime",
-  ink: "bg-[#26262b]",
-  tomato: "bg-flow-tomato",
+export type FaceMood = "calm" | "effort" | "cheer" | "focus";
+
+const facePaths: Record<
+  FaceMood,
+  { mouth: string; eyes: string; extras?: string; extraWidth?: number }
+> = {
+  calm: {
+    mouth: "M44 62c4 5 12 5 16 0",
+    eyes: "M49 49h.01M67 49h.01",
+  },
+  effort: {
+    mouth: "M49 65c2 4 10 4 12 0",
+    eyes: "M46 52l6 3M70 52l-6 3",
+    extras: "M41 44l8 6M75 44l-8 6",
+    extraWidth: 2.6,
+  },
+  focus: {
+    mouth: "M47 63h9M60 63h9",
+    eyes: "M46 51h6M64 51h6",
+    extras: "M42 44l8 3M74 44l-8 3",
+    extraWidth: 2.6,
+  },
+  cheer: {
+    mouth: "M48 56c3 7 13 7 16 0",
+    eyes: "M49 46h.01M67 46h.01",
+    extras: "M34 30l8 7M82 30l-8 7",
+    extraWidth: 2.4,
+  },
 };
 
-export function BarsCard({
-  heights,
-  tones,
-  caption,
-  className,
-}: {
-  heights: number[];
-  tones?: BarTone[];
-  caption?: ReactNode;
-  className?: string;
-}) {
+export function FaceSvg({ mood, className }: { mood: FaceMood; className?: string }) {
+  const face = facePaths[mood];
   return (
-    <div
-      className={cn(
-        "flow-shadow-float rounded-[26px] border border-flow-line bg-flow-card px-5 pt-5 pb-4",
-        className,
-      )}
-    >
-      <div aria-hidden="true" className="flex h-[88px] items-end gap-2.5">
-        {heights.map((height, index) => (
-          <div
-            key={`${height}-${index}`}
-            style={{ height }}
-            className={cn(
-              "flex-1 rounded-full",
-              barToneClass[tones?.[index] ?? "rest"],
-            )}
-          />
-        ))}
-      </div>
-      {caption ? (
-        <div className="mt-4 flex justify-between gap-3 border-t border-flow-line pt-3 text-flow-ink">
-          {caption}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-export function Capsule({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flow-shadow-card inline-flex items-center gap-2.5 rounded-full border border-flow-line bg-white py-2.5 pr-4 pl-2.5 whitespace-nowrap",
-        className,
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className="flex size-[26px] shrink-0 items-center justify-center rounded-full bg-flow-lime text-flow-ink"
-      >
-        <Check className="size-4" strokeWidth={3} />
-      </span>
-      <span className={cn(caption, "font-semibold text-flow-ink")}>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-export function RingsArt({ className }: { className?: string }) {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <div
-      className={cn(
-        "relative flex size-[248px] items-center justify-center",
-        className,
-      )}
-    >
-      <motion.svg
-        viewBox="0 0 248 248"
-        className="absolute inset-0 size-full"
-        aria-hidden="true"
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-      >
-        <circle
-          cx="124"
-          cy="124"
-          r="112"
-          fill="none"
-          stroke="rgba(23,23,25,0.07)"
-          strokeWidth="1"
-          strokeDasharray="2 9"
-        />
-        <circle
-          cx="124"
-          cy="124"
-          r="98"
-          fill="none"
-          stroke="var(--flow-mint)"
-          strokeWidth="1.5"
-        />
-        <circle
-          cx="124"
-          cy="124"
-          r="84"
-          fill="none"
-          stroke="rgba(200,246,92,0.5)"
-          strokeWidth="1.5"
-        />
-      </motion.svg>
-
-      <motion.svg
-        viewBox="0 0 248 248"
-        className="absolute inset-0 size-full"
-        aria-hidden="true"
-        animate={reduceMotion ? undefined : { rotate: 360 }}
-        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-      >
-        <circle
-          cx="124"
-          cy="124"
-          r="91"
-          fill="none"
-          stroke="var(--flow-lime)"
-          strokeWidth="2.5"
+    <svg viewBox="0 0 116 116" fill="none" className={className} aria-hidden="true">
+      <circle
+        cx="58"
+        cy="61"
+        r="31"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M34 33l7 5M82 33l-7 5"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      {face.extras ? (
+        <path
+          d={face.extras}
+          stroke="currentColor"
+          strokeWidth={face.extraWidth ?? 2.6}
           strokeLinecap="round"
-          strokeDasharray="36 536"
         />
-      </motion.svg>
+      ) : null}
+      <path
+        d={face.eyes}
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+      <path
+        d={face.mouth}
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-      <motion.div
-        className="absolute inset-0"
-        aria-hidden="true"
-        animate={reduceMotion ? undefined : { rotate: 360 }}
-        transition={{ duration: 32, repeat: Infinity, ease: "linear" }}
-      >
-        <span className="absolute top-[8px] left-[34%] size-2.5 rounded-full bg-flow-lime" />
-      </motion.div>
-      <motion.div
-        className="absolute inset-0"
-        aria-hidden="true"
-        animate={reduceMotion ? undefined : { rotate: -360 }}
-        transition={{ duration: 46, repeat: Infinity, ease: "linear" }}
-      >
-        <span className="absolute top-1/2 right-[8px] size-2.5 -translate-y-1/2 rounded-full bg-flow-forest" />
-      </motion.div>
+export function BarbellCue({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 72 26" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M12 13h48M12 4v18M6 9v8M60 4v18M66 9v8"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-      <motion.span
-        initial={reduceMotion ? false : { scale: 0.8 }}
-        animate={{ scale: 1 }}
-        transition={{
-          type: "spring",
-          stiffness: 320,
-          damping: 22,
-          delay: 0.05,
-        }}
-        className="relative flex size-[108px] items-center justify-center rounded-full bg-flow-lime text-flow-ink shadow-[0_0_0_10px_rgba(200,246,92,0.2),0_20px_48px_-14px_rgba(154,205,48,0.75)]"
-      >
-        <Check className="size-11" strokeWidth={2.5} />
-      </motion.span>
-    </div>
+export function FaceMark({ mood, className }: { mood: FaceMood; className?: string }) {
+  return (
+    <span className={cn("relative inline-flex", className)}>
+      <FaceSvg mood={mood} className="w-full" />
+      <BarbellCue className="absolute -top-[4%] left-1/2 w-[52%] -translate-x-1/2 -translate-y-full" />
+    </span>
   );
 }
 
@@ -235,69 +161,15 @@ export function ProfileCardArt({
         className,
       )}
     >
-      <svg
-        viewBox="0 0 320 320"
-        className="absolute inset-0 size-full"
-        aria-hidden="true"
-      >
-        <ellipse
-          cx="160"
-          cy="160"
-          rx="148"
-          ry="96"
-          fill="none"
-          stroke="rgba(23,23,25,0.1)"
-          strokeWidth="1"
-          transform="rotate(-16 160 160)"
-        />
-        <ellipse
-          cx="160"
-          cy="160"
-          rx="126"
-          ry="126"
-          fill="none"
-          stroke="rgba(200,246,92,0.45)"
-          strokeWidth="1.5"
-          strokeDasharray="3 10"
-        />
-        <ellipse
-          cx="160"
-          cy="160"
-          rx="104"
-          ry="142"
-          fill="none"
-          stroke="rgba(217,240,228,0.95)"
-          strokeWidth="1.5"
-          transform="rotate(20 160 160)"
-        />
-      </svg>
-      <span
-        aria-hidden="true"
-        className="absolute top-[46%] left-[2%] size-2.5 rounded-full bg-flow-ink"
-      />
-      <span
-        aria-hidden="true"
-        className="absolute top-[34%] right-[3%] size-2.5 rounded-full bg-flow-forest"
-      />
-
-      <div
-        aria-hidden="true"
-        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 rotate-[10deg] scale-[0.96] rounded-[28px] border border-white/60 bg-flow-lavender/60"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 -rotate-[11deg] scale-[0.94] rounded-[28px] border border-white/60 bg-flow-mint/65"
-      />
-
-      <div className="flow-shadow-float relative w-full -rotate-[6deg] rounded-[26px] border border-flow-line bg-flow-card px-5 pt-5 pb-5 text-center">
+      <div className="flow-shadow-float relative w-[210px] rounded-[26px] border border-flow-line bg-flow-card px-5 pt-5 pb-5 text-center">
         <p className="text-[10px] leading-3 font-semibold tracking-[0.2em] text-flow-ink-faint uppercase">
           {flowCopy.save.cardEyebrow}
         </p>
         <span
           aria-hidden="true"
-          className="mx-auto mt-3.5 flex size-[58px] items-center justify-center rounded-full bg-flow-lime text-flow-ink"
+          className="mx-auto mt-3 flex w-[92px] items-center justify-center rounded-[22px] bg-flow-mint text-flow-ink"
         >
-          <UserRound className="size-7" strokeWidth={1.75} />
+          <FaceMark mood="calm" className="w-full" />
         </span>
         <p className="mt-3 font-heading text-[16px] leading-5 font-semibold tracking-[-0.01em] text-flow-ink">
           {flowCopy.save.cardTitle}
@@ -306,46 +178,55 @@ export function ProfileCardArt({
         <p className="mt-3 text-[12px] leading-4 text-flow-ink-faint">
           {flowCopy.save.cardLabel}
         </p>
-        <p className="mx-auto mt-2 w-fit rounded-full bg-flow-lime px-4 py-1.5 text-[13px] leading-4 font-bold text-flow-ink">
+        <p className="mx-auto mt-2 flex w-fit items-center gap-2 rounded-full bg-flow-cyan px-4 py-1.5 text-[13px] leading-4 font-bold text-flow-ink">
+          <UserRound className="size-4" strokeWidth={2.25} />
           {levelLabel(level)}
         </p>
-        <div
-          aria-hidden="true"
-          className="mt-4 flex h-[48px] items-end justify-start gap-1"
-        >
-          {([14, 22, 32, 44] as const).map((height, index) => (
-            <div
-              key={height}
-              style={{ height }}
-              className={cn(
-                "w-6 rounded-full",
-                (
-                  [
-                    "bg-flow-lavender",
-                    "bg-flow-bar-rest",
-                    "bg-flow-mint",
-                    "bg-[#26262b]",
-                  ] as const
-                )[index],
-              )}
-            />
-          ))}
-        </div>
+        <SegmentedBar className="mt-4" />
+      </div>
 
-        <div className="flow-shadow-card absolute right-0 -bottom-4 w-[140px] rotate-[4deg] rounded-[18px] border border-flow-line bg-white p-3 text-left">
-          <div className="flex items-start gap-2.5">
-            <span
-              aria-hidden="true"
-              className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-flow-lime text-flow-ink"
-            >
-              <Bookmark className="size-4" strokeWidth={2.25} />
-            </span>
-            <span className="text-[12.5px] leading-[1.25] font-semibold text-flow-ink">
-              {flowCopy.save.capsule}
-            </span>
-          </div>
+      <div className="flow-shadow-card absolute right-1 -bottom-3 w-[152px] rotate-[4deg] rounded-[18px] border border-flow-line bg-white p-3 text-left">
+        <div className="flex items-start gap-2.5">
+          <span
+            aria-hidden="true"
+            className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-flow-cyan text-flow-ink"
+          >
+            <Check className="size-4" strokeWidth={2.25} />
+          </span>
+          <span className="text-[12.5px] leading-[1.25] font-semibold text-flow-ink">
+            {flowCopy.save.capsule}
+          </span>
         </div>
       </div>
     </div>
+  );
+}
+
+export function CheerArt({ className }: { className?: string }) {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className={cn("relative flex w-[188px] justify-center", className)}
+    >
+      <span
+        aria-hidden="true"
+        className="absolute top-1/2 left-1/2 size-[210px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2px] border-dashed border-flow-ink/15"
+      />
+      <div className="relative w-[164px] rounded-full bg-flow-cyan px-3 pt-3 text-flow-ink">
+        <FaceMark mood="cheer" className="w-full" />
+      </div>
+      <span
+        aria-hidden="true"
+        className="absolute top-[16%] right-[2%] size-2.5 rounded-full bg-flow-cyan"
+      />
+      <span
+        aria-hidden="true"
+        className="absolute top-[24%] left-[4%] size-2 rounded-full bg-flow-blush"
+      />
+    </motion.div>
   );
 }

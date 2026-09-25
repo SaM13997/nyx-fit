@@ -233,11 +233,11 @@ export function OnboardingConceptBoard({
       </div>
 
       <p className="mt-4 max-w-[620px] text-[13px] leading-5 font-medium text-flow-ink-soft">
-        Interactive visual prototype of the warm light concept. The four screens
-        run as one flow: selection carries into the profile and completion
-        states, and every action is live. Google sign-in and profile saving are
-        simulated inside this board only; the shipped onboarding flow now runs
-        the same screens.
+        Interactive visual prototype of the pastel replay concept. The four
+        screens run as one flow: selection carries into the profile and
+        completion states, and every action is live. Google sign-in and profile
+        saving are simulated inside this board only; the shipped onboarding flow
+        now runs the same screens.
       </p>
     </div>
   );

@@ -33,17 +33,17 @@ export const experienceOptions: ExperienceOption[] = [
   {
     value: "beginner",
     label: "Beginner",
-    detail: "Learning the basics and building a foundation.",
+    detail: "Building a foundation.",
   },
   {
     value: "intermediary",
     label: "Intermediate",
-    detail: "Comfortable with the basics and training consistently.",
+    detail: "Training consistently.",
   },
   {
     value: "advanced",
     label: "Advanced",
-    detail: "Experienced and managing my own programming.",
+    detail: "Runs their own programming.",
   },
 ];
 
@@ -67,7 +67,6 @@ export const flowCopy = {
       "Log your workouts. See your progress. Build a rhythm that lasts.",
     action: "Set up my profile",
     existing: "I already have an account",
-    art: { effort: "Your effort.", progress: "Your progress." },
     capsule: "One workout at a time.",
   },
   experience: {
