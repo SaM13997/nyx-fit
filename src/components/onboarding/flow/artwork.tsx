@@ -3,8 +3,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Bookmark, Check, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ExperienceLevel } from "../config";
-import { lumenCopy, lumenLevelLabel } from "./config";
-import { lmCaption } from "./classes";
+import { flowCopy, levelLabel } from "./config";
+import { caption } from "./classes";
 
 export type LevelBarsTone = "lavender" | "lime" | "ink";
 
@@ -49,12 +49,12 @@ export function LevelBarsIcon({
 export type BarTone = "rest" | "lavender" | "mint" | "lime" | "ink" | "tomato";
 
 export const barToneClass: Record<BarTone, string> = {
-  rest: "bg-lm-bar-rest",
-  lavender: "bg-lm-lavender",
-  mint: "bg-lm-mint",
-  lime: "bg-lm-lime",
+  rest: "bg-flow-bar-rest",
+  lavender: "bg-flow-lavender",
+  mint: "bg-flow-mint",
+  lime: "bg-flow-lime",
   ink: "bg-[#26262b]",
-  tomato: "bg-lm-tomato",
+  tomato: "bg-flow-tomato",
 };
 
 export function BarsCard({
@@ -71,7 +71,7 @@ export function BarsCard({
   return (
     <div
       className={cn(
-        "lm-shadow-float rounded-[26px] border border-lm-line bg-lm-card px-5 pt-5 pb-4",
+        "flow-shadow-float rounded-[26px] border border-flow-line bg-flow-card px-5 pt-5 pb-4",
         className,
       )}
     >
@@ -88,7 +88,7 @@ export function BarsCard({
         ))}
       </div>
       {caption ? (
-        <div className="mt-4 flex justify-between gap-3 border-t border-lm-line pt-3 text-lm-ink">
+        <div className="mt-4 flex justify-between gap-3 border-t border-flow-line pt-3 text-flow-ink">
           {caption}
         </div>
       ) : null}
@@ -106,17 +106,17 @@ export function Capsule({
   return (
     <div
       className={cn(
-        "lm-shadow-card inline-flex items-center gap-2.5 rounded-full border border-lm-line bg-white py-2.5 pr-4 pl-2.5 whitespace-nowrap",
+        "flow-shadow-card inline-flex items-center gap-2.5 rounded-full border border-flow-line bg-white py-2.5 pr-4 pl-2.5 whitespace-nowrap",
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className="flex size-[26px] shrink-0 items-center justify-center rounded-full bg-lm-lime text-lm-ink"
+        className="flex size-[26px] shrink-0 items-center justify-center rounded-full bg-flow-lime text-flow-ink"
       >
         <Check className="size-4" strokeWidth={3} />
       </span>
-      <span className={cn(lmCaption, "font-semibold text-lm-ink")}>
+      <span className={cn(caption, "font-semibold text-flow-ink")}>
         {children}
       </span>
     </div>
@@ -155,7 +155,7 @@ export function RingsArt({ className }: { className?: string }) {
           cy="124"
           r="98"
           fill="none"
-          stroke="var(--lm-mint)"
+          stroke="var(--flow-mint)"
           strokeWidth="1.5"
         />
         <circle
@@ -180,7 +180,7 @@ export function RingsArt({ className }: { className?: string }) {
           cy="124"
           r="91"
           fill="none"
-          stroke="var(--lm-lime)"
+          stroke="var(--flow-lime)"
           strokeWidth="2.5"
           strokeLinecap="round"
           strokeDasharray="36 536"
@@ -193,7 +193,7 @@ export function RingsArt({ className }: { className?: string }) {
         animate={reduceMotion ? undefined : { rotate: 360 }}
         transition={{ duration: 32, repeat: Infinity, ease: "linear" }}
       >
-        <span className="absolute top-[8px] left-[34%] size-2.5 rounded-full bg-lm-lime" />
+        <span className="absolute top-[8px] left-[34%] size-2.5 rounded-full bg-flow-lime" />
       </motion.div>
       <motion.div
         className="absolute inset-0"
@@ -201,7 +201,7 @@ export function RingsArt({ className }: { className?: string }) {
         animate={reduceMotion ? undefined : { rotate: -360 }}
         transition={{ duration: 46, repeat: Infinity, ease: "linear" }}
       >
-        <span className="absolute top-1/2 right-[8px] size-2.5 -translate-y-1/2 rounded-full bg-lm-forest" />
+        <span className="absolute top-1/2 right-[8px] size-2.5 -translate-y-1/2 rounded-full bg-flow-forest" />
       </motion.div>
 
       <motion.span
@@ -213,7 +213,7 @@ export function RingsArt({ className }: { className?: string }) {
           damping: 22,
           delay: 0.05,
         }}
-        className="relative flex size-[108px] items-center justify-center rounded-full bg-lm-lime text-lm-ink shadow-[0_0_0_10px_rgba(200,246,92,0.2),0_20px_48px_-14px_rgba(154,205,48,0.75)]"
+        className="relative flex size-[108px] items-center justify-center rounded-full bg-flow-lime text-flow-ink shadow-[0_0_0_10px_rgba(200,246,92,0.2),0_20px_48px_-14px_rgba(154,205,48,0.75)]"
       >
         <Check className="size-11" strokeWidth={2.5} />
       </motion.span>
@@ -273,41 +273,41 @@ export function ProfileCardArt({
       </svg>
       <span
         aria-hidden="true"
-        className="absolute top-[46%] left-[2%] size-2.5 rounded-full bg-lm-ink"
+        className="absolute top-[46%] left-[2%] size-2.5 rounded-full bg-flow-ink"
       />
       <span
         aria-hidden="true"
-        className="absolute top-[34%] right-[3%] size-2.5 rounded-full bg-lm-forest"
+        className="absolute top-[34%] right-[3%] size-2.5 rounded-full bg-flow-forest"
       />
 
       <div
         aria-hidden="true"
-        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 rotate-[10deg] scale-[0.96] rounded-[28px] border border-white/60 bg-lm-lavender/60"
+        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 rotate-[10deg] scale-[0.96] rounded-[28px] border border-white/60 bg-flow-lavender/60"
       />
       <div
         aria-hidden="true"
-        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 -rotate-[11deg] scale-[0.94] rounded-[28px] border border-white/60 bg-lm-mint/65"
+        className="absolute top-1/2 aspect-square w-full -translate-y-1/2 -rotate-[11deg] scale-[0.94] rounded-[28px] border border-white/60 bg-flow-mint/65"
       />
 
-      <div className="lm-shadow-float relative w-full -rotate-[6deg] rounded-[26px] border border-lm-line bg-lm-card px-5 pt-5 pb-5 text-center">
-        <p className="text-[10px] leading-3 font-semibold tracking-[0.2em] text-lm-ink-faint uppercase">
-          {lumenCopy.save.cardEyebrow}
+      <div className="flow-shadow-float relative w-full -rotate-[6deg] rounded-[26px] border border-flow-line bg-flow-card px-5 pt-5 pb-5 text-center">
+        <p className="text-[10px] leading-3 font-semibold tracking-[0.2em] text-flow-ink-faint uppercase">
+          {flowCopy.save.cardEyebrow}
         </p>
         <span
           aria-hidden="true"
-          className="mx-auto mt-3.5 flex size-[58px] items-center justify-center rounded-full bg-lm-lime text-lm-ink"
+          className="mx-auto mt-3.5 flex size-[58px] items-center justify-center rounded-full bg-flow-lime text-flow-ink"
         >
           <UserRound className="size-7" strokeWidth={1.75} />
         </span>
-        <p className="mt-3 font-heading text-[16px] leading-5 font-semibold tracking-[-0.01em] text-lm-ink">
-          {lumenCopy.save.cardTitle}
+        <p className="mt-3 font-heading text-[16px] leading-5 font-semibold tracking-[-0.01em] text-flow-ink">
+          {flowCopy.save.cardTitle}
         </p>
-        <div className="mt-4 h-px bg-lm-line" />
-        <p className="mt-3 text-[12px] leading-4 text-lm-ink-faint">
-          {lumenCopy.save.cardLabel}
+        <div className="mt-4 h-px bg-flow-line" />
+        <p className="mt-3 text-[12px] leading-4 text-flow-ink-faint">
+          {flowCopy.save.cardLabel}
         </p>
-        <p className="mx-auto mt-2 w-fit rounded-full bg-lm-lime px-4 py-1.5 text-[13px] leading-4 font-bold text-lm-ink">
-          {lumenLevelLabel(level)}
+        <p className="mx-auto mt-2 w-fit rounded-full bg-flow-lime px-4 py-1.5 text-[13px] leading-4 font-bold text-flow-ink">
+          {levelLabel(level)}
         </p>
         <div
           aria-hidden="true"
@@ -321,9 +321,9 @@ export function ProfileCardArt({
                 "w-6 rounded-full",
                 (
                   [
-                    "bg-lm-lavender",
-                    "bg-lm-bar-rest",
-                    "bg-lm-mint",
+                    "bg-flow-lavender",
+                    "bg-flow-bar-rest",
+                    "bg-flow-mint",
                     "bg-[#26262b]",
                   ] as const
                 )[index],
@@ -332,16 +332,16 @@ export function ProfileCardArt({
           ))}
         </div>
 
-        <div className="lm-shadow-card absolute right-0 -bottom-4 w-[140px] rotate-[4deg] rounded-[18px] border border-lm-line bg-white p-3 text-left">
+        <div className="flow-shadow-card absolute right-0 -bottom-4 w-[140px] rotate-[4deg] rounded-[18px] border border-flow-line bg-white p-3 text-left">
           <div className="flex items-start gap-2.5">
             <span
               aria-hidden="true"
-              className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-lm-lime text-lm-ink"
+              className="flex size-8 shrink-0 items-center justify-center rounded-[10px] bg-flow-lime text-flow-ink"
             >
               <Bookmark className="size-4" strokeWidth={2.25} />
             </span>
-            <span className="text-[12.5px] leading-[1.25] font-semibold text-lm-ink">
-              {lumenCopy.save.capsule}
+            <span className="text-[12.5px] leading-[1.25] font-semibold text-flow-ink">
+              {flowCopy.save.capsule}
             </span>
           </div>
         </div>

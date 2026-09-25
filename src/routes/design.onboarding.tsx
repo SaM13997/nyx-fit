@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BoardSection } from "@/components/onboarding/board/BoardSection";
 import type { ExperienceLevel } from "@/components/onboarding/config";
-import { OnboardingConceptBoard } from "@/components/onboarding/lumen/OnboardingConceptBoard";
-import { lumenSteps, type LumenStep } from "@/components/onboarding/lumen/config";
+import { OnboardingConceptBoard } from "@/components/onboarding/flow/OnboardingConceptBoard";
+import { steps, type FlowStep } from "@/components/onboarding/flow/config";
 
 type OnboardingSearch = {
   present: boolean;
-  step: LumenStep;
+  step: FlowStep;
   size: "phone" | "compact";
   level: ExperienceLevel | null;
 };
@@ -15,8 +15,8 @@ function parsePresent(value: unknown): boolean {
   return value === "1" || value === 1 || value === "true" || value === true;
 }
 
-function parseStep(value: unknown): LumenStep {
-  for (const step of lumenSteps) {
+function parseStep(value: unknown): FlowStep {
+  for (const step of steps) {
     if (step === value) return step;
   }
   return "welcome";
@@ -48,7 +48,7 @@ function DesignOnboardingPage() {
 
   if (present) {
     return (
-      <div className="theme-lumen bg-lm-bg">
+      <div className="theme-flow bg-flow-bg">
         <OnboardingConceptBoard
           presentation
           initialStep={step}
@@ -60,7 +60,7 @@ function DesignOnboardingPage() {
   }
 
   return (
-    <div className="theme-lumen min-h-full bg-lm-bg">
+    <div className="theme-flow min-h-full bg-flow-bg">
       <BoardSection
         title="Onboarding — warm light concept"
         description="Four steps, one live prototype. Warm off-white surfaces, lavender and mint ribbons, ink actions, lime selection. Switch screens, resize the stage, and walk the flow end to end."

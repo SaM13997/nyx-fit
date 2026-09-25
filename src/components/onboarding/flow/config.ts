@@ -1,35 +1,35 @@
 import type { ExperienceLevel } from "../config";
 
-export type LumenStep = "welcome" | "experience" | "save" | "ready";
+export type FlowStep = "welcome" | "experience" | "save" | "ready";
 
-export const lumenSteps: LumenStep[] = [
+export const steps: FlowStep[] = [
   "welcome",
   "experience",
   "save",
   "ready",
 ];
 
-export const lumenStepNumber: Record<LumenStep, 1 | 2 | 3 | 4> = {
+export const stepNumbers: Record<FlowStep, 1 | 2 | 3 | 4> = {
   welcome: 1,
   experience: 2,
   save: 3,
   ready: 4,
 };
 
-export const lumenStepLabel: Record<LumenStep, string> = {
+export const stepLabels: Record<FlowStep, string> = {
   welcome: "Welcome",
   experience: "Experience",
   save: "Save profile",
   ready: "Ready",
 };
 
-export type LumenExperienceOption = {
+export type ExperienceOption = {
   value: ExperienceLevel;
   label: string;
   detail: string;
 };
 
-export const lumenExperienceOptions: LumenExperienceOption[] = [
+export const experienceOptions: ExperienceOption[] = [
   {
     value: "beginner",
     label: "Beginner",
@@ -47,7 +47,7 @@ export const lumenExperienceOptions: LumenExperienceOption[] = [
   },
 ];
 
-export function lumenLevelLabel(level: ExperienceLevel | null): string {
+export function levelLabel(level: ExperienceLevel | null): string {
   switch (level) {
     case "beginner":
       return "Beginner";
@@ -60,7 +60,7 @@ export function lumenLevelLabel(level: ExperienceLevel | null): string {
   }
 }
 
-export const lumenCopy = {
+export const flowCopy = {
   welcome: {
     heading: "Train with intent.",
     description:

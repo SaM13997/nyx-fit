@@ -75,8 +75,8 @@ function HomePage() {
 
   if (isAuthPending || !session) {
     return (
-      <div className="theme-lumen flex min-h-screen items-center justify-center bg-lm-bg">
-        <p role="status" className="text-[16px] leading-6 text-lm-ink-soft">
+      <div className="theme-flow flex min-h-screen items-center justify-center bg-flow-bg">
+        <p role="status" className="text-[16px] leading-6 text-flow-ink-soft">
           Loading…
         </p>
       </div>

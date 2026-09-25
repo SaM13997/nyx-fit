@@ -56,6 +56,14 @@ export const createAuth = (env: AppEnv) => {
   if (!googleClientId && googleClientSecret) {
     throw new Error("Missing GOOGLE_CLIENT_ID");
   }
+  if (!googleClientId && !googleClientSecret) {
+    console.warn(
+      "Google sign-in is disabled: GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET" +
+        " are not set in the runtime environment (.dev.vars locally," +
+        " `wrangler secret put` in deployment). Social sign-in will fail" +
+        ' with "Provider not found" until both are set.',
+    );
+  }
 
   return betterAuth({
     baseURL,

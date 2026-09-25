@@ -140,7 +140,7 @@ async function findHeading(name: string) {
 }
 
 function entrancePanel(): HTMLElement | null {
-  const panel = document.querySelector("main > div");
+  const panel = document.querySelector('main [data-slot="flow-content"]');
   return panel instanceof HTMLElement ? panel : null;
 }
 
@@ -208,6 +208,22 @@ describe("onboarding google sign-in", () => {
     await waitFor(() => expect(mocks.social).toHaveBeenCalledTimes(2));
     expect(mocks.historyPush).not.toHaveBeenCalled();
     expect(mocks.historyReplace).not.toHaveBeenCalled();
+  });
+
+  it("maps a missing google provider to a configuration hint", async () => {
+    render(<OnboardingFlow />);
+    await reachSetupAuth();
+    mocks.social.mockResolvedValueOnce({
+      data: null,
+      error: { code: "PROVIDER_NOT_FOUND", message: "Provider not found" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue with Google" }),
+    );
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toMatch(/isn't configured on this server/);
+    expect(alert.textContent).toMatch(/GOOGLE_CLIENT_ID/);
+    expect(alert.textContent).toMatch(/GOOGLE_CLIENT_SECRET/);
   });
 
   it("recovers the same way from a thrown network error", async () => {

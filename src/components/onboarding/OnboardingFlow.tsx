@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { MotionConfig, motion, useReducedMotion } from "framer-motion";
+import { MotionConfig } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
 import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
@@ -19,14 +19,20 @@ import {
   type ExperienceLevel,
   type StepId,
 } from "./config";
-import { LumenExperienceScreen } from "./lumen/screens/LumenExperienceScreen";
-import { LumenReadyScreen } from "./lumen/screens/LumenReadyScreen";
+import type { FlowStep } from "./flow/config";
 import {
-  LumenSaveProfileScreen,
-  type LumenSaveProfileState,
-} from "./lumen/screens/LumenSaveProfileScreen";
-import { LumenWelcomeScreen } from "./lumen/screens/LumenWelcomeScreen";
-import { lumenCopy } from "./lumen/config";
+  BackgroundDirectionContext,
+  OnboardingBackground,
+  type BackgroundDirection,
+} from "./flow/OnboardingBackground";
+import { ExperienceScreen } from "./flow/screens/ExperienceScreen";
+import { ReadyScreen } from "./flow/screens/ReadyScreen";
+import {
+  SaveProfileScreen,
+  type SaveProfileState,
+} from "./flow/screens/SaveProfileScreen";
+import { WelcomeScreen } from "./flow/screens/WelcomeScreen";
+import { flowCopy } from "./flow/config";
 import {
   isNotificationSupported,
   requestNotificationPermission,
@@ -36,6 +42,18 @@ type EntryPath = "setup" | "existing";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 const READINESS_TIMEOUT_MS = 10000;
+const STEP_ORDER: Record<StepId, 0 | 1 | 2 | 3> = {
+  welcome: 0,
+  experience: 1,
+  auth: 2,
+  done: 3,
+};
+const BACKGROUND_BY_STEP: Record<StepId, FlowStep> = {
+  welcome: "welcome",
+  experience: "experience",
+  auth: "save",
+  done: "ready",
+};
 const SAVE_FALLBACK_ERROR =
   "We couldn't save your training experience. Check your connection and try again.";
 const READINESS_TIMEOUT_ERROR =
@@ -50,6 +68,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const session = sessionData?.session;
   const { upsertCurrentProfile } = useUpsertCurrentProfile();
   const [step, setStep] = useState<StepId>("welcome");
+  const [direction, setDirection] = useState<BackgroundDirection>("forward");
   const [entryPath, setEntryPath] = useState<EntryPath | null>(null);
   const [fitnessLevel, setFitnessLevel] = useState<ExperienceLevel | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -60,6 +79,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [authSettled, setAuthSettled] = useState(false);
   const mountedRef = useRef(false);
+  const stepRef = useRef<StepId>("welcome");
   const postAuthHandledRef = useRef(false);
   const saveAttemptRef = useRef(false);
   const mutatingRef = useRef(false);
@@ -68,7 +88,6 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
   const contentRef = useRef<HTMLElement>(null);
   const firstScreenRef = useRef(true);
   const resumedRef = useRef(false);
-  const reduceMotion = useReducedMotion();
   const destination = redirect ?? "/";
   const authCallbackUrl = redirect
     ? `/onboarding?redirect=${encodeURIComponent(redirect)}`
@@ -95,6 +114,16 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     },
     [submitEmail],
   );
+
+  const changeStep = useCallback((target: StepId) => {
+    const previous = stepRef.current;
+    if (target === previous) return;
+    stepRef.current = target;
+    setDirection(
+      STEP_ORDER[target] > STEP_ORDER[previous] ? "forward" : "back",
+    );
+    setStep(target);
+  }, []);
 
   const clearReadinessTimer = useCallback(() => {
     if (readinessTimerRef.current !== null) {
@@ -130,7 +159,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
       setEntryPath("setup");
       setFitnessLevel(draft.fitnessLevel);
       resumedRef.current = true;
-      setStep(draft.step);
+      changeStep(draft.step);
     }
     setInitialized(true);
     return () => {
@@ -140,7 +169,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         readinessTimerRef.current = null;
       }
     };
-  }, []);
+  }, [changeStep]);
 
   useEffect(() => {
     if (saveLevel === null || saveStatus !== "saving") return;
@@ -154,7 +183,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         if (!mountedRef.current) return;
         clearOnboardingDraft();
         setSaveStatus("saved");
-        setStep("done");
+        changeStep("done");
       } catch (error) {
         if (!mountedRef.current) return;
         setSaveError(
@@ -172,6 +201,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     session,
     upsertCurrentProfile,
     clearReadinessTimer,
+    changeStep,
   ]);
 
   useEffect(() => {
@@ -238,7 +268,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         await upsertCurrentProfile({ updates: { notificationsEnabled: false } });
         setRemindersEnabled(false);
       } catch {
-        setReminderError(lumenCopy.ready.remindersErrorSave);
+        setReminderError(flowCopy.ready.remindersErrorSave);
       } finally {
         setRemindersPending(false);
       }
@@ -246,7 +276,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     }
 
     if (!isNotificationSupported()) {
-      setReminderError(lumenCopy.ready.remindersErrorUnsupported);
+      setReminderError(flowCopy.ready.remindersErrorUnsupported);
       return;
     }
 
@@ -260,26 +290,26 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
       try {
         await upsertCurrentProfile({ updates: { notificationsEnabled: true } });
       } catch {
-        setReminderError(lumenCopy.ready.remindersErrorSave);
+        setReminderError(flowCopy.ready.remindersErrorSave);
       }
       return;
     }
 
     if (permission === "denied") {
-      setReminderError(lumenCopy.ready.remindersErrorDenied);
+      setReminderError(flowCopy.ready.remindersErrorDenied);
       return;
     }
 
-    setReminderError(lumenCopy.ready.remindersErrorDismissed);
+    setReminderError(flowCopy.ready.remindersErrorDismissed);
   }, [remindersPending, remindersEnabled, upsertCurrentProfile]);
 
   const goToStep = useCallback(
     (target: StepId) => {
       clearSignInError();
       clearEmailError();
-      setStep(target);
+      changeStep(target);
     },
-    [clearSignInError, clearEmailError],
+    [clearSignInError, clearEmailError, changeStep],
   );
 
   useEffect(() => {
@@ -308,7 +338,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     router.history.replace(destination);
   }, [clearReadinessTimer, destination, router.history]);
 
-  const authState: LumenSaveProfileState =
+  const authState: SaveProfileState =
     entryPath !== "existing" && saveStatus === "error"
       ? { status: "error", message: saveError ?? SAVE_FALLBACK_ERROR }
       : entryPath !== "existing" && saveStatus === "saving"
@@ -323,7 +353,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     switch (step) {
       case "welcome":
         return (
-          <LumenWelcomeScreen
+          <WelcomeScreen
             onStart={() => {
               clearOnboardingDraft();
               clearLegacyStagedOnboarding();
@@ -340,7 +370,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         );
       case "experience":
         return (
-          <LumenExperienceScreen
+          <ExperienceScreen
             value={fitnessLevel}
             onChange={setFitnessLevel}
             onContinue={() => {
@@ -353,7 +383,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
       case "auth":
         if (entryPath === "existing") {
           return (
-            <LumenSaveProfileScreen
+            <SaveProfileScreen
               level={null}
               state={authState}
               heading={copy.auth.existing.heading}
@@ -372,7 +402,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
           );
         }
         return (
-          <LumenSaveProfileScreen
+          <SaveProfileScreen
             level={fitnessLevel}
             state={authState}
             description={storageAvailable ? undefined : DEGRADED_AUTH_DESCRIPTION}
@@ -395,7 +425,7 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         );
       case "done":
         return (
-          <LumenReadyScreen
+          <ReadyScreen
             level={fitnessLevel}
             action={doneAction}
             disabled={leaving}
@@ -436,28 +466,28 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="theme-lumen fixed inset-0 z-50 flex justify-center overflow-hidden bg-lm-bg">
+      <div className="theme-flow fixed inset-0 z-50 flex justify-center overflow-hidden bg-flow-bg">
+        <OnboardingBackground
+          step={BACKGROUND_BY_STEP[step]}
+          direction={direction}
+        />
         <main ref={contentRef} className="relative h-full w-full max-w-[390px]">
           {showLoadingShell ? (
             <div className="flex h-full items-center justify-center">
               <p
                 role="status"
-                className="text-[16px] leading-6 text-lm-ink-soft"
+                className="text-[16px] leading-6 text-flow-ink-soft"
               >
                 Loading…
               </p>
             </div>
-          ) : (
-            <motion.div
-              key={step}
-              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.16 }}
-              className="h-full"
-            >
+        ) : (
+          <BackgroundDirectionContext.Provider value={direction}>
+            <div key={step} className="h-full">
               {renderStep()}
-            </motion.div>
-          )}
+            </div>
+          </BackgroundDirectionContext.Provider>
+        )}
         </main>
       </div>
     </MotionConfig>

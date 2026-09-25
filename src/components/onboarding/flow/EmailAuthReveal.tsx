@@ -13,9 +13,9 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import type { EmailAuthValues } from "@/lib/use-email-auth";
-import { lumenCopy } from "./config";
+import { flowCopy } from "./config";
 
-export type EmailAuthTone = "lumen" | "login";
+export type EmailAuthTone = "flow" | "login";
 
 const EASE_HEIGHT: [number, number, number, number] = [0.77, 0, 0.175, 1];
 const EASE_FADE: [number, number, number, number] = [0.23, 1, 0.32, 1];
@@ -35,16 +35,16 @@ const toneClasses: Record<
     error: string;
   }
 > = {
-  lumen: {
+  flow: {
     trigger:
-      "w-full text-[15px] leading-5 font-semibold text-lm-ink-soft hover:text-lm-ink",
-    label: "text-[13px] leading-4 font-semibold text-lm-ink",
+      "w-full text-[15px] leading-5 font-semibold text-flow-ink-soft hover:text-flow-ink",
+    label: "text-[13px] leading-4 font-semibold text-flow-ink",
     input:
-      "h-11 rounded-md border-lm-line bg-lm-card px-3.5 text-[16px] text-lm-ink placeholder:text-lm-ink-faint focus-visible:border-lm-ink focus-visible:ring-lm-ink/20",
+      "h-11 rounded-md border-flow-line bg-flow-card px-3.5 text-[16px] text-flow-ink placeholder:text-flow-ink-faint focus-visible:border-flow-ink focus-visible:ring-flow-ink/20",
     submit: "w-full",
     collapse:
-      "w-full text-[13px] leading-4 font-semibold text-lm-ink-soft hover:text-lm-ink",
-    error: "text-lm-tomato",
+      "w-full text-[13px] leading-4 font-semibold text-flow-ink-soft hover:text-flow-ink",
+    error: "text-flow-tomato",
   },
   login: {
     trigger: "w-full text-sm font-semibold text-zinc-300 hover:text-white",
@@ -84,7 +84,7 @@ export function EmailAuthReveal({
   errorMessage,
   isSubmitting,
   onCollapse,
-  tone = "lumen",
+  tone = "flow",
   className,
 }: {
   mode: "signup" | "signin";
@@ -106,7 +106,7 @@ export function EmailAuthReveal({
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
-  const copy = lumenCopy.save.emailForm;
+  const copy = flowCopy.save.emailForm;
 
   useEffect(() => {
     const node = triggerRef.current;
@@ -201,7 +201,7 @@ export function EmailAuthReveal({
             onClick={() => setOpen(true)}
             className={cn("min-h-11", toneClasses[tone].trigger)}
           >
-            {lumenCopy.save.emailAction[mode]}
+            {flowCopy.save.emailAction[mode]}
           </Button>
         </motion.div>
         <motion.div
@@ -279,7 +279,7 @@ export function EmailAuthReveal({
             ) : null}
             <Button
               type="submit"
-              size={tone === "lumen" ? "xl" : "default"}
+              size={tone === "flow" ? "xl" : "default"}
               disabled={isSubmitting}
               className={toneClasses[tone].submit}
             >

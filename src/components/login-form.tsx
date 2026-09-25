@@ -6,7 +6,7 @@ import { GoogleButton } from "@/components/onboarding/kit/GoogleButton";
 import { InlineAlert } from "@/components/onboarding/kit/InlineAlert";
 import { LegalRow } from "@/components/onboarding/kit/LegalRow";
 import { obBody, obScreenTitle } from "@/components/onboarding/kit/classes";
-import { EmailAuthReveal } from "@/components/onboarding/lumen/EmailAuthReveal";
+import { EmailAuthReveal } from "@/components/onboarding/flow/EmailAuthReveal";
 import { useEmailAuth, type EmailAuthValues } from "@/lib/use-email-auth";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 

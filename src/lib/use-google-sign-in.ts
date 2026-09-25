@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
 const FALLBACK_ERROR = "We couldn't sign you in right now. Please try again.";
+const PROVIDER_NOT_CONFIGURED_ERROR =
+  "Google sign-in isn't configured on this server. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the runtime configuration and try again.";
 
 function getAuthErrorMessage(error: unknown) {
   if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -42,7 +44,17 @@ function getSocialResultError(
 }
 
 function getSocialErrorDetail(error: Record<string, unknown>): string | null {
+  const code: unknown = error.code;
   const message: unknown = error.message;
+  if (code === "PROVIDER_NOT_FOUND") {
+    return PROVIDER_NOT_CONFIGURED_ERROR;
+  }
+  if (
+    typeof message === "string" &&
+    message.toLowerCase().includes("provider not found")
+  ) {
+    return PROVIDER_NOT_CONFIGURED_ERROR;
+  }
   if (typeof message !== "string" || message.trim().length === 0) {
     return null;
   }

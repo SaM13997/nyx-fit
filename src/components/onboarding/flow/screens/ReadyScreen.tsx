@@ -3,14 +3,14 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import type { ExperienceLevel } from "../../config";
-import { LumenShell } from "../LumenShell";
+import { ScreenShell } from "../ScreenShell";
 import { LevelBarsIcon, RingsArt } from "../artwork";
-import { lmScreenTitle } from "../classes";
-import { lumenCopy, lumenLevelLabel } from "../config";
+import { screenTitle } from "../classes";
+import { flowCopy, levelLabel } from "../config";
 
-export function LumenReadyScreen({
+export function ReadyScreen({
   level,
-  action = lumenCopy.ready.action,
+  action = flowCopy.ready.action,
   disabled = false,
   remindersEnabled,
   remindersPending,
@@ -28,7 +28,25 @@ export function LumenReadyScreen({
   onOpenDashboard: () => void;
 }) {
   return (
-    <LumenShell step={4} wash="ready">
+    <ScreenShell
+      step={4}
+      footer={
+        <Button
+          type="button"
+          size="xl"
+          onClick={onOpenDashboard}
+          disabled={disabled}
+          className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
+        >
+          {action}
+          <ArrowRight
+            aria-hidden="true"
+            className="size-5"
+            strokeWidth={1.75}
+          />
+        </Button>
+      }
+    >
       <div className="flex min-h-full flex-col items-center text-center">
         <div className="flex flex-1 items-center justify-center py-2">
           <RingsArt />
@@ -36,41 +54,41 @@ export function LumenReadyScreen({
 
         <h1
           tabIndex={-1}
-          className={cn(lmScreenTitle, "mt-3 text-lm-ink focus:outline-none")}
+          className={cn(screenTitle, "mt-2 text-flow-ink focus:outline-none")}
         >
-          {lumenCopy.ready.heading}
+          {flowCopy.ready.heading}
         </h1>
 
-        <div className="lm-shadow-card mt-6 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
-          <span aria-hidden="true" className="shrink-0 text-lm-forest">
+        <div className="flow-shadow-card mt-5 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-flow-line bg-white p-4 text-left">
+          <span aria-hidden="true" className="shrink-0 text-flow-forest">
             <LevelBarsIcon count={3} tone="lime" className="size-7" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[12px] leading-4 text-lm-ink-faint">
-              {lumenCopy.save.cardLabel}
+            <span className="block text-[12px] leading-4 text-flow-ink-faint">
+              {flowCopy.save.cardLabel}
             </span>
-            <span className="block text-[15px] leading-5 font-bold text-lm-ink">
-              {lumenLevelLabel(level)}
+            <span className="block text-[15px] leading-5 font-bold text-flow-ink">
+              {levelLabel(level)}
             </span>
           </span>
           <span
             aria-hidden="true"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-lm-lime text-lm-ink"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-flow-lime text-flow-ink"
           >
             <Check className="size-4" strokeWidth={3} />
           </span>
         </div>
 
-        <div className="lm-shadow-card mt-3 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-lm-line bg-white p-4 text-left">
-          <span aria-hidden="true" className="shrink-0 text-lm-forest">
+        <div className="flow-shadow-card mt-2.5 flex w-[calc(100%-0.5rem)] items-center gap-3.5 rounded-[20px] border border-flow-line bg-white p-4 text-left">
+          <span aria-hidden="true" className="shrink-0 text-flow-forest">
             <Bell className="size-7" strokeWidth={1.5} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[15px] leading-5 font-bold text-lm-ink">
-              {lumenCopy.ready.remindersTitle}
+            <span className="block text-[15px] leading-5 font-bold text-flow-ink">
+              {flowCopy.ready.remindersTitle}
             </span>
-            <span className="block text-[12px] leading-4 text-lm-ink-faint">
-              {lumenCopy.ready.remindersDescription}
+            <span className="block text-[12px] leading-4 text-flow-ink-faint">
+              {flowCopy.ready.remindersDescription}
             </span>
             {reminderError !== null ? (
               <span
@@ -90,24 +108,7 @@ export function LumenReadyScreen({
             />
           </label>
         </div>
-
-        <div className="mt-auto w-full shrink-0 pt-6">
-          <Button
-            type="button"
-            size="xl"
-            onClick={onOpenDashboard}
-            disabled={disabled}
-            className="w-full enabled:active:scale-[0.98] motion-reduce:enabled:active:scale-100"
-          >
-            {action}
-            <ArrowRight
-              aria-hidden="true"
-              className="size-5"
-              strokeWidth={1.75}
-            />
-          </Button>
-        </div>
       </div>
-    </LumenShell>
+    </ScreenShell>
   );
 }
