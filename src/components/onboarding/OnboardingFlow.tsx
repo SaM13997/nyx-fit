@@ -464,8 +464,11 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
     contentRef.current?.querySelector("h1")?.focus({ preventScroll: true });
   }, [initialized, showLoadingShell, step]);
 
-  return (
-    <MotionConfig reducedMotion="user">
+    return (
+        <div className="flex">
+
+  </div>
+    /*<MotionConfig reducedMotion="user">
       <div className="theme-flow fixed inset-0 z-50 flex justify-center overflow-hidden bg-flow-bg">
         <OnboardingBackground
           step={BACKGROUND_BY_STEP[step]}
@@ -490,6 +493,6 @@ export function OnboardingFlow({ redirect }: { redirect?: string }) {
         )}
         </main>
       </div>
-    </MotionConfig>
+    </MotionConfig>*/
   );
 }
