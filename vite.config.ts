@@ -9,6 +9,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 const config = defineConfig({
 	server: {
 		allowedHosts: [
+			// Cloudflare tunnel "nyx-dev" -> localhost:3000
+			"nyx-dev.sarthakmalhotra.dev",
 			"devhub.cobbler-tritone.ts.net",
 			// vite matches the hostname only (port is stripped from the Host header)
 			"devhub",

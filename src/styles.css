@@ -96,6 +96,12 @@ code {
   --color-flow-bar-rest: var(--flow-bar-rest);
   --color-flow-disabled: var(--flow-disabled);
   --color-flow-disabled-ink: var(--flow-disabled-ink);
+  --color-night-bg: var(--night-bg);
+  --color-night-surface: var(--night-surface);
+  --color-night-ink: var(--night-ink);
+  --color-night-ink-soft: var(--night-ink-soft);
+  --color-night-line: var(--night-line);
+  --color-night-danger: var(--night-danger);
 }
 
 :root {
@@ -530,5 +536,30 @@ code {
 
 .flow-field-mint {
   background: #ddf8ed;
+}
+}
+
+/* Onboarding night world: dark chrome around tinted character art */
+@layer components {
+.theme-night {
+  --font-heading: "Chakra Petch", "Titillium Web", system-ui, sans-serif;
+  --font-sans: "Titillium Web", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --night-bg: #0d0e11;
+  --night-surface: #1e1f25;
+  --night-ink: #f6f6f8;
+  --night-ink-soft: #a7aab3;
+  --night-line: rgba(255, 255, 255, 0.14);
+  --night-danger: #ff9b8a;
+
+  color-scheme: dark;
+  color: var(--night-ink);
+  caret-color: var(--night-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.theme-night ::selection {
+  background: #c7b0ff;
+  color: #0d0e11;
 }
 }

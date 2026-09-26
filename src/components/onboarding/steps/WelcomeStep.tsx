@@ -1,14 +1,5 @@
-import { ArrowRight } from "lucide-react";
-import {
-  Card,
-  Heading,
-  Image,
-  PrimaryButton,
-  StepIndicator,
-  Text,
-  TextButton,
-  VStack,
-} from "../ui";
+import { ChevronRight } from "lucide-react";
+import { ActionBar, Heading, PrimaryButton, Rise, Text, TextButton } from "../ui";
 
 export function WelcomeStep({
   onStart,
@@ -18,22 +9,23 @@ export function WelcomeStep({
   onExisting: () => void;
 }) {
   return (
-    <VStack className="min-h-svh px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <Card>
-        <StepIndicator step={1} total={4} />
-        <Image src="/onboarding/1.png" alt="" className="mt-2" />
-      </Card>
-      <Heading className="mt-2">Train with intent.</Heading>
-      <Text>Log your workouts. See your progress. Build a rhythm that lasts.</Text>
-      <VStack className="mt-auto gap-1">
+    <>
+      <Rise>
+        <Heading>Train with intent.</Heading>
+      </Rise>
+      <Rise>
+        <Text className="mx-auto mt-3 max-w-[30ch]">
+          Log sets in seconds, watch your progress stack up, and build a rhythm
+          that lasts.
+        </Text>
+      </Rise>
+      <ActionBar>
+        <TextButton onClick={onExisting}>I have an account</TextButton>
         <PrimaryButton onClick={onStart}>
-          Set up my profile
-          <ArrowRight aria-hidden="true" className="size-5" strokeWidth={1.75} />
+          Get started
+          <ChevronRight aria-hidden="true" className="-mr-1 size-5" strokeWidth={2.25} />
         </PrimaryButton>
-        <TextButton onClick={onExisting} className="self-center">
-          I already have an account
-        </TextButton>
-      </VStack>
-    </VStack>
+      </ActionBar>
+    </>
   );
 }

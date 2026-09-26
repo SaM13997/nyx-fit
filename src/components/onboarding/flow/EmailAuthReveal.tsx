@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ import { Spinner } from "@/components/ui/spinner";
 import type { EmailAuthValues } from "@/lib/use-email-auth";
 import { flowCopy } from "./config";
 
-export type EmailAuthTone = "flow" | "login";
+export type EmailAuthTone = "flow" | "login" | "night";
 
 const EASE_HEIGHT: [number, number, number, number] = [0.77, 0, 0.175, 1];
 const EASE_FADE: [number, number, number, number] = [0.23, 1, 0.32, 1];
@@ -57,6 +58,18 @@ const toneClasses: Record<
     collapse: "w-full text-xs text-zinc-400 hover:text-white",
     error: "text-red-200",
   },
+  night: {
+    trigger:
+      "w-full text-[15px] leading-5 font-semibold text-night-ink-soft hover:text-night-ink hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-night-ink",
+    label: "text-[13px] leading-4 font-semibold text-night-ink",
+    input:
+      "h-12 rounded-2xl border-night-line bg-night-surface px-4 text-[16px] md:text-[16px] text-night-ink placeholder:text-night-ink-soft/70 focus-visible:border-night-ink focus-visible:ring-night-ink/20",
+    submit:
+      "w-full flex-1 rounded-full bg-night-ink text-night-bg hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-night-ink",
+    collapse:
+      "w-full text-[13px] leading-4 font-semibold text-night-ink-soft hover:text-night-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-night-ink",
+    error: "text-night-danger",
+  },
 };
 
 function EmailAuthField({
@@ -85,6 +98,8 @@ export function EmailAuthReveal({
   errorMessage,
   isSubmitting,
   onCollapse,
+  onOpenChange,
+  renderBack,
   tone = "flow",
   className,
 }: {
@@ -93,6 +108,9 @@ export function EmailAuthReveal({
   errorMessage: string | null;
   isSubmitting: boolean;
   onCollapse: () => void;
+  onOpenChange?: (open: boolean) => void;
+  /** Replaces the text collapse link with a control placed beside submit. */
+  renderBack?: (collapse: () => void) => ReactNode;
   tone?: EmailAuthTone;
   className?: string;
 }) {
@@ -115,7 +133,11 @@ export function EmailAuthReveal({
     setTriggerHeight(node.offsetHeight);
   }, []);
 
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+
   useEffect(() => {
+    onOpenChangeRef.current?.(open);
     if (open) {
       interactedRef.current = true;
       emailInputRef.current?.focus({ preventScroll: true });
@@ -160,6 +182,24 @@ export function EmailAuthReveal({
     : shownError !== null
       ? copy.tryAgain
       : copy.submit[mode];
+
+  const submitButton = (
+    <Button
+      type="submit"
+      size={tone === "login" ? "default" : "xl"}
+      disabled={isSubmitting}
+      className={toneClasses[tone].submit}
+    >
+      {isSubmitting ? (
+        <>
+          <Spinner aria-hidden="true" className="size-5" />
+          <span role="status">{submitLabel}</span>
+        </>
+      ) : (
+        submitLabel
+      )}
+    </Button>
+  );
 
   const fieldMotion = (index: number) => ({
     initial: false,
@@ -279,32 +319,27 @@ export function EmailAuthReveal({
                 {shownError}
               </p>
             ) : null}
-            <Button
-              type="submit"
-              size={tone === "flow" ? "xl" : "default"}
-              disabled={isSubmitting}
-              className={toneClasses[tone].submit}
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner aria-hidden="true" className="size-5" />
-                  <span role="status">{submitLabel}</span>
-                </>
-              ) : (
-                submitLabel
-              )}
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              onClick={handleCollapse}
-              className={cn(
-                "min-h-11 self-center",
-                toneClasses[tone].collapse,
-              )}
-            >
-              {copy.collapse}
-            </Button>
+            {renderBack ? (
+              <div className="flex items-center gap-3">
+                {renderBack(handleCollapse)}
+                {submitButton}
+              </div>
+            ) : (
+              <>
+                {submitButton}
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleCollapse}
+                  className={cn(
+                    "min-h-11 self-center",
+                    toneClasses[tone].collapse,
+                  )}
+                >
+                  {copy.collapse}
+                </Button>
+              </>
+            )}
           </form>
         </motion.div>
       </motion.div>
