@@ -10,6 +10,9 @@ const config = defineConfig({
 	server: {
 		allowedHosts: [
 			"devhub.cobbler-tritone.ts.net",
+			// vite matches the hostname only (port is stripped from the Host header)
+			"devhub",
+			"devhub:3000",
 			...(process.env.VITE_ALLOWED_HOSTS?.split(",")
 				.map((host) => host.trim())
 				.filter(Boolean) ?? []),

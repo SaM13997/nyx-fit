@@ -1,5 +1,5 @@
 ---
-description: Reviews pending changes for correctness, regressions, and over-engineering with GLM 5.3 Flash at max reasoning
+description: Reviews code correctness, regressions, and over-engineering with GLM 5.3 Flash; use design reviewers for UI planning and critique
 mode: subagent
 model: opencode-go/glm-5.3-flash#max
 permissions:

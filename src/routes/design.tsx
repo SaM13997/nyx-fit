@@ -14,7 +14,6 @@ const designNavItems = [
   { label: "Language", to: "/design/language", exact: false },
   { label: "Components", to: "/design/components", exact: false },
   { label: "Screens", to: "/design/screens", exact: false },
-  { label: "Onboarding", to: "/design/onboarding", exact: false },
 ] as const;
 
 function DesignLayout() {

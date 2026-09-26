@@ -1,498 +1,111 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "@tanstack/react-router";
-import { MotionConfig } from "framer-motion";
-import { authClient } from "@/lib/auth-client";
-import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
+import { useState, type ReactNode } from "react";
+import { MotionConfig, motion } from "framer-motion";
 import { useGoogleSignIn } from "@/lib/use-google-sign-in";
 import {
-  useEmailAuth,
-  type EmailAuthMode,
-  type EmailAuthValues,
-} from "@/lib/use-email-auth";
-import {
-  clearLegacyStagedOnboarding,
-  clearOnboardingDraft,
-  copy,
-  isDraftStorageAvailable,
-  readOnboardingDraft,
   writeOnboardingDraft,
   type ExperienceLevel,
-  type StepId,
 } from "./config";
-import type { FlowStep } from "./flow/config";
-import {
-  BackgroundDirectionContext,
-  OnboardingBackground,
-  type BackgroundDirection,
-} from "./flow/OnboardingBackground";
-import { ExperienceScreen } from "./flow/screens/ExperienceScreen";
-import { ReadyScreen } from "./flow/screens/ReadyScreen";
-import {
-  SaveProfileScreen,
-  type SaveProfileState,
-} from "./flow/screens/SaveProfileScreen";
-import { WelcomeScreen } from "./flow/screens/WelcomeScreen";
-import { flowCopy } from "./flow/config";
-import {
-  isNotificationSupported,
-  requestNotificationPermission,
-} from "@/lib/notifications";
+import { useOnboardingSession } from "./use-onboarding-session";
+import { WelcomeStep } from "./steps/WelcomeStep";
+import { ExperienceStep } from "./steps/ExperienceStep";
+import { AuthStep } from "./steps/AuthStep";
+import { DoneStep } from "./steps/DoneStep";
 
-type EntryPath = "setup" | "existing";
-type SaveStatus = "idle" | "saving" | "saved" | "error";
-
-const READINESS_TIMEOUT_MS = 10000;
-const STEP_ORDER: Record<StepId, 0 | 1 | 2 | 3> = {
-  welcome: 0,
-  experience: 1,
-  auth: 2,
-  done: 3,
-};
-const BACKGROUND_BY_STEP: Record<StepId, FlowStep> = {
-  welcome: "welcome",
-  experience: "experience",
-  auth: "save",
-  done: "ready",
-};
-const SAVE_FALLBACK_ERROR =
-  "We couldn't save your training experience. Check your connection and try again.";
-const READINESS_TIMEOUT_ERROR =
-  "Signing you in is taking longer than expected. Your answer is kept here.";
-const DEGRADED_AUTH_DESCRIPTION =
-  "Your answer can't be kept on this device, so it won't survive sign-in. Continue to sign in, then set your experience in profile settings.";
+type Step = "welcome" | "experience" | "auth" | "done";
 
 export function OnboardingFlow({ redirect }: { redirect?: string }) {
-  const router = useRouter();
-  const { data: sessionData, isPending: isSessionPending } =
-    authClient.useSession();
-  const session = sessionData?.session;
-  const { upsertCurrentProfile } = useUpsertCurrentProfile();
-  const [step, setStep] = useState<StepId>("welcome");
-  const [direction, setDirection] = useState<BackgroundDirection>("forward");
-  const [entryPath, setEntryPath] = useState<EntryPath | null>(null);
-  const [fitnessLevel, setFitnessLevel] = useState<ExperienceLevel | null>(null);
-  const [leaving, setLeaving] = useState(false);
-  const [initialized, setInitialized] = useState(false);
-  const [storageAvailable, setStorageAvailable] = useState(true);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [saveLevel, setSaveLevel] = useState<ExperienceLevel | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [authSettled, setAuthSettled] = useState(false);
-  const mountedRef = useRef(false);
-  const stepRef = useRef<StepId>("welcome");
-  const postAuthHandledRef = useRef(false);
-  const saveAttemptRef = useRef(false);
-  const mutatingRef = useRef(false);
-  const leavingRef = useRef(false);
-  const readinessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentRef = useRef<HTMLElement>(null);
-  const firstScreenRef = useRef(true);
-  const resumedRef = useRef(false);
   const destination = redirect ?? "/";
-  const authCallbackUrl = redirect
-    ? `/onboarding?redirect=${encodeURIComponent(redirect)}`
-    : "/onboarding";
-  const doneAction =
-    redirect && redirect !== "/" ? copy.done.continueAction : undefined;
-  const {
-    errorMessage: signInError,
-    isSubmitting,
-    signIn,
-    clearError: clearSignInError,
-  } = useGoogleSignIn(authCallbackUrl);
-  const emailMode: EmailAuthMode =
-    entryPath === "existing" ? "signin" : "signup";
-  const {
-    errorMessage: emailError,
-    isSubmitting: isEmailSubmitting,
-    submit: submitEmail,
-    clearError: clearEmailError,
-  } = useEmailAuth(emailMode);
-  const handleEmailSubmit = useCallback(
-    (values: EmailAuthValues) => {
-      void submitEmail(values);
-    },
-    [submitEmail],
+  const google = useGoogleSignIn(
+    redirect ? `/onboarding?redirect=${encodeURIComponent(redirect)}` : "/onboarding",
   );
-
-  const changeStep = useCallback((target: StepId) => {
-    const previous = stepRef.current;
-    if (target === previous) return;
-    stepRef.current = target;
-    setDirection(
-      STEP_ORDER[target] > STEP_ORDER[previous] ? "forward" : "back",
-    );
-    setStep(target);
-  }, []);
-
-  const clearReadinessTimer = useCallback(() => {
-    if (readinessTimerRef.current !== null) {
-      clearTimeout(readinessTimerRef.current);
-      readinessTimerRef.current = null;
-    }
-  }, []);
-
-  const beginSaveFlow = useCallback(
-    (level: ExperienceLevel) => {
-      if (saveAttemptRef.current) return;
-      saveAttemptRef.current = true;
-      clearReadinessTimer();
-      readinessTimerRef.current = setTimeout(() => {
-        readinessTimerRef.current = null;
-        if (!mountedRef.current || mutatingRef.current) return;
-        setSaveError(READINESS_TIMEOUT_ERROR);
-        setSaveStatus("error");
-      }, READINESS_TIMEOUT_MS);
-      setSaveLevel(level);
-      setSaveError(null);
-      setSaveStatus("saving");
-    },
-    [clearReadinessTimer],
-  );
-
-  useEffect(() => {
-    mountedRef.current = true;
-    setStorageAvailable(isDraftStorageAvailable());
-    clearLegacyStagedOnboarding();
-    const draft = readOnboardingDraft();
-    if (draft !== null) {
-      setEntryPath("setup");
-      setFitnessLevel(draft.fitnessLevel);
-      resumedRef.current = true;
-      changeStep(draft.step);
-    }
-    setInitialized(true);
-    return () => {
-      mountedRef.current = false;
-      if (readinessTimerRef.current !== null) {
-        clearTimeout(readinessTimerRef.current);
-        readinessTimerRef.current = null;
-      }
-    };
-  }, [changeStep]);
-
-  useEffect(() => {
-    if (saveLevel === null || saveStatus !== "saving") return;
-    if (isSessionPending || !session) return;
-    if (mutatingRef.current) return;
-    mutatingRef.current = true;
-    clearReadinessTimer();
-    void (async () => {
-      try {
-        await upsertCurrentProfile({ updates: { fitnessLevel: saveLevel } });
-        if (!mountedRef.current) return;
-        clearOnboardingDraft();
-        setSaveStatus("saved");
-        changeStep("done");
-      } catch (error) {
-        if (!mountedRef.current) return;
-        setSaveError(
-          error instanceof Error && error.message.trim().length > 0
-            ? error.message
-            : SAVE_FALLBACK_ERROR,
-        );
-        setSaveStatus("error");
-      }
-    })();
-  }, [
-    saveLevel,
-    saveStatus,
-    isSessionPending,
-    session,
-    upsertCurrentProfile,
-    clearReadinessTimer,
-    changeStep,
-  ]);
-
-  useEffect(() => {
-    if (!initialized || !session) return;
-    if (postAuthHandledRef.current) return;
-    postAuthHandledRef.current = true;
-    const draft = readOnboardingDraft();
-    if (
-      draft !== null &&
-      draft.step === "auth" &&
-      draft.fitnessLevel !== null
-    ) {
-      setEntryPath("setup");
-      setFitnessLevel(draft.fitnessLevel);
-      beginSaveFlow(draft.fitnessLevel);
-      setAuthSettled(true);
-    } else {
-      router.history.replace(destination);
-    }
-  }, [
-    initialized,
-    session,
+  const [existing, setExisting] = useState(false);
+  const [step, setStep] = useState<Step>("welcome");
+  const [level, setLevel] = useState<ExperienceLevel | null>(null);
+  const { waiting, saveState, saveProfile, finish } = useOnboardingSession(
     destination,
-    router.history,
-    beginSaveFlow,
-  ]);
-
-  useEffect(() => {
-    if (!initialized || entryPath !== "setup") return;
-    if (step === "experience") {
-      writeOnboardingDraft({ version: 2, step: "experience", fitnessLevel });
-    } else if (
-      step === "auth" &&
-      saveStatus === "idle" &&
-      fitnessLevel !== null
-    ) {
-      writeOnboardingDraft({ version: 2, step: "auth", fitnessLevel });
-    }
-  }, [initialized, entryPath, step, fitnessLevel, saveStatus]);
-
-  const { profile } = useCurrentProfile({ enabled: step === "done" });
-  const [remindersEnabled, setRemindersEnabled] = useState(false);
-  const [remindersPending, setRemindersPending] = useState(false);
-  const [reminderError, setReminderError] = useState<string | null>(null);
-  const remindersHydratedRef = useRef(false);
-  const remindersTouchedRef = useRef(false);
-
-  useEffect(() => {
-    if (step !== "done" || profile === null) return;
-    if (remindersHydratedRef.current) return;
-    remindersHydratedRef.current = true;
-    if (remindersTouchedRef.current) return;
-    setRemindersEnabled(profile.notificationsEnabled);
-  }, [step, profile]);
-
-  const toggleReminders = useCallback(async () => {
-    remindersTouchedRef.current = true;
-    if (remindersPending) return;
-
-    if (remindersEnabled) {
-      setReminderError(null);
-      setRemindersPending(true);
-      try {
-        await upsertCurrentProfile({ updates: { notificationsEnabled: false } });
-        setRemindersEnabled(false);
-      } catch {
-        setReminderError(flowCopy.ready.remindersErrorSave);
-      } finally {
-        setRemindersPending(false);
+    (draft) => {
+      if (draft !== null) {
+        setLevel(draft.fitnessLevel);
+        setStep(draft.step);
       }
-      return;
-    }
-
-    if (!isNotificationSupported()) {
-      setReminderError(flowCopy.ready.remindersErrorUnsupported);
-      return;
-    }
-
-    setRemindersPending(true);
-    const permission = await requestNotificationPermission();
-    setRemindersPending(false);
-
-    if (permission === "granted") {
-      setReminderError(null);
-      setRemindersEnabled(true);
-      try {
-        await upsertCurrentProfile({ updates: { notificationsEnabled: true } });
-      } catch {
-        setReminderError(flowCopy.ready.remindersErrorSave);
-      }
-      return;
-    }
-
-    if (permission === "denied") {
-      setReminderError(flowCopy.ready.remindersErrorDenied);
-      return;
-    }
-
-    setReminderError(flowCopy.ready.remindersErrorDismissed);
-  }, [remindersPending, remindersEnabled, upsertCurrentProfile]);
-
-  const goToStep = useCallback(
-    (target: StepId) => {
-      clearSignInError();
-      clearEmailError();
-      changeStep(target);
     },
-    [clearSignInError, clearEmailError, changeStep],
+    () => setStep("done"),
   );
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta === null) return;
-    const previous = meta.getAttribute("content");
-    meta.setAttribute("content", "#DDEEF0");
-    return () => {
-      if (previous !== null) {
-        meta.setAttribute("content", previous);
-      }
-    };
-  }, []);
-
-  const retrySave = useCallback(() => {
-    if (saveLevel === null) return;
-    saveAttemptRef.current = false;
-    mutatingRef.current = false;
-    beginSaveFlow(saveLevel);
-  }, [saveLevel, beginSaveFlow]);
-
-  const abandonSave = useCallback(() => {
-    clearReadinessTimer();
-    clearOnboardingDraft();
-    router.history.replace(destination);
-  }, [clearReadinessTimer, destination, router.history]);
-
-  const authState: SaveProfileState =
-    entryPath !== "existing" && saveStatus === "error"
-      ? { status: "error", message: saveError ?? SAVE_FALLBACK_ERROR }
-      : entryPath !== "existing" && saveStatus === "saving"
-        ? { status: "saving" }
-        : isSubmitting
-          ? { status: "signing-in" }
-          : signInError !== null
-            ? { status: "signin", message: signInError }
-            : { status: "signin" };
-
-  const renderStep = () => {
-    switch (step) {
-      case "welcome":
-        return (
-          <WelcomeScreen
-            onStart={() => {
-              clearOnboardingDraft();
-              clearLegacyStagedOnboarding();
-              setEntryPath("setup");
-              goToStep("experience");
-            }}
-            onExistingAccount={() => {
-              clearOnboardingDraft();
-              clearLegacyStagedOnboarding();
-              setEntryPath("existing");
-              goToStep("auth");
-            }}
-          />
-        );
-      case "experience":
-        return (
-          <ExperienceScreen
-            value={fitnessLevel}
-            onChange={setFitnessLevel}
-            onContinue={() => {
-              if (fitnessLevel === null) return;
-              goToStep("auth");
-            }}
-            onBack={() => goToStep("welcome")}
-          />
-        );
-      case "auth":
-        if (entryPath === "existing") {
-          return (
-            <SaveProfileScreen
-              level={null}
-              state={authState}
-              heading={copy.auth.existing.heading}
-              description={copy.auth.existing.description}
-              showArt={false}
-              showProgress={false}
-              onSignIn={signIn}
-              emailAuth={{
-                mode: emailMode,
-                errorMessage: emailError,
-                isSubmitting: isEmailSubmitting,
-                onSubmit: handleEmailSubmit,
-                onCollapse: clearEmailError,
-              }}
-            />
-          );
-        }
-        return (
-          <SaveProfileScreen
-            level={fitnessLevel}
-            state={authState}
-            description={storageAvailable ? undefined : DEGRADED_AUTH_DESCRIPTION}
-            onSignIn={signIn}
-            emailAuth={{
-              mode: emailMode,
-              errorMessage: emailError,
-              isSubmitting: isEmailSubmitting,
-              onSubmit: handleEmailSubmit,
-              onCollapse: clearEmailError,
-            }}
-            onRetry={retrySave}
-            onAbandon={abandonSave}
-            onBack={
-              authState.status === "signin"
-                ? () => goToStep("experience")
-                : undefined
-            }
-          />
-        );
-      case "done":
-        return (
-          <ReadyScreen
-            level={fitnessLevel}
-            action={doneAction}
-            disabled={leaving}
-            remindersEnabled={remindersEnabled}
-            remindersPending={remindersPending}
-            reminderError={reminderError}
-            onToggleReminders={() => void toggleReminders()}
-            onOpenDashboard={() => {
-              if (leavingRef.current) return;
-              leavingRef.current = true;
-              setLeaving(true);
-              clearOnboardingDraft();
-              router.history.replace(destination);
-            }}
-          />
-        );
-      default:
-        return step satisfies never;
-    }
+  const goToStep = (next: Step) => {
+    google.clearError();
+    setStep(next);
   };
 
-  const showLoadingShell =
-    !initialized ||
-    (isSessionPending && !session) ||
-    (!!session && !authSettled);
+  const screens: Record<Step, ReactNode> = {
+    welcome: (
+      <WelcomeStep
+        onStart={() => {
+          setExisting(false);
+          goToStep("experience");
+        }}
+        onExisting={() => {
+          setExisting(true);
+          goToStep("auth");
+        }}
+      />
+    ),
+    experience: (
+      <ExperienceStep
+        value={level}
+        onSelect={(next) => {
+          setLevel(next);
+          writeOnboardingDraft({ version: 2, step: "experience", fitnessLevel: next });
+        }}
+        onBack={() => goToStep("welcome")}
+        onNext={(next) => {
+          setLevel(next);
+          writeOnboardingDraft({ version: 2, step: "auth", fitnessLevel: next });
+          goToStep("auth");
+        }}
+      />
+    ),
+    auth: (
+      <AuthStep
+        existing={existing}
+        googleBusy={google.isSubmitting}
+        googleError={google.errorMessage}
+        onGoogleSignIn={google.signIn}
+        saveState={saveState}
+        onBack={() => goToStep("experience")}
+        onRetry={() => level !== null && saveProfile(level)}
+        onAbandon={finish}
+      />
+    ),
+    done: (
+      <DoneStep
+        buttonLabel={redirect && redirect !== "/" ? "Continue" : "Get fit"}
+        onContinue={finish}
+      />
+    ),
+  };
 
-  useEffect(() => {
-    if (!initialized || showLoadingShell) return;
-    const isInitialWelcome =
-      firstScreenRef.current && step === "welcome" && !resumedRef.current;
-    firstScreenRef.current = false;
-    if (typeof window !== "undefined") {
-      window.scrollTo(0, 0);
-    }
-    if (isInitialWelcome) return;
-    contentRef.current?.querySelector("h1")?.focus({ preventScroll: true });
-  }, [initialized, showLoadingShell, step]);
-
-    return (
-        <div className="flex">
-
-  </div>
-    /*<MotionConfig reducedMotion="user">
-      <div className="theme-flow fixed inset-0 z-50 flex justify-center overflow-hidden bg-flow-bg">
-        <OnboardingBackground
-          step={BACKGROUND_BY_STEP[step]}
-          direction={direction}
-        />
-        <main ref={contentRef} className="relative h-full w-full max-w-[390px]">
-          {showLoadingShell ? (
-            <div className="flex h-full items-center justify-center">
-              <p
-                role="status"
-                className="text-[16px] leading-6 text-flow-ink-soft"
-              >
-                Loading…
-              </p>
-            </div>
+  return (
+    <MotionConfig reducedMotion="user">
+      <main className="theme-flow min-h-svh bg-flow-bg text-flow-ink">
+        {waiting ? (
+          <p
+            role="status"
+            className="flex min-h-svh items-center justify-center text-[16px] leading-6 text-flow-ink-soft"
+          >
+            Loading…
+          </p>
         ) : (
-          <BackgroundDirectionContext.Provider value={direction}>
-            <div key={step} className="h-full">
-              {renderStep()}
-            </div>
-          </BackgroundDirectionContext.Provider>
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            {screens[step]}
+          </motion.div>
         )}
-        </main>
-      </div>
-    </MotionConfig>*/
+      </main>
+    </MotionConfig>
   );
 }

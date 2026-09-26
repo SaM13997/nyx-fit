@@ -1,5 +1,5 @@
 ---
-description: Implements code changes with broad tool access
+description: Implements general code changes with DeepSeek V4.1 Flash; use design-implementer for frontend, mobile PWA, and full-stack UI
 mode: subagent
 model: opencode-go/deepseek-v4.1-flash#max
 ---

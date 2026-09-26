@@ -23,7 +23,6 @@ import { Route as DesignIndexRouteImport } from './routes/design.index'
 import { Route as WorkoutIdRouteImport } from './routes/workout.$id'
 import { Route as SettingsProfileRouteImport } from './routes/settings_.profile'
 import { Route as DesignScreensRouteImport } from './routes/design.screens'
-import { Route as DesignOnboardingRouteImport } from './routes/design.onboarding'
 import { Route as DesignLanguageRouteImport } from './routes/design.language'
 import { Route as DesignComponentsRouteImport } from './routes/design.components'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
@@ -99,11 +98,6 @@ const DesignScreensRoute = DesignScreensRouteImport.update({
   path: '/screens',
   getParentRoute: () => DesignRoute,
 } as any)
-const DesignOnboardingRoute = DesignOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => DesignRoute,
-} as any)
 const DesignLanguageRoute = DesignLanguageRouteImport.update({
   id: '/language',
   path: '/language',
@@ -138,7 +132,6 @@ export interface FileRoutesByFullPath {
   '/workouts': typeof WorkoutsRoute
   '/design/components': typeof DesignComponentsRoute
   '/design/language': typeof DesignLanguageRoute
-  '/design/onboarding': typeof DesignOnboardingRoute
   '/design/screens': typeof DesignScreensRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -158,7 +151,6 @@ export interface FileRoutesByTo {
   '/workouts': typeof WorkoutsRoute
   '/design/components': typeof DesignComponentsRoute
   '/design/language': typeof DesignLanguageRoute
-  '/design/onboarding': typeof DesignOnboardingRoute
   '/design/screens': typeof DesignScreensRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -180,7 +172,6 @@ export interface FileRoutesById {
   '/workouts': typeof WorkoutsRoute
   '/design/components': typeof DesignComponentsRoute
   '/design/language': typeof DesignLanguageRoute
-  '/design/onboarding': typeof DesignOnboardingRoute
   '/design/screens': typeof DesignScreensRoute
   '/settings_/profile': typeof SettingsProfileRoute
   '/workout/$id': typeof WorkoutIdRoute
@@ -203,7 +194,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/design/components'
     | '/design/language'
-    | '/design/onboarding'
     | '/design/screens'
     | '/settings/profile'
     | '/workout/$id'
@@ -223,7 +213,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/design/components'
     | '/design/language'
-    | '/design/onboarding'
     | '/design/screens'
     | '/settings/profile'
     | '/workout/$id'
@@ -244,7 +233,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/design/components'
     | '/design/language'
-    | '/design/onboarding'
     | '/design/screens'
     | '/settings_/profile'
     | '/workout/$id'
@@ -370,13 +358,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesignScreensRouteImport
       parentRoute: typeof DesignRoute
     }
-    '/design/onboarding': {
-      id: '/design/onboarding'
-      path: '/onboarding'
-      fullPath: '/design/onboarding'
-      preLoaderRoute: typeof DesignOnboardingRouteImport
-      parentRoute: typeof DesignRoute
-    }
     '/design/language': {
       id: '/design/language'
       path: '/language'
@@ -411,7 +392,6 @@ declare module '@tanstack/react-router' {
 interface DesignRouteChildren {
   DesignComponentsRoute: typeof DesignComponentsRoute
   DesignLanguageRoute: typeof DesignLanguageRoute
-  DesignOnboardingRoute: typeof DesignOnboardingRoute
   DesignScreensRoute: typeof DesignScreensRoute
   DesignIndexRoute: typeof DesignIndexRoute
 }
@@ -419,7 +399,6 @@ interface DesignRouteChildren {
 const DesignRouteChildren: DesignRouteChildren = {
   DesignComponentsRoute: DesignComponentsRoute,
   DesignLanguageRoute: DesignLanguageRoute,
-  DesignOnboardingRoute: DesignOnboardingRoute,
   DesignScreensRoute: DesignScreensRoute,
   DesignIndexRoute: DesignIndexRoute,
 }
