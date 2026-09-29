@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
 
+import { allowedOrigins } from "@/lib/api/origins";
+
 export type AppEnv = {
   DB: D1Database;
   IMAGES: R2Bucket;
@@ -9,13 +11,9 @@ export type AppEnv = {
   BETTER_AUTH_SECRET: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  // Comma-separated extra origins, e.g. http://localhost:3000 in .dev.vars.
+  TRUSTED_ORIGINS?: string;
 };
-
-const trustedOrigins = (baseURL: string) => [
-  "http://localhost:3000",
-  "https://localhost:3000",
-  baseURL,
-];
 
 const parseBaseURL = (value: string): string => {
   let url: URL;
@@ -81,7 +79,16 @@ export const createAuth = (env: AppEnv) => {
       googleClientId && googleClientSecret
         ? { google: { clientId: googleClientId, clientSecret: googleClientSecret } }
         : undefined,
-    trustedOrigins: trustedOrigins(baseURL),
+    // Signed, short-lived session snapshot in a cookie: most requests skip the
+    // session + user D1 lookups (2 reads per API call otherwise). Sign-out
+    // clears the cookie in the signing-out browser, but a session revoked
+    // elsewhere (another device, deleted user) stays valid here for up to
+    // maxAge, i.e. 5 minutes. Data access is still scoped by the cached user
+    // id, so that window is the accepted revocation delay.
+    session: {
+      cookieCache: { enabled: true, maxAge: 5 * 60 },
+    },
+    trustedOrigins: allowedOrigins(env),
     plugins: [],
   });
 };

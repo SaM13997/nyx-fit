@@ -1,4 +1,5 @@
-import type { ExerciseStat, Workout } from "@/lib/types";
+import { BODY_PARTS } from "@/lib/constants";
+import type { BodyPartFrequencyEntry, BodyPartRecency, ExerciseRecord } from "@/lib/types";
 
 export type PersonalRecord = {
   exerciseName: string;
@@ -8,7 +9,7 @@ export type PersonalRecord = {
 };
 
 export function topPersonalRecords(
-  stats: ExerciseStat[],
+  stats: ExerciseRecord[],
   limit = 5,
 ): PersonalRecord[] {
   return [...stats]
@@ -27,16 +28,17 @@ export function topPersonalRecords(
     }));
 }
 
-export type BodyPartFrequency = {
-  bodyPart: string;
-  sessions: number;
+type BodyPartWorkout = {
+  date: string;
+  isActive?: boolean;
+  bodyPartWorkedOut?: string[];
 };
 
 export function bodyPartFrequency(
-  workouts: Workout[],
+  workouts: readonly BodyPartWorkout[],
   now: Date,
   weeks = 8,
-): BodyPartFrequency[] {
+): BodyPartFrequencyEntry[] {
   const windowStart = now.getTime() - weeks * 7 * 86_400_000;
   const counts = new Map<string, number>();
 
@@ -55,4 +57,34 @@ export function bodyPartFrequency(
       (a, b) =>
         b.sessions - a.sessions || a.bodyPart.localeCompare(b.bodyPart),
     );
+}
+
+// Primary body parts ("legs:Quads" counts for "legs"), least recently
+// trained first. Parts absent from the given completed workouts come first
+// with lastWorkedAt null ("8w+"), in the order BODY_PARTS lists them.
+export function leastRecentBodyParts(
+  workouts: readonly BodyPartWorkout[],
+): BodyPartRecency[] {
+  const lastWorked = new Map<string, string>();
+  for (const workout of workouts) {
+    if (workout.isActive === true) continue;
+    for (const part of workout.bodyPartWorkedOut ?? []) {
+      const id = part.split(":")[0];
+      const seen = lastWorked.get(id);
+      if (seen === undefined || workout.date > seen) lastWorked.set(id, workout.date);
+    }
+  }
+
+  return BODY_PARTS.map((part, order) => ({
+    bodyPart: part.id,
+    lastWorkedAt: lastWorked.get(part.id) ?? null,
+    order,
+  }))
+    .sort((a, b) => {
+      if (a.lastWorkedAt === b.lastWorkedAt) return a.order - b.order;
+      if (a.lastWorkedAt === null) return -1;
+      if (b.lastWorkedAt === null) return 1;
+      return a.lastWorkedAt.localeCompare(b.lastWorkedAt);
+    })
+    .map(({ bodyPart, lastWorkedAt }) => ({ bodyPart, lastWorkedAt }));
 }

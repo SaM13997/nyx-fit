@@ -8,3 +8,7 @@ BETTER_AUTH_SECRET=replace-with-a-random-secret
 # Optional. Google sign-in stays disabled for local development until both are set.
 # GOOGLE_CLIENT_ID=
 # GOOGLE_CLIENT_SECRET=
+
+# Optional. Extra comma-separated origins allowed to sign in and write,
+# e.g. to use the app on localhost while BETTER_AUTH_URL is a tunnel domain.
+# TRUSTED_ORIGINS="http://localhost:3000"

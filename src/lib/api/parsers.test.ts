@@ -4,8 +4,10 @@ import {
   isExternalImageUrl,
   isOwnedImageUrl,
   parseDeleteWeightInput,
+  parseGetExerciseHistoryInput,
   parseGetWeightsInput,
   parseGetWorkoutInput,
+  parseListWorkoutsInput,
   parseLogWeightInput,
   parseStartWorkoutInput,
   parseUpdateWeightInput,
@@ -241,5 +243,54 @@ describe("exercise name limits", () => {
         updates: { exercises: [{ id: "ex-1", name: "x".repeat(120), sets: [] }] },
       }),
     ).not.toThrow();
+  });
+});
+
+describe("weekly goal and time zone parsing", () => {
+  it("accepts a whole-number goal in range and a real IANA zone", () => {
+    expect(
+      parseUpsertProfileInput({
+        updates: { weeklyWorkoutGoal: 4, timeZone: "America/Los_Angeles" },
+      }).updates,
+    ).toEqual({ weeklyWorkoutGoal: 4, timeZone: "America/Los_Angeles" });
+  });
+
+  it("rejects goals outside 1-7, fractions and unknown zones", () => {
+    for (const weeklyWorkoutGoal of [0, 8, 2.5, "3", null]) {
+      expect(() => parseUpsertProfileInput({ updates: { weeklyWorkoutGoal } })).toThrow();
+    }
+    expect(() => parseUpsertProfileInput({ updates: { timeZone: "Mars/Olympus" } })).toThrow();
+    expect(() => parseUpsertProfileInput({ updates: { timeZone: "" } })).toThrow();
+  });
+});
+
+describe("list and history input parsing", () => {
+  it("parses an optional cursor and page size", () => {
+    expect(parseListWorkoutsInput(undefined)).toEqual({});
+    expect(parseListWorkoutsInput({})).toEqual({});
+    expect(
+      parseListWorkoutsInput({
+        cursor: { date: "2026-09-10T09:00:00.000Z", createdAt: "2026-09-10T09:00:00.001Z", id: WORKOUT_ID },
+        limit: 20,
+      }),
+    ).toEqual({
+      cursor: { date: "2026-09-10T09:00:00.000Z", createdAt: "2026-09-10T09:00:00.001Z", id: WORKOUT_ID },
+      limit: 20,
+    });
+  });
+
+  it("rejects malformed cursors and oversized pages", () => {
+    expect(() => parseListWorkoutsInput({ cursor: "abc" })).toThrow();
+    expect(() => parseListWorkoutsInput({ cursor: { date: "x", createdAt: "y", id: "../" } })).toThrow();
+    expect(() => parseListWorkoutsInput({ limit: 500 })).toThrow();
+    expect(() => parseListWorkoutsInput({ limit: 0 })).toThrow();
+  });
+
+  it("requires an exercise key", () => {
+    expect(parseGetExerciseHistoryInput({ exerciseKey: "bench press" })).toEqual({
+      exerciseKey: "bench press",
+    });
+    expect(() => parseGetExerciseHistoryInput({ exerciseKey: "" })).toThrow();
+    expect(() => parseGetExerciseHistoryInput({})).toThrow();
   });
 });

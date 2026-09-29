@@ -1,4 +1,5 @@
 import type { AppEnv } from "@/lib/auth-server";
+import { isAllowedOrigin } from "@/lib/api/origins";
 
 export type SessionUser = {
   name: string | null;
@@ -21,34 +22,22 @@ export const loadAppEnv = async (): Promise<AppEnv> => {
   return env;
 };
 
-const normalizeOrigin = (value: string | null): string | null => {
-  if (value === null) return null;
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-};
-
 export const isWritableRequest = (
-  env: Pick<AppEnv, "BETTER_AUTH_URL">,
+  env: Pick<AppEnv, "BETTER_AUTH_URL" | "TRUSTED_ORIGINS">,
   request: Request,
-): boolean => {
-  if (request.method.toUpperCase() !== "POST") return false;
-  const origin = normalizeOrigin(request.headers.get("origin"));
-  const expected = normalizeOrigin(env.BETTER_AUTH_URL);
-  return origin !== null && expected !== null && origin === expected;
-};
-
-const forbidden = (): Response =>
-  new Response("Forbidden", { status: 403, headers: { "content-type": "text/plain" } });
+): boolean =>
+  request.method.toUpperCase() === "POST" &&
+  isAllowedOrigin(env, request.headers.get("origin"));
 
 export const assertWritableRequest = (
-  env: Pick<AppEnv, "BETTER_AUTH_URL">,
+  env: Pick<AppEnv, "BETTER_AUTH_URL" | "TRUSTED_ORIGINS">,
   request: Request,
 ): void => {
+  // Throw an Error, not a Response: TanStack Start hands a thrown Response
+  // back to the caller as a *successful* result, so a rejected write would
+  // look like it returned `{}`.
   if (!isWritableRequest(env, request)) {
-    throw forbidden();
+    throw new Error("Forbidden");
   }
 };
 

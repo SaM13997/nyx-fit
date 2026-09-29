@@ -1,14 +1,10 @@
 import type {
-  Exercise,
-  ExerciseStat,
   Gender,
   Profile,
-  WeeklyExerciseData,
   WeightEntry,
   WeightGoal,
   WeightUnit,
   Workout,
-  WorkoutSummary,
 } from "@/lib/types";
 import {
   isExternalImageUrl,
@@ -20,74 +16,41 @@ import {
   type WorkoutUpdateOutcome,
   type WorkoutUpdatesInput,
 } from "./parsers";
+import {
+  STORED_DATA_ERROR,
+  changesOf,
+  nowIso,
+  rowFlag,
+  rowFrom,
+  rowInteger,
+  rowNullableInteger,
+  rowNullableTextOrUndefined,
+  rowNumber,
+  rowText,
+  rowsFromResult,
+  type Queryable,
+  type Statement,
+} from "./db.server";
+import {
+  buildContributionStatements,
+  contributionsOf,
+  isStatsStale,
+  readContributionRows,
+  statsTimeZone,
+  toStatsState,
+  totalsOf,
+  weeklyContributionOf,
+  workoutRevisionGuard,
+  STATS_STATE_SQL,
+} from "./rollups.server";
+import { toFitnessLevel, toWorkout } from "./rows.server";
 
-export type Statement = {
-  bind(...values: unknown[]): Statement;
-  first(): Promise<unknown>;
-  all(): Promise<unknown>;
-  run(): Promise<unknown>;
-};
-
-export type Queryable = {
-  prepare(query: string): Statement;
-};
+export type { Queryable, Statement };
 
 export type ProviderUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
-};
-
-const STORED_DATA_ERROR = "Stored data is invalid.";
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
-
-const rowText = (row: Record<string, unknown>, key: string): string => {
-  const value = row[key];
-  if (typeof value !== "string") throw new Error(STORED_DATA_ERROR);
-  return value;
-};
-
-const rowNullableText = (row: Record<string, unknown>, key: string): string | null => {
-  const value = row[key];
-  if (value === null || value === undefined) return null;
-  if (typeof value !== "string") throw new Error(STORED_DATA_ERROR);
-  return value;
-};
-
-const rowNullableTextOrUndefined = (
-  row: Record<string, unknown>,
-  key: string,
-): string | undefined => rowNullableText(row, key) ?? undefined;
-
-const rowNumber = (row: Record<string, unknown>, key: string): number => {
-  const value = row[key];
-  if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(STORED_DATA_ERROR);
-  return value;
-};
-
-const rowInteger = (row: Record<string, unknown>, key: string): number => {
-  const value = rowNumber(row, key);
-  if (!Number.isSafeInteger(value)) throw new Error(STORED_DATA_ERROR);
-  return value;
-};
-
-const rowFlag = (row: Record<string, unknown>, key: string): boolean | undefined => {
-  const value = row[key];
-  if (value === null || value === undefined) return undefined;
-  return value === 1 || value === true;
-};
-
-const rowFrom = (value: unknown): Record<string, unknown> => {
-  if (!isRecord(value)) throw new Error(STORED_DATA_ERROR);
-  return value;
-};
-
-const changesOf = (result: unknown): number => {
-  if (!isRecord(result) || !isRecord(result.meta)) return 0;
-  const changes = result.meta.changes;
-  return typeof changes === "number" ? changes : 0;
 };
 
 const isConstraintFailure = (error: unknown): boolean =>
@@ -102,51 +65,6 @@ const normalizeNote = (value: string | null | undefined): string | null | undefi
   return value.trim().length === 0 ? null : value;
 };
 
-const parseJson = (text: string): unknown => {
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(STORED_DATA_ERROR);
-  }
-};
-
-const parseStoredSets = (value: unknown): Exercise["sets"] => {
-  if (!Array.isArray(value)) throw new Error(STORED_DATA_ERROR);
-  return value.map((item) => {
-    if (!isRecord(item)) throw new Error(STORED_DATA_ERROR);
-    const weight = item.weight;
-    const reps = item.reps;
-    if (typeof weight !== "number" || typeof reps !== "number") throw new Error(STORED_DATA_ERROR);
-    return { id: rowText(item, "id"), weight, reps };
-  });
-};
-
-const parseStoredExercises = (value: unknown): Exercise[] => {
-  if (typeof value !== "string") throw new Error(STORED_DATA_ERROR);
-  const parsed = parseJson(value);
-  if (!Array.isArray(parsed)) throw new Error(STORED_DATA_ERROR);
-  return parsed.map((item) => {
-    if (!isRecord(item)) throw new Error(STORED_DATA_ERROR);
-    const category = item.category;
-    return {
-      id: rowText(item, "id"),
-      name: rowText(item, "name"),
-      sets: parseStoredSets(item.sets),
-      ...(typeof category === "string" ? { category } : {}),
-    };
-  });
-};
-
-const parseStoredStringList = (value: unknown): string[] | null => {
-  if (typeof value !== "string") return null;
-  const parsed = parseJson(value);
-  if (!Array.isArray(parsed)) throw new Error(STORED_DATA_ERROR);
-  return parsed.map((item) => {
-    if (typeof item !== "string") throw new Error(STORED_DATA_ERROR);
-    return item;
-  });
-};
-
 const toWeightUnit = (value: unknown): WeightUnit => {
   if (value === "lbs" || value === "kgs") return value;
   throw new Error(STORED_DATA_ERROR);
@@ -158,42 +76,7 @@ const toGender = (value: unknown): Gender | undefined => {
   throw new Error(STORED_DATA_ERROR);
 };
 
-const toFitnessLevel = (value: unknown): Profile["fitnessLevel"] => {
-  if (value === null || value === undefined) return undefined;
-  if (value === "beginner" || value === "intermediary" || value === "advanced" || value === "pro") {
-    return value;
-  }
-  throw new Error(STORED_DATA_ERROR);
-};
-
-const rowsFromResult = (result: unknown): unknown[] => {
-  const rows = isRecord(result) ? result.results : null;
-  if (!Array.isArray(rows)) throw new Error(STORED_DATA_ERROR);
-  return rows;
-};
-
-const toWorkout = (value: unknown): Workout => {
-  const row = rowFrom(value);
-  const startTime = rowNullableTextOrUndefined(row, "startTime");
-  const endTime = rowNullableTextOrUndefined(row, "endTime");
-  const notes = rowNullableTextOrUndefined(row, "notes");
-  const isActive = rowFlag(row, "isActive");
-  const bodyPartWorkedOut = parseStoredStringList(row.bodyPartWorkedOut);
-  return {
-    id: rowText(row, "id"),
-    date: rowText(row, "date"),
-    duration: rowNumber(row, "duration"),
-    exercises: parseStoredExercises(row.exercises),
-    revision: rowInteger(row, "revision"),
-    ...(startTime === undefined ? {} : { startTime }),
-    ...(endTime === undefined ? {} : { endTime }),
-    ...(isActive === undefined ? {} : { isActive }),
-    ...(bodyPartWorkedOut === null ? {} : { bodyPartWorkedOut }),
-    ...(notes === undefined ? {} : { notes }),
-  };
-};
-
-const toWeightEntry = (value: unknown): WeightEntry => {
+export const toWeightEntry = (value: unknown): WeightEntry => {
   const row = rowFrom(value);
   const note = rowNullableTextOrUndefined(row, "note");
   const photoUrl = rowNullableTextOrUndefined(row, "photoUrl");
@@ -206,7 +89,7 @@ const toWeightEntry = (value: unknown): WeightEntry => {
   };
 };
 
-const toWeightGoal = (value: unknown): WeightGoal => {
+export const toWeightGoal = (value: unknown): WeightGoal => {
   const row = rowFrom(value);
   return {
     id: rowText(row, "id"),
@@ -222,6 +105,8 @@ const toProfile = (value: unknown): Profile => {
   const gender = toGender(row.gender);
   const fitnessLevel = toFitnessLevel(row.fitnessLevel);
   const profilePicture = rowNullableTextOrUndefined(row, "profilePicture");
+  const weeklyWorkoutGoal = rowNullableInteger(row, "weeklyWorkoutGoal");
+  const timeZone = rowNullableTextOrUndefined(row, "timeZone");
   return {
     id: rowText(row, "id"),
     name: rowText(row, "name"),
@@ -232,11 +117,12 @@ const toProfile = (value: unknown): Profile => {
     ...(gender === undefined ? {} : { gender }),
     ...(fitnessLevel === undefined ? {} : { fitnessLevel }),
     ...(profilePicture === undefined ? {} : { profilePicture }),
+    ...(weeklyWorkoutGoal === null ? {} : { weeklyWorkoutGoal }),
+    ...(timeZone === undefined ? {} : { timeZone }),
   };
 };
 
 const newId = (): string => crypto.randomUUID();
-const nowIso = (): string => new Date().toISOString();
 
 export const getProfileForUser = async (
   db: Queryable,
@@ -294,6 +180,22 @@ export const upsertProfileForUser = async (
     addOptional("notificationsEnabled", updates.notificationsEnabled ? 1 : 0);
   }
   if (updates.weightUnit !== undefined) addOptional("weightUnit", updates.weightUnit);
+  if (updates.weeklyWorkoutGoal !== undefined) {
+    addOptional("weeklyWorkoutGoal", updates.weeklyWorkoutGoal);
+  }
+  if (updates.timeZone !== undefined) {
+    // The first zone we learn sticks. Rollups built before it was known used
+    // UTC weeks, so learning any other zone sends them back to be rebuilt.
+    insertFields.push("timeZone");
+    insertValues.push(updates.timeZone);
+    const learned =
+      `"profiles"."timeZone" is null and excluded."timeZone" <> 'UTC'`;
+    assignments.push(
+      `"timeZone" = coalesce("profiles"."timeZone", excluded."timeZone")`,
+      `"statsVersion" = case when ${learned} then 0 else "profiles"."statsVersion" end`,
+      `"statsCursor" = case when ${learned} then null else "profiles"."statsCursor" end`,
+    );
+  }
   if (requestedPicture !== undefined) {
     addOptional("profilePicture", requestedPicture);
   } else if (providerPicture !== null) {
@@ -322,19 +224,6 @@ export const upsertProfileForUser = async (
   const existing = await getProfileForUser(db, userId);
   if (existing === null) throw new Error("Unable to save this profile right now.");
   return existing;
-};
-
-export const listWorkoutsForUser = async (
-  db: Queryable,
-  userId: string,
-): Promise<Workout[]> => {
-  const result = await db
-    .prepare(
-      'select * from "workouts" where "userId" = ? order by "date" desc, "createdAt" desc',
-    )
-    .bind(userId)
-    .all();
-  return rowsFromResult(result).map(toWorkout);
 };
 
 export const getWorkoutForUser = async (
@@ -372,8 +261,8 @@ export const startWorkoutForUser = async (
   try {
     inserted = await db
       .prepare(
-        'insert into "workouts" ("id", "userId", "date", "duration", "startTime", "isActive", "exercises", "bodyPartWorkedOut", "revision", "createdAt") ' +
-          'values (?, ?, ?, 0, ?, 1, \'[]\', ?, 1, ?) ' +
+        'insert into "workouts" ("id", "userId", "date", "duration", "startTime", "isActive", "exercises", "bodyPartWorkedOut", "revision", "createdAt", "updatedAt") ' +
+          'values (?, ?, ?, 0, ?, 1, \'[]\', ?, 1, ?, ?) ' +
           'on conflict ("userId") where "isActive" = 1 do nothing returning *',
       )
       .bind(
@@ -382,6 +271,7 @@ export const startWorkoutForUser = async (
         now,
         now,
         bodyPartWorkedOut === undefined ? null : JSON.stringify(bodyPartWorkedOut),
+        now,
         now,
       )
       .first();
@@ -398,9 +288,15 @@ export const startWorkoutForUser = async (
   return toWorkout(inserted);
 };
 
-const buildWorkoutUpdate = (
-  updates: WorkoutUpdatesInput,
-): { fields: string[]; values: unknown[] } => {
+type WorkoutUpdateBuild = {
+  fields: string[];
+  values: unknown[];
+  hasChanges: boolean;
+};
+
+// Summary columns follow the exercises blob and updatedAt follows every
+// write, so list and home reads never need to open the blob.
+const buildWorkoutUpdate = (updates: WorkoutUpdatesInput, now: string): WorkoutUpdateBuild => {
   const fields = ['"revision" = "revision" + 1'];
   const values: unknown[] = [];
   if (updates.date !== undefined) {
@@ -424,8 +320,14 @@ const buildWorkoutUpdate = (
     values.push(updates.isActive ? 1 : 0);
   }
   if (updates.exercises !== undefined) {
-    fields.push('"exercises" = ?');
-    values.push(JSON.stringify(updates.exercises));
+    const totals = totalsOf(updates.exercises);
+    fields.push('"exercises" = ?', '"totalVolume" = ?', '"totalSets" = ?', '"exerciseCount" = ?');
+    values.push(
+      JSON.stringify(updates.exercises),
+      totals.totalVolume,
+      totals.totalSets,
+      totals.exerciseCount,
+    );
   }
   if (updates.bodyPartWorkedOut !== undefined) {
     fields.push('"bodyPartWorkedOut" = ?');
@@ -435,7 +337,22 @@ const buildWorkoutUpdate = (
     fields.push('"notes" = ?');
     values.push(normalizeNote(updates.notes) ?? null);
   }
-  return { fields, values };
+  const hasChanges = values.length > 0;
+  fields.push('"updatedAt" = ?');
+  values.push(now);
+  return { fields, values, hasChanges };
+};
+
+const updateFailure = (error: unknown): WorkoutUpdateOutcome => {
+  if (isSingleActiveWorkoutConstraint(error)) return { ok: false, reason: "active-exists" };
+  if (isConstraintFailure(error)) return { ok: false, reason: "conflict" };
+  throw error;
+};
+
+const readUpdatedWorkout = (result: unknown): WorkoutUpdateOutcome => {
+  const row = rowsFromResult(result)[0];
+  if (row === undefined) return { ok: false, reason: "conflict" };
+  return { ok: true, workout: toWorkout(row) };
 };
 
 export const updateWorkoutForUser = async (
@@ -443,37 +360,107 @@ export const updateWorkoutForUser = async (
   userId: string,
   input: UpdateWorkoutInput,
 ): Promise<WorkoutUpdateOutcome> => {
-  const { fields, values } = buildWorkoutUpdate(input.updates);
-  if (values.length === 0) {
+  const { fields, values, hasChanges } = buildWorkoutUpdate(input.updates, nowIso());
+  if (!hasChanges) {
     const current = await getWorkoutForUser(db, userId, input.id);
     if (current === null) throw new Error("Workout not found");
     if (current.revision !== input.revision) return { ok: false, reason: "conflict" };
     return { ok: true, workout: current };
   }
 
-  let updated: unknown = null;
-  try {
-    updated = await db
+  const updateStatement = (extraWhere: string): Statement =>
+    db
       .prepare(
-        `update "workouts" set ${fields.join(", ")} where "id" = ? and "userId" = ? and "revision" = ? returning *`,
+        `update "workouts" set ${fields.join(", ")} where "id" = ? and "userId" = ? and "revision" = ?${extraWhere} returning *`,
       )
-      .bind(...values, input.id, userId, input.revision)
-      .first();
-  } catch (error) {
-    if (isSingleActiveWorkoutConstraint(error)) {
-      return { ok: false, reason: "active-exists" };
+      .bind(...values, input.id, userId, input.revision);
+
+  // Hot path: an edit that keeps an active workout active writes exactly the
+  // workouts row. Rollups only track completed workouts, so nothing else is
+  // read or written. A miss (completed, missing or stale) takes the slow path.
+  if (input.updates.isActive === undefined) {
+    let fast: unknown = null;
+    try {
+      fast = await updateStatement(' and "isActive" = 1').first();
+    } catch (error) {
+      return updateFailure(error);
     }
-    if (isConstraintFailure(error)) return { ok: false, reason: "conflict" };
-    throw error;
+    if (fast !== null && fast !== undefined) return { ok: true, workout: toWorkout(fast) };
   }
 
-  if (updated !== null && updated !== undefined) {
-    return { ok: true, workout: toWorkout(updated) };
+  const [workoutResult, contributionResult, stateResult] = await db.batch([
+    db
+      .prepare('select * from "workouts" where "id" = ? and "userId" = ? limit 1')
+      .bind(input.id, userId),
+    db
+      .prepare('select * from "workoutExercises" where "workoutId" = ? and "userId" = ?')
+      .bind(input.id, userId),
+    db.prepare(STATS_STATE_SQL).bind(userId),
+  ]);
+  const currentRow = rowsFromResult(workoutResult)[0];
+  if (currentRow === undefined) throw new Error("Workout not found");
+  const current = toWorkout(currentRow);
+  if (current.revision !== input.revision) return { ok: false, reason: "conflict" };
+
+  const wasCompleted = current.isActive === false;
+  const isCompleted = (input.updates.isActive ?? current.isActive) === false;
+  const statements: Statement[] = [];
+
+  if (wasCompleted || isCompleted) {
+    // Completing, editing or reopening a completed workout: swap its old
+    // contribution for the new one in the same transaction as the UPDATE.
+    // The contribution statements run first, each guarded on the workout
+    // still being at the revision read above; the revision-guarded UPDATE
+    // goes last, so if another request got in between, all of them are
+    // no-ops and the outcome is a conflict.
+    const guard = workoutRevisionGuard(userId, input.id, input.revision);
+    const state = toStatsState(rowsFromResult(stateResult)[0] ?? null);
+    if (isStatsStale(state)) {
+      // Rollups are mid-rebuild and would miss this change: restart it.
+      statements.push(
+        db
+          .prepare(`update "profiles" set "statsCursor" = null where "userId" = ? and ${guard.sql}`)
+          .bind(userId, ...guard.params),
+      );
+    } else {
+      const timeZone = statsTimeZone(state);
+      const previous = rowFrom(currentRow);
+      const exercises = input.updates.exercises ?? current.exercises;
+      const date = input.updates.date ?? current.date;
+      const duration = input.updates.duration ?? current.duration;
+      statements.push(
+        ...buildContributionStatements(db, userId, guard, {
+          workoutId: input.id,
+          removed: wasCompleted ? readContributionRows(contributionResult) : [],
+          added: isCompleted ? contributionsOf(input.id, date, exercises) : [],
+          weeklyRemoved: wasCompleted
+            ? weeklyContributionOf(
+                {
+                  date: current.date,
+                  duration: current.duration,
+                  exerciseCount: rowInteger(previous, "exerciseCount"),
+                  totalSets: rowInteger(previous, "totalSets"),
+                  totalVolume: rowNumber(previous, "totalVolume"),
+                },
+                timeZone,
+              )
+            : null,
+          weeklyAdded: isCompleted
+            ? weeklyContributionOf({ date, duration, ...totalsOf(exercises) }, timeZone)
+            : null,
+        }),
+      );
+    }
   }
 
-  const existing = await getWorkoutForUser(db, userId, input.id);
-  if (existing === null) throw new Error("Workout not found");
-  return { ok: false, reason: "conflict" };
+  statements.push(updateStatement(""));
+
+  try {
+    const results = await db.batch(statements);
+    return readUpdatedWorkout(results[results.length - 1]);
+  } catch (error) {
+    return updateFailure(error);
+  }
 };
 
 export const listWeightEntriesForUser = async (
@@ -586,203 +573,4 @@ export const getWeightGoalForUser = async (
     .bind(userId)
     .first();
   return row === null || row === undefined ? null : toWeightGoal(row);
-};
-
-const getWeekStart = (date: Date): string => {
-  const day = date.getUTCDay();
-  const diff = date.getUTCDate() - day + (day === 0 ? -6 : 1);
-  const start = new Date(date);
-  start.setUTCDate(diff);
-  start.setUTCHours(0, 0, 0, 0);
-  return start.toISOString().split("T")[0];
-};
-
-const completedWorkoutsForUser = async (
-  db: Queryable,
-  userId: string,
-): Promise<Workout[]> => {
-  const result = await db
-    .prepare(
-      'select * from "workouts" where "userId" = ? and "isActive" = 0 order by "date" asc, "createdAt" asc',
-    )
-    .bind(userId)
-    .all();
-  return rowsFromResult(result).map(toWorkout);
-};
-
-export const getWorkoutSummaryForUser = async (
-  db: Queryable,
-  userId: string,
-  now: Date = new Date(),
-): Promise<WorkoutSummary> => {
-  const workouts = await completedWorkoutsForUser(db, userId);
-
-  if (workouts.length === 0) {
-    return {
-      totalWorkouts: 0,
-      averageDuration: 0,
-      totalExercises: 0,
-      totalSets: 0,
-      currentStreak: 0,
-      longestStreak: 0,
-      workoutsThisWeek: 0,
-      workoutsThisMonth: 0,
-    };
-  }
-
-  let totalExercises = 0;
-  let totalSets = 0;
-  for (const workout of workouts) {
-    totalExercises += workout.exercises.length;
-    for (const exercise of workout.exercises) {
-      totalSets += exercise.sets.length;
-    }
-  }
-
-  const totalDuration = workouts.reduce((sum, workout) => sum + workout.duration, 0);
-  const averageDuration = Math.round(totalDuration / workouts.length);
-
-  const workoutDates = new Set(workouts.map((workout) => workout.date.split("T")[0]));
-  const sortedDates = Array.from(workoutDates).sort();
-
-  let currentStreak = 0;
-  let longestStreak = 0;
-  let tempStreak = 1;
-
-  const today = now.toISOString().split("T")[0];
-  const yesterday = new Date(now.getTime() - 86400000).toISOString().split("T")[0];
-  const hasRecentWorkout = workoutDates.has(today) || workoutDates.has(yesterday);
-
-  for (let i = 1; i < sortedDates.length; i++) {
-    const previous = new Date(sortedDates[i - 1]);
-    const current = new Date(sortedDates[i]);
-    const diffDays = Math.round((current.getTime() - previous.getTime()) / 86400000);
-
-    if (diffDays === 1) {
-      tempStreak++;
-    } else {
-      longestStreak = Math.max(longestStreak, tempStreak);
-      tempStreak = 1;
-    }
-  }
-  longestStreak = Math.max(longestStreak, tempStreak);
-
-  if (hasRecentWorkout && sortedDates.length > 0) {
-    currentStreak = 1;
-    for (let i = sortedDates.length - 1; i > 0; i--) {
-      const current = new Date(sortedDates[i]);
-      const previous = new Date(sortedDates[i - 1]);
-      const diffDays = Math.round((current.getTime() - previous.getTime()) / 86400000);
-      if (diffDays === 1) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-  }
-
-  const weekStart = getWeekStart(now);
-  const monthStart = new Date(now);
-  monthStart.setUTCDate(1);
-  monthStart.setUTCHours(0, 0, 0, 0);
-  const monthStartDate = monthStart.toISOString().split("T")[0];
-
-  const workoutsThisWeek = workouts.filter(
-    (workout) => workout.date.split("T")[0] >= weekStart,
-  ).length;
-  const workoutsThisMonth = workouts.filter(
-    (workout) => workout.date.split("T")[0] >= monthStartDate,
-  ).length;
-
-  return {
-    totalWorkouts: workouts.length,
-    averageDuration,
-    totalExercises,
-    totalSets,
-    currentStreak,
-    longestStreak,
-    workoutsThisWeek,
-    workoutsThisMonth,
-  };
-};
-
-type ExerciseStatAccumulator = {
-  totalSets: number;
-  totalReps: number;
-  totalVolume: number;
-  maxWeight: number;
-  maxWeightReps: number;
-  lastPerformedAt: string;
-  weeks: Map<string, WeeklyExerciseData>;
-};
-
-export const getExerciseStatsForUser = async (
-  db: Queryable,
-  userId: string,
-): Promise<ExerciseStat[]> => {
-  const workouts = await completedWorkoutsForUser(db, userId);
-  const accumulators = new Map<string, ExerciseStatAccumulator>();
-
-  for (const workout of workouts) {
-    const weekStart = getWeekStart(new Date(workout.date));
-    for (const exercise of workout.exercises) {
-      let accumulator = accumulators.get(exercise.name);
-      if (accumulator === undefined) {
-        accumulator = {
-          totalSets: 0,
-          totalReps: 0,
-          totalVolume: 0,
-          maxWeight: 0,
-          maxWeightReps: 0,
-          lastPerformedAt: workout.date,
-          weeks: new Map(),
-        };
-        accumulators.set(exercise.name, accumulator);
-      }
-      if (workout.date > accumulator.lastPerformedAt) {
-        accumulator.lastPerformedAt = workout.date;
-      }
-
-      for (const set of exercise.sets) {
-        const volume = set.weight * set.reps;
-        accumulator.totalSets++;
-        accumulator.totalReps += set.reps;
-        accumulator.totalVolume += volume;
-        if (set.weight > accumulator.maxWeight) {
-          accumulator.maxWeight = set.weight;
-          accumulator.maxWeightReps = set.reps;
-        }
-
-        let week = accumulator.weeks.get(weekStart);
-        if (week === undefined) {
-          week = { weekStart, sets: 0, reps: 0, volume: 0, maxWeight: 0 };
-          accumulator.weeks.set(weekStart, week);
-        }
-        week.sets++;
-        week.reps += set.reps;
-        week.volume += volume;
-        week.maxWeight = Math.max(week.maxWeight, set.weight);
-      }
-    }
-  }
-
-  return Array.from(accumulators.entries())
-    .map(([exerciseName, accumulator]) => ({
-      id: exerciseName,
-      exerciseName,
-      totalSets: accumulator.totalSets,
-      totalReps: accumulator.totalReps,
-      totalVolume: accumulator.totalVolume,
-      maxWeight: accumulator.maxWeight,
-      maxWeightReps: accumulator.maxWeightReps,
-      lastPerformedAt: accumulator.lastPerformedAt,
-      weeklyHistory: Array.from(accumulator.weeks.values())
-        .sort((a, b) => a.weekStart.localeCompare(b.weekStart))
-        .slice(-12),
-    }))
-    .sort((a, b) =>
-      a.lastPerformedAt === b.lastPerformedAt
-        ? a.exerciseName.localeCompare(b.exerciseName)
-        : b.lastPerformedAt.localeCompare(a.lastPerformedAt),
-    );
 };

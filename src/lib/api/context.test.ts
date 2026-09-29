@@ -17,9 +17,9 @@ const expectForbidden = (run: () => void) => {
   } catch (error) {
     caught = error;
   }
-  expect(caught).toBeInstanceOf(Response);
-  if (caught instanceof Response) {
-    expect(caught.status).toBe(403);
+  expect(caught).toBeInstanceOf(Error);
+  if (caught instanceof Error) {
+    expect(caught.message).toBe("Forbidden");
   }
 };
 
@@ -72,5 +72,13 @@ describe("writable request guard", () => {
         writeRequest("POST", "https://fit.webdevsam.pro"),
       ),
     ).toBe(false);
+  });
+
+  it("accepts extra TRUSTED_ORIGINS and nothing else", () => {
+    const env = { ...ENV, TRUSTED_ORIGINS: " http://localhost:3000 , not-an-origin," };
+    expect(isWritableRequest(env, writeRequest("POST", "http://localhost:3000"))).toBe(true);
+    expect(isWritableRequest(env, writeRequest("POST", "https://fit.webdevsam.pro"))).toBe(true);
+    expect(isWritableRequest(env, writeRequest("POST", "http://localhost:3001"))).toBe(false);
+    expect(isWritableRequest(ENV, writeRequest("POST", "http://localhost:3000"))).toBe(false);
   });
 });

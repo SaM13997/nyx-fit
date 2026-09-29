@@ -55,10 +55,30 @@ export type Profile = {
   fitnessLevel?: FitnessLevel;
   notificationsEnabled: boolean;
   weightUnit: WeightUnit;
+  weeklyWorkoutGoal?: number; // Saved goal; when absent the default follows fitnessLevel
+  timeZone?: string; // IANA zone used to bucket workouts into local weeks
   createdAt: string;
 };
 
-// Stats types for exercise tracking
+// What a workout row needs without its exercises blob (lists, home window).
+export type WorkoutListItem = {
+  id: string;
+  date: string;
+  duration: number;
+  isActive?: boolean;
+  exerciseCount: number;
+  totalSets: number;
+  totalVolume: number;
+  bodyPartWorkedOut?: string[];
+};
+
+export type WorkoutCursor = { date: string; createdAt: string; id: string };
+
+export type WorkoutPage = {
+  items: WorkoutListItem[];
+  nextCursor: WorkoutCursor | null;
+};
+
 export type WeeklyExerciseData = {
   weekStart: string;
   sets: number;
@@ -67,31 +87,97 @@ export type WeeklyExerciseData = {
   maxWeight: number;
 };
 
-export type ExerciseStat = {
-  id: string;
+export type ExerciseHistory = {
+  exerciseKey: string;
+  weeks: WeeklyExerciseData[];
+};
+
+export type WeeklyStat = {
+  weekStart: string;
+  workouts: number;
+  exercises: number;
+  sets: number;
+  volume: number;
+  durationSeconds: number;
+};
+
+// Lifetime rollup for one exercise.
+export type ExerciseRecord = {
+  exerciseKey: string;
   exerciseName: string;
+  sessions: number;
   totalSets: number;
   totalReps: number;
   totalVolume: number;
   maxWeight: number;
   maxWeightReps: number;
   lastPerformedAt: string;
-  weeklyHistory: WeeklyExerciseData[];
 };
 
-export type WorkoutSummary = {
+export type WorkoutExerciseEntry = {
+  exerciseKey: string;
+  exerciseName: string;
+  sets: number;
+  reps: number;
+  volume: number;
+  maxWeight: number;
+  maxWeightReps: number;
+  isPersonalRecord: boolean;
+};
+
+export type LatestWorkout = {
+  workout: Workout;
+  exercises: WorkoutExerciseEntry[];
+};
+
+// "rebuilding": rollups are being rebuilt in the background; the client
+// should ask again shortly.
+export type StatsStatus = "ready" | "rebuilding";
+
+export type WeeklyGoalStreak = {
+  current: number;
+  longest: number;
+};
+
+// A primary body part and when it was last trained inside the 8-week window
+// (null = not seen, i.e. "8w+").
+export type BodyPartRecency = {
+  bodyPart: string;
+  lastWorkedAt: string | null;
+};
+
+export type HomeSnapshot = {
+  status: StatsStatus;
+  activeWorkout: Workout | null;
+  // Completed workouts from the last 8 local weeks, newest first.
+  recentWorkouts: WorkoutListItem[];
+  latestWorkout: LatestWorkout | null;
+  // Roughly the last 26 weeks that have any completed workout.
+  weeklyStats: WeeklyStat[];
+  weeklyWorkoutGoal: number;
+  // Exact up to 52 weeks of history; the full picture is in StatsOverview.
+  streak: WeeklyGoalStreak;
+  weights: WeightEntry[];
+  weightGoal: WeightGoal | null;
+  leastRecentBodyParts: BodyPartRecency[];
+};
+
+export type BodyPartFrequencyEntry = {
+  bodyPart: string;
+  sessions: number;
+};
+
+export type StatsOverview = {
+  status: StatsStatus;
   totalWorkouts: number;
-  averageDuration: number;
+  averageDuration: number; // seconds
   totalExercises: number;
   totalSets: number;
-  currentStreak: number;
-  longestStreak: number;
   workoutsThisWeek: number;
   workoutsThisMonth: number;
-};
-
-export type ExerciseProgression = {
-  exerciseName: string;
-  currentMaxWeight: number;
-  progression: WeeklyExerciseData[];
+  weeklyWorkoutGoal: number;
+  streak: WeeklyGoalStreak;
+  weeklyStats: WeeklyStat[]; // last 12 weeks that have any completed workout
+  exercises: ExerciseRecord[];
+  bodyPartFrequency: BodyPartFrequencyEntry[];
 };

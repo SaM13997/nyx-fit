@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { ExerciseStat, Workout } from "@/lib/types";
-import { bodyPartFrequency, topPersonalRecords } from "./stats";
+import type { ExerciseRecord, Workout } from "@/lib/types";
+import { bodyPartFrequency, leastRecentBodyParts, topPersonalRecords } from "./stats";
 
 const NOW = new Date("2026-09-21T12:00:00.000Z");
 const DAY = 86_400_000;
 
-const stat = (overrides: Partial<ExerciseStat>): ExerciseStat => ({
-  id: "Bench Press",
+const stat = (overrides: Partial<ExerciseRecord>): ExerciseRecord => ({
+  exerciseKey: "bench press",
   exerciseName: "Bench Press",
+  sessions: 4,
   totalSets: 10,
   totalReps: 50,
   totalVolume: 5000,
   maxWeight: 225,
   maxWeightReps: 5,
   lastPerformedAt: "2026-09-20T10:00:00.000Z",
-  weeklyHistory: [],
   ...overrides,
 });
 
@@ -32,12 +32,12 @@ describe("topPersonalRecords", () => {
   it("orders records by heaviest weight and caps the list", () => {
     const records = topPersonalRecords(
       [
-        stat({ exerciseName: "Squat", id: "Squat", maxWeight: 315, maxWeightReps: 3 }),
+        stat({ exerciseName: "Squat", exerciseKey: "squat", maxWeight: 315, maxWeightReps: 3 }),
         stat({ exerciseName: "Bench Press", maxWeight: 225, maxWeightReps: 5 }),
-        stat({ exerciseName: "Row", id: "Row", maxWeight: 185, maxWeightReps: 8 }),
-        stat({ exerciseName: "Curl", id: "Curl", maxWeight: 95, maxWeightReps: 10 }),
-        stat({ exerciseName: "Press", id: "Press", maxWeight: 135, maxWeightReps: 6 }),
-        stat({ exerciseName: "Lat Raise", id: "Lat Raise", maxWeight: 40, maxWeightReps: 12 }),
+        stat({ exerciseName: "Row", exerciseKey: "row", maxWeight: 185, maxWeightReps: 8 }),
+        stat({ exerciseName: "Curl", exerciseKey: "curl", maxWeight: 95, maxWeightReps: 10 }),
+        stat({ exerciseName: "Press", exerciseKey: "press", maxWeight: 135, maxWeightReps: 6 }),
+        stat({ exerciseName: "Lat Raise", exerciseKey: "lat raise", maxWeight: 40, maxWeightReps: 12 }),
       ],
       5,
     );
@@ -53,7 +53,7 @@ describe("topPersonalRecords", () => {
 
   it("skips exercises whose heaviest set carried no weight", () => {
     const records = topPersonalRecords([
-      stat({ exerciseName: "Plank", id: "Plank", maxWeight: 0, maxWeightReps: 0 }),
+      stat({ exerciseName: "Plank", exerciseKey: "plank", maxWeight: 0, maxWeightReps: 0 }),
       stat({ exerciseName: "Bench Press", maxWeight: 225, maxWeightReps: 5 }),
     ]);
 
@@ -62,7 +62,7 @@ describe("topPersonalRecords", () => {
 
   it("breaks weight ties by name", () => {
     const records = topPersonalRecords([
-      stat({ exerciseName: "Incline Press", id: "Incline Press", maxWeight: 225, maxWeightReps: 5 }),
+      stat({ exerciseName: "Incline Press", exerciseKey: "incline press", maxWeight: 225, maxWeightReps: 5 }),
       stat({ exerciseName: "Bench Press", maxWeight: 225, maxWeightReps: 5 }),
     ]);
 
@@ -98,5 +98,27 @@ describe("bodyPartFrequency", () => {
     );
 
     expect(frequency).toEqual([{ bodyPart: "legs", sessions: 1 }]);
+  });
+});
+
+describe("leastRecentBodyParts", () => {
+  it("lists unseen parts first, then the stalest seen parts", () => {
+    const result = leastRecentBodyParts([
+      workout({ date: "2026-09-01T10:00:00.000Z", bodyPartWorkedOut: ["chest"] }),
+      workout({ date: "2026-09-15T10:00:00.000Z", bodyPartWorkedOut: ["back", "legs:Quads"] }),
+      workout({ date: "2026-09-10T10:00:00.000Z", bodyPartWorkedOut: ["legs:Glutes"] }),
+    ]);
+
+    expect(result.slice(0, 6).map((entry) => entry.bodyPart)).toEqual([
+      "arms",
+      "shoulders",
+      "cardio",
+      "abs",
+      "full_body",
+      "chest",
+    ]);
+    expect(result[0].lastWorkedAt).toBeNull();
+    const legs = result.find((entry) => entry.bodyPart === "legs");
+    expect(legs?.lastWorkedAt).toBe("2026-09-15T10:00:00.000Z");
   });
 });

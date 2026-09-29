@@ -1,16 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import type {
-  ExerciseStat,
+  ExerciseHistory,
+  HomeSnapshot,
   Profile,
+  StatsOverview,
   WeightEntry,
   WeightGoal,
   Workout,
-  WorkoutSummary,
+  WorkoutPage,
 } from "@/lib/types";
 import {
   parseDeleteWeightInput,
+  parseGetExerciseHistoryInput,
   parseGetWeightsInput,
   parseGetWorkoutInput,
+  parseListWorkoutsInput,
   parseLogWeightInput,
   parseStartWorkoutInput,
   parseUpdateWeightInput,
@@ -30,7 +34,7 @@ export const getCurrentProfile = createServerFn({ method: "GET" }).handler(
 );
 
 export const upsertCurrentProfile = createServerFn({ method: "POST" })
-  .inputValidator(parseUpsertProfileInput)
+  .validator(parseUpsertProfileInput)
   .handler(async ({ data }): Promise<Profile> => {
     const { withUserMutationContext } = await import("./context.server");
     const { upsertProfileForUser } = await import("./store.server");
@@ -39,13 +43,13 @@ export const upsertCurrentProfile = createServerFn({ method: "POST" })
     );
   });
 
-export const listWorkouts = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Workout[]> => {
+export const listWorkouts = createServerFn({ method: "GET" })
+  .validator(parseListWorkoutsInput)
+  .handler(async ({ data }): Promise<WorkoutPage> => {
     const { withUserContext } = await import("./context.server");
-    const { listWorkoutsForUser } = await import("./store.server");
-    return withUserContext(({ db, userId }) => listWorkoutsForUser(db, userId));
-  },
-);
+    const { listWorkoutsPageForUser } = await import("./reads.server");
+    return withUserContext(({ db, userId }) => listWorkoutsPageForUser(db, userId, data));
+  });
 
 export const getActiveWorkout = createServerFn({ method: "GET" }).handler(
   async (): Promise<Workout | null> => {
@@ -56,7 +60,7 @@ export const getActiveWorkout = createServerFn({ method: "GET" }).handler(
 );
 
 export const getWorkout = createServerFn({ method: "GET" })
-  .inputValidator(parseGetWorkoutInput)
+  .validator(parseGetWorkoutInput)
   .handler(async ({ data }): Promise<Workout | null> => {
     const { withUserContext } = await import("./context.server");
     const { getWorkoutForUser } = await import("./store.server");
@@ -64,7 +68,7 @@ export const getWorkout = createServerFn({ method: "GET" })
   });
 
 export const startWorkout = createServerFn({ method: "POST" })
-  .inputValidator(parseStartWorkoutInput)
+  .validator(parseStartWorkoutInput)
   .handler(async ({ data }): Promise<Workout> => {
     const { withUserMutationContext } = await import("./context.server");
     const { startWorkoutForUser } = await import("./store.server");
@@ -74,7 +78,7 @@ export const startWorkout = createServerFn({ method: "POST" })
   });
 
 export const updateWorkout = createServerFn({ method: "POST" })
-  .inputValidator(parseUpdateWorkoutInput)
+  .validator(parseUpdateWorkoutInput)
   .handler(async ({ data }): Promise<WorkoutUpdateOutcome> => {
     const { withUserMutationContext } = await import("./context.server");
     const { updateWorkoutForUser } = await import("./store.server");
@@ -82,7 +86,7 @@ export const updateWorkout = createServerFn({ method: "POST" })
   });
 
 export const getWeights = createServerFn({ method: "GET" })
-  .inputValidator(parseGetWeightsInput)
+  .validator(parseGetWeightsInput)
   .handler(async ({ data }): Promise<WeightEntry[]> => {
     const { withUserContext } = await import("./context.server");
     const { listWeightEntriesForUser } = await import("./store.server");
@@ -92,7 +96,7 @@ export const getWeights = createServerFn({ method: "GET" })
   });
 
 export const logWeight = createServerFn({ method: "POST" })
-  .inputValidator(parseLogWeightInput)
+  .validator(parseLogWeightInput)
   .handler(async ({ data }): Promise<WeightEntry> => {
     const { withUserMutationContext } = await import("./context.server");
     const { logWeightForUser } = await import("./store.server");
@@ -100,7 +104,7 @@ export const logWeight = createServerFn({ method: "POST" })
   });
 
 export const updateWeight = createServerFn({ method: "POST" })
-  .inputValidator(parseUpdateWeightInput)
+  .validator(parseUpdateWeightInput)
   .handler(async ({ data }): Promise<WeightEntry> => {
     const { withUserMutationContext } = await import("./context.server");
     const { updateWeightForUser } = await import("./store.server");
@@ -108,7 +112,7 @@ export const updateWeight = createServerFn({ method: "POST" })
   });
 
 export const deleteWeight = createServerFn({ method: "POST" })
-  .inputValidator(parseDeleteWeightInput)
+  .validator(parseDeleteWeightInput)
   .handler(async ({ data }): Promise<{ id: string }> => {
     const { withUserMutationContext } = await import("./context.server");
     const { deleteWeightForUser } = await import("./store.server");
@@ -123,18 +127,28 @@ export const getWeightGoal = createServerFn({ method: "GET" }).handler(
   },
 );
 
-export const getWorkoutSummary = createServerFn({ method: "GET" }).handler(
-  async (): Promise<WorkoutSummary> => {
+export const getHomeSnapshot = createServerFn({ method: "GET" }).handler(
+  async (): Promise<HomeSnapshot> => {
     const { withUserContext } = await import("./context.server");
-    const { getWorkoutSummaryForUser } = await import("./store.server");
-    return withUserContext(({ db, userId }) => getWorkoutSummaryForUser(db, userId));
+    const { getHomeSnapshotForUser } = await import("./reads.server");
+    return withUserContext(({ db, userId }) => getHomeSnapshotForUser(db, userId));
   },
 );
 
-export const getExerciseStats = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ExerciseStat[]> => {
+export const getStatsOverview = createServerFn({ method: "GET" }).handler(
+  async (): Promise<StatsOverview> => {
     const { withUserContext } = await import("./context.server");
-    const { getExerciseStatsForUser } = await import("./store.server");
-    return withUserContext(({ db, userId }) => getExerciseStatsForUser(db, userId));
+    const { getStatsOverviewForUser } = await import("./reads.server");
+    return withUserContext(({ db, userId }) => getStatsOverviewForUser(db, userId));
   },
 );
+
+export const getExerciseHistory = createServerFn({ method: "GET" })
+  .validator(parseGetExerciseHistoryInput)
+  .handler(async ({ data }): Promise<ExerciseHistory> => {
+    const { withUserContext } = await import("./context.server");
+    const { getExerciseHistoryForUser } = await import("./reads.server");
+    return withUserContext(({ db, userId }) =>
+      getExerciseHistoryForUser(db, userId, data.exerciseKey),
+    );
+  });

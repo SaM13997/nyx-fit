@@ -1,24 +1,34 @@
-import { useEffect, useRef } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { authClient } from "@/lib/auth-client";
+import { getClientTimeZone } from "@/lib/weeks";
 import type {
   Exercise,
   FitnessLevel,
   Gender,
+  HomeSnapshot,
   Profile,
   WeightEntry,
   WeightUnit,
   Workout,
+  WorkoutCursor,
 } from "@/lib/types";
 import {
   deleteWeight,
   getActiveWorkout,
   getCurrentProfile,
-  getExerciseStats,
+  getExerciseHistory,
+  getHomeSnapshot,
+  getStatsOverview,
   getWeightGoal,
   getWeights,
   getWorkout,
-  getWorkoutSummary,
   listWorkouts,
   logWeight,
   startWorkout,
@@ -27,7 +37,12 @@ import {
   upsertCurrentProfile,
 } from "./functions";
 
-const REFETCH_INTERVAL_MS = 60_000;
+// Snapshot, stats and list data only change when the user completes or edits
+// a finished workout (or logs weight), and those mutations invalidate them
+// explicitly. There is no polling; staleness only bounds focus refetches.
+const AGGREGATE_STALE_MS = 5 * 60_000;
+// While a user's rollups rebuild in the background, ask again shortly.
+const REBUILD_POLL_MS = 1_500;
 
 export type WorkoutUpdates = {
   date?: string;
@@ -47,6 +62,8 @@ export type ProfileUpdates = {
   fitnessLevel?: FitnessLevel;
   notificationsEnabled?: boolean;
   weightUnit?: WeightUnit;
+  weeklyWorkoutGoal?: number;
+  timeZone?: string;
 };
 
 export type UpdateWorkoutRequest = {
@@ -70,11 +87,12 @@ const apiQueryKeys = {
     ["api", userId, "weights", "list", limit ?? null] as const,
   weightGoal: (userId: string | null) =>
     ["api", userId, "weights", "goal"] as const,
+  homeSnapshot: (userId: string | null) => ["api", userId, "home"] as const,
   statsRoot: (userId: string | null) => ["api", userId, "stats"] as const,
-  workoutSummary: (userId: string | null) =>
-    ["api", userId, "stats", "summary"] as const,
-  exerciseStats: (userId: string | null) =>
-    ["api", userId, "stats", "exercises"] as const,
+  statsOverview: (userId: string | null) =>
+    ["api", userId, "stats", "overview"] as const,
+  exerciseHistory: (userId: string | null, exerciseKey: string) =>
+    ["api", userId, "stats", "exercise", exerciseKey] as const,
 };
 
 const useApiSession = () => {
@@ -104,10 +122,32 @@ const isPublishableScope = (
 ): scopedUserId is string =>
   scopedUserId !== null && scopedUserId === latestUserId;
 
+// Weekly stats bucket workouts by the lifter's local week, so an existing
+// profile without a zone gets the device's zone once per session.
+const useTimeZoneSync = () => {
+  const { profile } = useCurrentProfile();
+  const { userId } = useApiSession();
+  const { upsertCurrentProfile } = useUpsertCurrentProfile();
+  const syncedForRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (userId === null || profile === null || profile.timeZone !== undefined) return;
+    if (syncedForRef.current === userId) return;
+    const timeZone = getClientTimeZone();
+    if (timeZone === undefined) return;
+    syncedForRef.current = userId;
+    upsertCurrentProfile({ updates: { timeZone } }).catch(() => {
+      // Try again on the next mount; stats stay on UTC weeks meanwhile.
+      syncedForRef.current = null;
+    });
+  }, [profile, userId, upsertCurrentProfile]);
+};
+
 export const useApiUserCache = () => {
   const queryClient = useQueryClient();
   const { userId } = useApiSession();
   const previousUserIdRef = useRef<string | null>(userId);
+  useTimeZoneSync();
 
   useEffect(() => {
     const previousUserId = previousUserIdRef.current;
@@ -136,23 +176,35 @@ export const useCurrentProfile = (options?: { enabled?: boolean }) => {
   };
 };
 
+const firstPageParam = (): WorkoutCursor | undefined => undefined;
+
+// Newest-first workout history, one cursor page at a time.
 export const useWorkouts = (options?: { enabled?: boolean }) => {
   const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
     options?.enabled,
   );
-  const query = useQuery({
+  const query = useInfiniteQuery({
     queryKey: apiQueryKeys.workoutList(userId),
-    queryFn: () => listWorkouts(),
+    queryFn: ({ pageParam }) =>
+      listWorkouts({ data: pageParam === undefined ? {} : { cursor: pageParam } }),
+    initialPageParam: firstPageParam(),
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled,
-    refetchInterval: REFETCH_INTERVAL_MS,
-    refetchIntervalInBackground: false,
+    staleTime: AGGREGATE_STALE_MS,
   });
+  const workouts = useMemo(
+    () => query.data?.pages.flatMap((page) => page.items) ?? [],
+    [query.data],
+  );
 
   return {
-    workouts: query.data ?? [],
+    workouts,
     isLoading: isSessionPending || (enabled && query.isPending),
     isError: query.isError,
     refetch: query.refetch,
+    hasNextPage: query.hasNextPage,
+    fetchNextPage: query.fetchNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
   };
 };
 
@@ -160,13 +212,32 @@ export const useWorkout = (id: string, options?: { enabled?: boolean }) => {
   const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
     options?.enabled,
   );
+  const queryClient = useQueryClient();
   const detailEnabled = enabled && id.length > 0;
+
+  // Start from a full copy already in the active or home-snapshot caches so
+  // opening that workout renders on the first frame. (The paginated list
+  // only holds summaries, which cannot seed the detail view.)
+  const findCachedWorkout = () => {
+    const active = queryClient.getQueryState<Workout | null>(
+      apiQueryKeys.activeWorkout(userId),
+    );
+    if (active?.data?.id === id) return active;
+    const snapshot = queryClient.getQueryState<HomeSnapshot>(
+      apiQueryKeys.homeSnapshot(userId),
+    );
+    const latest = snapshot?.data?.latestWorkout?.workout;
+    return latest?.id === id && snapshot
+      ? { data: latest, dataUpdatedAt: snapshot.dataUpdatedAt }
+      : undefined;
+  };
+
   const query = useQuery({
     queryKey: apiQueryKeys.workoutDetail(userId, id),
     queryFn: () => getWorkout({ data: { id } }),
+    initialData: () => findCachedWorkout()?.data ?? undefined,
+    initialDataUpdatedAt: () => findCachedWorkout()?.dataUpdatedAt,
     enabled: detailEnabled,
-    refetchInterval: REFETCH_INTERVAL_MS,
-    refetchIntervalInBackground: false,
   });
 
   return {
@@ -177,6 +248,8 @@ export const useWorkout = (id: string, options?: { enabled?: boolean }) => {
   };
 };
 
+// Refetches on focus and reconnect (so a workout edited on another device
+// shows up) but never on a timer.
 export const useActiveWorkout = (options?: { enabled?: boolean }) => {
   const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
     options?.enabled,
@@ -185,8 +258,8 @@ export const useActiveWorkout = (options?: { enabled?: boolean }) => {
     queryKey: apiQueryKeys.activeWorkout(userId),
     queryFn: () => getActiveWorkout(),
     enabled,
-    refetchInterval: REFETCH_INTERVAL_MS,
-    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   return {
@@ -236,40 +309,89 @@ export const useWeightGoal = (options?: { enabled?: boolean }) => {
   };
 };
 
-export const useWorkoutSummary = (options?: { enabled?: boolean }) => {
+export const useHomeSnapshot = (options?: { enabled?: boolean }) => {
   const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
     options?.enabled,
   );
   const query = useQuery({
-    queryKey: apiQueryKeys.workoutSummary(userId),
-    queryFn: () => getWorkoutSummary(),
+    queryKey: apiQueryKeys.homeSnapshot(userId),
+    queryFn: () => getHomeSnapshot(),
     enabled,
+    staleTime: AGGREGATE_STALE_MS,
+    refetchInterval: (state) =>
+      state.state.data?.status === "rebuilding" ? REBUILD_POLL_MS : false,
   });
 
   return {
-    summary: query.data ?? null,
+    snapshot: query.data ?? null,
     isLoading: isSessionPending || (enabled && query.isPending),
     isError: query.isError,
     refetch: query.refetch,
   };
 };
 
-export const useExerciseStats = (options?: { enabled?: boolean }) => {
+export const useStatsOverview = (options?: { enabled?: boolean }) => {
   const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
     options?.enabled,
   );
   const query = useQuery({
-    queryKey: apiQueryKeys.exerciseStats(userId),
-    queryFn: () => getExerciseStats(),
+    queryKey: apiQueryKeys.statsOverview(userId),
+    queryFn: () => getStatsOverview(),
     enabled,
+    staleTime: AGGREGATE_STALE_MS,
+    refetchInterval: (state) =>
+      state.state.data?.status === "rebuilding" ? REBUILD_POLL_MS : false,
   });
 
   return {
-    stats: query.data ?? [],
+    overview: query.data ?? null,
     isLoading: isSessionPending || (enabled && query.isPending),
     isError: query.isError,
     refetch: query.refetch,
   };
+};
+
+// Weekly history for one exercise; only fetched once a chart asks for it.
+export const useExerciseHistory = (
+  exerciseKey: string | null,
+  options?: { enabled?: boolean },
+) => {
+  const { userId, isSessionPending, enabled } = useSessionScopedEnabled(
+    options?.enabled,
+  );
+  const historyEnabled = enabled && exerciseKey !== null;
+  const query = useQuery({
+    queryKey: apiQueryKeys.exerciseHistory(userId, exerciseKey ?? ""),
+    queryFn: () => getExerciseHistory({ data: { exerciseKey: exerciseKey ?? "" } }),
+    enabled: historyEnabled,
+    staleTime: AGGREGATE_STALE_MS,
+  });
+
+  return {
+    history: query.data ?? null,
+    isLoading: isSessionPending || (historyEnabled && query.isPending),
+    isError: query.isError,
+    refetch: query.refetch,
+  };
+};
+
+const patchSnapshotActiveWorkout = (
+  queryClient: QueryClient,
+  userId: string,
+  activeWorkout: Workout | null,
+) => {
+  queryClient.setQueryData<HomeSnapshot>(
+    apiQueryKeys.homeSnapshot(userId),
+    (snapshot) => (snapshot === undefined ? snapshot : { ...snapshot, activeWorkout }),
+  );
+};
+
+// A workout completed, or a completed one changed: everything derived from
+// finished workouts is out of date.
+const invalidateWorkoutAggregates = (queryClient: QueryClient, userId: string) => {
+  void queryClient.invalidateQueries({ queryKey: apiQueryKeys.homeSnapshot(userId) });
+  void queryClient.invalidateQueries({ queryKey: apiQueryKeys.statsRoot(userId) });
+  void queryClient.invalidateQueries({ queryKey: apiQueryKeys.workoutList(userId) });
 };
 
 export const useUpsertCurrentProfile = () => {
@@ -289,6 +411,21 @@ export const useUpsertCurrentProfile = () => {
         void queryClient.invalidateQueries({
           queryKey: apiQueryKeys.profile(scopedUserId),
         });
+        const { weeklyWorkoutGoal, fitnessLevel, timeZone } = input.updates;
+        if (
+          weeklyWorkoutGoal !== undefined ||
+          fitnessLevel !== undefined ||
+          timeZone !== undefined
+        ) {
+          // The goal (or its level-based default) and week bucketing feed
+          // streaks and weekly stats.
+          void queryClient.invalidateQueries({
+            queryKey: apiQueryKeys.homeSnapshot(scopedUserId),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: apiQueryKeys.statsRoot(scopedUserId),
+          });
+        }
       }
 
       return profile;
@@ -321,11 +458,9 @@ export const useStartWorkout = () => {
           apiQueryKeys.activeWorkout(scopedUserId),
           workout,
         );
+        patchSnapshotActiveWorkout(queryClient, scopedUserId, workout);
         void queryClient.invalidateQueries({
           queryKey: apiQueryKeys.workoutList(scopedUserId),
-        });
-        void queryClient.invalidateQueries({
-          queryKey: apiQueryKeys.statsRoot(scopedUserId),
         });
       }
 
@@ -362,33 +497,33 @@ export const useUpdateWorkout = () => {
           );
 
           if (result.workout.isActive === true) {
+            // Set edits on the active workout only touch its own caches.
             queryClient.setQueryData(
               apiQueryKeys.activeWorkout(scopedUserId),
               result.workout,
             );
-          } else if (input.updates.isActive === false) {
-            queryClient.setQueryData(
-              apiQueryKeys.activeWorkout(scopedUserId),
-              null,
-            );
+            patchSnapshotActiveWorkout(queryClient, scopedUserId, result.workout);
+            // Reopening a completed workout removes it from every aggregate.
+            if (input.updates.isActive === true) {
+              invalidateWorkoutAggregates(queryClient, scopedUserId);
+            }
           } else {
-            void queryClient.invalidateQueries({
-              queryKey: apiQueryKeys.activeWorkout(scopedUserId),
-            });
+            if (input.updates.isActive === false) {
+              queryClient.setQueryData(
+                apiQueryKeys.activeWorkout(scopedUserId),
+                null,
+              );
+              patchSnapshotActiveWorkout(queryClient, scopedUserId, null);
+            }
+            // Completed now, or an already completed workout was edited.
+            invalidateWorkoutAggregates(queryClient, scopedUserId);
           }
-
-          void queryClient.invalidateQueries({
-            queryKey: apiQueryKeys.workoutList(scopedUserId),
-          });
-          void queryClient.invalidateQueries({
-            queryKey: apiQueryKeys.statsRoot(scopedUserId),
-          });
         } else {
           void queryClient.invalidateQueries({
             queryKey: apiQueryKeys.workoutsRoot(scopedUserId),
           });
           void queryClient.invalidateQueries({
-            queryKey: apiQueryKeys.statsRoot(scopedUserId),
+            queryKey: apiQueryKeys.homeSnapshot(scopedUserId),
           });
         }
       }
@@ -418,6 +553,9 @@ export const useLogWeight = () => {
         void queryClient.invalidateQueries({
           queryKey: apiQueryKeys.weightsRoot(scopedUserId),
         });
+        void queryClient.invalidateQueries({
+          queryKey: apiQueryKeys.homeSnapshot(scopedUserId),
+        });
       }
 
       return entry;
@@ -446,6 +584,9 @@ export const useUpdateWeight = () => {
         void queryClient.invalidateQueries({
           queryKey: apiQueryKeys.weightsRoot(scopedUserId),
         });
+        void queryClient.invalidateQueries({
+          queryKey: apiQueryKeys.homeSnapshot(scopedUserId),
+        });
       }
 
       return entry;
@@ -467,6 +608,9 @@ export const useDeleteWeight = () => {
       if (isPublishableScope(scopedUserId, userIdRef.current)) {
         void queryClient.invalidateQueries({
           queryKey: apiQueryKeys.weightsRoot(scopedUserId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: apiQueryKeys.homeSnapshot(scopedUserId),
         });
       }
 

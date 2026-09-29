@@ -1,9 +1,12 @@
+import { MAX_WEEKLY_GOAL, MIN_WEEKLY_GOAL } from "@/lib/goals";
+import { isValidTimeZone } from "@/lib/weeks";
 import type {
   Exercise,
   FitnessLevel,
   Gender,
   WeightUnit,
   Workout,
+  WorkoutCursor,
   WorkoutSet,
 } from "@/lib/types";
 
@@ -14,6 +17,8 @@ export type ProfileUpdatesInput = {
   fitnessLevel?: FitnessLevel;
   notificationsEnabled?: boolean;
   weightUnit?: WeightUnit;
+  weeklyWorkoutGoal?: number;
+  timeZone?: string;
 };
 
 export type UpsertProfileInput = { updates: ProfileUpdatesInput };
@@ -38,6 +43,8 @@ export type UpdateWorkoutInput = {
 export type StartWorkoutInput = { bodyPartWorkedOut?: string[] };
 export type GetWorkoutInput = { id: string };
 export type GetWeightsInput = { limit?: number };
+export type ListWorkoutsInput = { cursor?: WorkoutCursor; limit?: number };
+export type GetExerciseHistoryInput = { exerciseKey: string };
 export type DeleteWeightInput = { id: string };
 
 export type LogWeightInput = {
@@ -289,6 +296,21 @@ const readProfileUpdates = (value: unknown): ProfileUpdatesInput => {
   if (value.weightUnit !== undefined) {
     updates.weightUnit = readEnum(value.weightUnit, "Weight unit", ["lbs", "kgs"] as const);
   }
+  if (value.weeklyWorkoutGoal !== undefined) {
+    updates.weeklyWorkoutGoal = readInteger(
+      value.weeklyWorkoutGoal,
+      "Weekly workout goal",
+      MIN_WEEKLY_GOAL,
+      MAX_WEEKLY_GOAL,
+    );
+  }
+  if (value.timeZone !== undefined) {
+    const timeZone = readString(value.timeZone, "Time zone", 64);
+    if (!isValidTimeZone(timeZone)) {
+      throw new Error("Time zone is not valid.");
+    }
+    updates.timeZone = timeZone;
+  }
   return updates;
 };
 
@@ -411,4 +433,36 @@ export const parseDeleteWeightInput = (input: unknown): DeleteWeightInput => {
     throw new Error("Weight identifier is required.");
   }
   return { id: readId(input.id) };
+};
+
+const MAX_PAGE_SIZE = 50;
+
+export const parseListWorkoutsInput = (input: unknown): ListWorkoutsInput => {
+  if (input === undefined || input === null) return {};
+  if (!isRecord(input)) {
+    throw new Error("Workout list input must be an object.");
+  }
+  const result: ListWorkoutsInput = {};
+  if (input.cursor !== undefined && input.cursor !== null) {
+    const cursor = input.cursor;
+    if (!isRecord(cursor)) {
+      throw new Error("Workout cursor is not valid.");
+    }
+    result.cursor = {
+      date: readString(cursor.date, "Cursor date", 40),
+      createdAt: readString(cursor.createdAt, "Cursor time", 40),
+      id: readId(cursor.id),
+    };
+  }
+  if (input.limit !== undefined) {
+    result.limit = readInteger(input.limit, "Limit", 1, MAX_PAGE_SIZE);
+  }
+  return result;
+};
+
+export const parseGetExerciseHistoryInput = (input: unknown): GetExerciseHistoryInput => {
+  if (!isRecord(input)) {
+    throw new Error("Exercise key is required.");
+  }
+  return { exerciseKey: readString(input.exerciseKey, "Exercise key", 120) };
 };
