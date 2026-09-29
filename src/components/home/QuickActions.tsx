@@ -10,7 +10,7 @@ export function QuickActions() {
         className={cn(
           "relative overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
           "flex flex-col items-center text-center cursor-pointer",
-          "transition-all duration-300 hover:border-white/20 hover:shadow-blue-500/10"
+          "transition-[transform,border-color,box-shadow] duration-200 ease-out active:scale-[0.96] hover:border-white/20 hover:shadow-blue-500/10"
         )}
       >
         {/* Background Gradient */}
@@ -33,7 +33,7 @@ export function QuickActions() {
         className={cn(
           "relative overflow-hidden rounded-[2rem] p-6 border border-white/10 shadow-2xl backdrop-blur-md bg-black/80",
           "flex flex-col items-center text-center cursor-pointer",
-          "transition-all duration-300 hover:border-white/20 hover:shadow-orange-500/10"
+          "transition-[transform,border-color,box-shadow] duration-200 ease-out active:scale-[0.96] hover:border-white/20 hover:shadow-orange-500/10"
         )}
       >
         {/* Background Gradient */}

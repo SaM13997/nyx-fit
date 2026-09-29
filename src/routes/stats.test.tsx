@@ -6,47 +6,29 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ExerciseStat, WeightUnit, Workout, WorkoutSummary } from "@/lib/types";
+import type { ExerciseRecord, StatsOverview, WeightUnit } from "@/lib/types";
 import { Route } from "./stats";
 
 const mocks = vi.hoisted(() => ({
-  summary: null as WorkoutSummary | null,
-  stats: [] as ExerciseStat[],
-  workouts: [] as Workout[],
+  overview: null as StatsOverview | null,
   unit: "lbs" as WeightUnit,
-  summaryLoading: false,
-  statsLoading: false,
-  summaryError: false,
-  statsError: false,
-  refetchSummary: vi.fn(),
-  refetchStats: vi.fn(),
-  refetchWorkouts: vi.fn(),
+  isLoading: false,
+  isError: false,
+  refetch: vi.fn(),
 }));
 
 vi.mock("@/lib/api/hooks", () => ({
-  useWorkoutSummary: () => ({
-    summary: mocks.summary,
-    isLoading: mocks.summaryLoading,
-    isError: mocks.summaryError,
-    refetch: mocks.refetchSummary,
-  }),
-  useExerciseStats: () => ({
-    stats: mocks.stats,
-    isLoading: mocks.statsLoading,
-    isError: mocks.statsError,
-    refetch: mocks.refetchStats,
-  }),
-  useWorkouts: () => ({
-    workouts: mocks.workouts,
-    isLoading: false,
-    isError: false,
-    refetch: mocks.refetchWorkouts,
+  useStatsOverview: () => ({
+    overview: mocks.overview,
+    isLoading: mocks.isLoading,
+    isError: mocks.isError,
+    refetch: mocks.refetch,
   }),
   useCurrentProfile: () => ({
     profile: { weightUnit: mocks.unit },
     isLoading: false,
     isError: false,
-    refetch: mocks.refetchWorkouts,
+    refetch: vi.fn(),
   }),
 }));
 
@@ -67,29 +49,41 @@ function renderStats() {
   return render(<Component />);
 }
 
-const makeSummary = (): WorkoutSummary => ({
+const makeOverview = (overrides: Partial<StatsOverview> = {}): StatsOverview => ({
+  status: "ready",
   totalWorkouts: 12,
   averageDuration: 45,
   totalExercises: 30,
   totalSets: 210,
-  currentStreak: 3,
-  longestStreak: 9,
   workoutsThisWeek: 2,
   workoutsThisMonth: 7,
+  weeklyWorkoutGoal: 3,
+  streak: { current: 3, longest: 9 },
+  weeklyStats: [],
+  exercises: [],
+  bodyPartFrequency: [],
+  ...overrides,
+});
+
+const makeRecord = (overrides: Partial<ExerciseRecord> = {}): ExerciseRecord => ({
+  exerciseKey: "bench press",
+  exerciseName: "Bench Press",
+  sessions: 4,
+  totalSets: 10,
+  totalReps: 50,
+  totalVolume: 5000,
+  maxWeight: 225,
+  maxWeightReps: 5,
+  lastPerformedAt: "2026-09-20T10:00:00.000Z",
+  ...overrides,
 });
 
 beforeEach(() => {
-  mocks.summary = makeSummary();
-  mocks.stats = [];
-  mocks.workouts = [];
+  mocks.overview = makeOverview();
   mocks.unit = "lbs";
-  mocks.summaryLoading = false;
-  mocks.statsLoading = false;
-  mocks.summaryError = false;
-  mocks.statsError = false;
-  mocks.refetchSummary.mockReset();
-  mocks.refetchStats.mockReset();
-  mocks.refetchWorkouts.mockReset();
+  mocks.isLoading = false;
+  mocks.isError = false;
+  mocks.refetch.mockReset();
 });
 
 afterEach(() => {
@@ -108,19 +102,27 @@ describe("stats page shell", () => {
   });
 
   it("shows the empty state when there is no data yet", () => {
-    mocks.summary = null;
+    mocks.overview = null;
     renderStats();
 
     expect(screen.getByText("No workout data yet")).toBeTruthy();
   });
 
-  it("offers retry when either request fails", async () => {
-    mocks.summaryError = true;
+  it("offers retry when the request fails", async () => {
+    mocks.overview = null;
+    mocks.isError = true;
     renderStats();
 
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
-    await waitFor(() => expect(mocks.refetchSummary).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.refetch).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows streaks in weeks", () => {
+    renderStats();
+
+    expect(screen.getByLabelText("3 wks")).toBeTruthy();
+    expect(screen.getByLabelText("9 wks")).toBeTruthy();
   });
 
   it("matches the weights page shell geometry", () => {
@@ -134,58 +136,27 @@ describe("stats page shell", () => {
   });
 
   it("gives each volume bar an accessible name", () => {
-    mocks.stats = [
-      {
-        id: "Bench Press",
-        exerciseName: "Bench Press",
-        totalSets: 10,
-        totalReps: 50,
-        totalVolume: 12000,
-        maxWeight: 225,
-        maxWeightReps: 5,
-        lastPerformedAt: "2026-09-20T10:00:00.000Z",
-        weeklyHistory: [
-          {
-            weekStart: "2026-09-14T00:00:00.000Z",
-            sets: 10,
-            reps: 50,
-            volume: 12000,
-            maxWeight: 225,
-          },
-        ],
-      },
-    ];
+    mocks.overview = makeOverview({
+      weeklyStats: [
+        {
+          weekStart: "2026-09-14",
+          workouts: 3,
+          exercises: 9,
+          sets: 30,
+          volume: 12000,
+          durationSeconds: 9000,
+        },
+      ],
+    });
     renderStats();
 
     expect(screen.getByRole("img", { name: /12\.0K volume/ })).toBeTruthy();
   });
 });
 
-const makeWorkout = (overrides: Partial<Workout>): Workout => ({
-  id: "workout-1",
-  date: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-  duration: 3600,
-  isActive: false,
-  revision: 1,
-  exercises: [],
-  ...overrides,
-});
-
 describe("records and frequency", () => {
   it("lists personal records converted to the display unit", () => {
-    mocks.stats = [
-      {
-        id: "Bench Press",
-        exerciseName: "Bench Press",
-        totalSets: 10,
-        totalReps: 50,
-        totalVolume: 5000,
-        maxWeight: 500,
-        maxWeightReps: 5,
-        lastPerformedAt: "2026-09-20T10:00:00.000Z",
-        weeklyHistory: [],
-      },
-    ];
+    mocks.overview = makeOverview({ exercises: [makeRecord({ maxWeight: 500 })] });
     mocks.unit = "kgs";
     renderStats();
 
@@ -195,11 +166,12 @@ describe("records and frequency", () => {
   });
 
   it("shows training frequency counts for the trailing window", () => {
-    mocks.workouts = [
-      makeWorkout({ bodyPartWorkedOut: ["chest"] }),
-      makeWorkout({ id: "workout-2", bodyPartWorkedOut: ["chest"] }),
-      makeWorkout({ id: "workout-3", bodyPartWorkedOut: ["legs"] }),
-    ];
+    mocks.overview = makeOverview({
+      bodyPartFrequency: [
+        { bodyPart: "chest", sessions: 2 },
+        { bodyPart: "legs", sessions: 1 },
+      ],
+    });
     renderStats();
 
     expect(screen.getByText("Training Frequency")).toBeTruthy();
@@ -209,8 +181,6 @@ describe("records and frequency", () => {
   });
 
   it("hides both sections when there is nothing to show", () => {
-    mocks.stats = [];
-    mocks.workouts = [];
     renderStats();
 
     expect(screen.queryByText("Personal Records")).toBeNull();

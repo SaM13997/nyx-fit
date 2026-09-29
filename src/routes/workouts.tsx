@@ -1,10 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Dumbbell } from "lucide-react";
-import type { Workout } from "@/lib/types";
-import { useWorkouts, useStartWorkout, useActiveWorkout } from "@/lib/api/hooks";
-import { WorkoutStatusCard } from "@/components/home";
+import type { WorkoutListItem } from "@/lib/types";
+import { useWorkouts } from "@/lib/api/hooks";
 import { WorkoutCard } from "@/components/WorkoutCard";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/workouts")({
   component: WorkoutsPage,
@@ -50,25 +49,20 @@ export const Route = createFileRoute("/workouts")({
 // Add it behind a backdrop blur and fade from black to transparent from tl to br
 
 function WorkoutsPage() {
-  const navigate = useNavigate();
-  const { workouts, isLoading, isError, refetch } = useWorkouts();
-  const { activeWorkout } = useActiveWorkout();
-  const { startWorkout } = useStartWorkout();
-  const [isStarting, setIsStarting] = useState(false);
-
-  const handleStartWorkout = async (bodyParts: string[]) => {
-    try {
-      setIsStarting(true);
-      const newWorkout = await startWorkout({ bodyPartWorkedOut: bodyParts });
-      navigate({ to: `/workout/${newWorkout.id}` });
-    } catch (error) {
-      console.error("Failed to start workout:", error);
-      setIsStarting(false);
-    }
-  };
+  const {
+    workouts,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useWorkouts();
+  // Cards stagger in only if this visit had to wait for them.
+  const [animateList] = useState(isLoading && workouts.length === 0);
 
   return (
-    <div className="overflow-x-clip bg-black text-white font-sans relative min-h-screen">
+    <div className="overflow-x-clip bg-black text-white font-sans relative min-h-dvh">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background */}
@@ -93,19 +87,13 @@ function WorkoutsPage() {
       </div>
 
       {/* Content */}
-      <div className="relative px-4 pb-24">
+      <div className="relative px-4 pb-32">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
             <p className="text-sm text-zinc-400">
               Your training history and progress.
             </p>
           </div>
-
-          <WorkoutStatusCard
-            activeWorkout={activeWorkout ?? null}
-            isStarting={isStarting}
-            onStartWorkout={handleStartWorkout}
-          />
 
           {isError && workouts.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
@@ -138,9 +126,20 @@ function WorkoutsPage() {
                 </div>
               ) : null}
               {isLoading && workouts.length === 0 ? (
-                <div className="text-zinc-500 px-1">Loading workouts...</div>
+                <div role="status" aria-label="Loading workouts" className="space-y-3">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-[76px] animate-pulse rounded-xl bg-white/5" />
+                  ))}
+                </div>
               ) : (
-                <WorkoutList workouts={workouts} />
+                <>
+                  <WorkoutList workouts={workouts} hasMore={hasNextPage} animateIn={animateList} />
+                  <LoadMore
+                    hasNextPage={hasNextPage}
+                    isFetching={isFetchingNextPage}
+                    onLoadMore={() => void fetchNextPage()}
+                  />
+                </>
               )}
             </>
           )}
@@ -151,13 +150,66 @@ function WorkoutsPage() {
 }
 
 
-function WorkoutList({ workouts }: { workouts: Workout[] }) {
+// Loads the next page as the button nears the viewport; the button itself
+// stays as the keyboard and no-IntersectionObserver fallback.
+function LoadMore({
+  hasNextPage,
+  isFetching,
+  onLoadMore,
+}: {
+  hasNextPage: boolean;
+  isFetching: boolean;
+  onLoadMore: () => void;
+}) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const loadMoreRef = useRef(onLoadMore);
+  loadMoreRef.current = onLoadMore;
+
+  useEffect(() => {
+    const button = buttonRef.current;
+    if (!hasNextPage || isFetching || !button || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) loadMoreRef.current();
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(button);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetching]);
+
+  if (!hasNextPage) return null;
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      disabled={isFetching}
+      onClick={onLoadMore}
+      className="mt-4 min-h-11 w-full rounded-xl border border-white/10 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/5 disabled:opacity-60"
+    >
+      {isFetching ? "Loading…" : "Load more"}
+    </button>
+  );
+}
+
+function WorkoutList({
+  workouts,
+  hasMore,
+  animateIn,
+}: {
+  workouts: WorkoutListItem[];
+  hasMore: boolean;
+  animateIn: boolean;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
         <h2 className="text-xl font-bold">Recent History</h2>
         <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full text-xs font-bold border border-purple-500/20">
           {workouts.length}
+          {hasMore ? "+" : ""}
         </span>
       </div>
       {workouts.length === 0 ? (
@@ -173,7 +225,7 @@ function WorkoutList({ workouts }: { workouts: Workout[] }) {
       ) : (
         <div className="space-y-3">
           {workouts.map((workout, index) => (
-            <WorkoutCard key={workout.id} workout={workout} index={index} />
+            <WorkoutCard key={workout.id} workout={workout} index={index} animateIn={animateIn} />
           ))}
         </div>
       )}

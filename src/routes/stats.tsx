@@ -1,13 +1,11 @@
+import { useEffect, useState } from "react";
+import NumberFlow from "@number-flow/react";
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  useWorkoutSummary,
-  useExerciseStats,
-  useWorkouts,
-  useCurrentProfile,
-} from "@/lib/api/hooks";
+import { useStatsOverview, useCurrentProfile } from "@/lib/api/hooks";
 import { formatExerciseCategory } from "@/lib/exerciseCategories";
-import { bodyPartFrequency, topPersonalRecords } from "@/lib/stats";
-import type { ExerciseStat, WeightUnit } from "@/lib/types";
+import { topPersonalRecords } from "@/lib/stats";
+import type { WeeklyStat, WeightUnit } from "@/lib/types";
 import { convertWeightFromLbs, formatWeight, formatWeightUnit } from "@/lib/units";
 import { formatCountLabel } from "@/lib/utils";
 import {
@@ -28,28 +26,24 @@ export const Route = createFileRoute("/stats")({
 
 function StatsPage() {
   const {
-    summary,
-    isLoading: summaryLoading,
-    isError: summaryError,
-    refetch: refetchSummary,
-  } = useWorkoutSummary();
-  const {
-    stats: exerciseStats,
-    isLoading: statsLoading,
-    isError: statsError,
-    refetch: refetchStats,
-  } = useExerciseStats();
-  const { workouts } = useWorkouts();
+    overview,
+    isLoading,
+    isError,
+    refetch,
+  } = useStatsOverview();
   const { profile } = useCurrentProfile();
   const unit = profile?.weightUnit ?? "lbs";
 
-  const isLoading = summaryLoading || statsLoading;
-  const isError = summaryError || statsError;
+  const exerciseStats = overview?.exercises ?? [];
   const records = topPersonalRecords(exerciseStats);
-  const frequency = bodyPartFrequency(workouts, new Date());
+  const frequency = overview?.bodyPartFrequency ?? [];
 
   return (
-    <div className="bg-black text-white font-sans min-h-screen pb-24 overflow-x-clip">
+    <div className="relative bg-black text-white font-sans min-h-dvh pb-32 overflow-x-clip">
+      <BackButton
+        fallback="/"
+        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20"
+      />
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         <div
           className="absolute inset-0 animated-hex-bg opacity-50"
@@ -76,7 +70,7 @@ function StatsPage() {
             </p>
           </div>
 
-          {isError && !summary && exerciseStats.length === 0 ? (
+          {isError && !overview ? (
             <div className="p-8 rounded-3xl bg-red-500/5 border border-red-500/20 text-center">
               <p className="text-red-200 font-medium">
                 Couldn&apos;t load your stats.
@@ -86,21 +80,18 @@ function StatsPage() {
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  if (summaryError) void refetchSummary();
-                  if (statsError) void refetchStats();
-                }}
+                onClick={() => void refetch()}
                 className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
               >
                 Try again
               </button>
             </div>
-          ) : isLoading && !summary && exerciseStats.length === 0 ? (
+          ) : isLoading && !overview ? (
             <div className="text-center py-20">
               <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500" />
               <p className="text-zinc-500 mt-2">Loading stats...</p>
             </div>
-          ) : summary ? (
+          ) : overview ? (
             <>
               {isError ? (
                 <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
@@ -109,10 +100,7 @@ function StatsPage() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (summaryError) void refetchSummary();
-                      if (statsError) void refetchStats();
-                    }}
+                    onClick={() => void refetch()}
                     className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
                   >
                     Try again
@@ -124,25 +112,26 @@ function StatsPage() {
                   <StatCard
                     icon={<Dumbbell className="w-5 h-5" />}
                     label="Total Workouts"
-                    value={summary.totalWorkouts}
+                    value={overview.totalWorkouts}
                     color="orange"
                   />
                   <StatCard
                     icon={<Clock className="w-5 h-5" />}
                     label="Avg Duration"
-                    value={`${summary.averageDuration}m`}
+                    value={Math.round(overview.averageDuration / 60)}
+                    suffix="m"
                     color="rose"
                   />
                   <StatCard
                     icon={<Target className="w-5 h-5" />}
                     label="Total Sets"
-                    value={summary.totalSets}
+                    value={overview.totalSets}
                     color="emerald"
                   />
                   <StatCard
                     icon={<Activity className="w-5 h-5" />}
                     label="Total Exercises"
-                    value={summary.totalExercises}
+                    value={overview.totalExercises}
                     color="blue"
                   />
                 </div>
@@ -150,15 +139,17 @@ function StatsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <StatCard
                     icon={<Flame className="w-5 h-5" />}
-                    label="Current Streak"
-                    value={`${summary.currentStreak} days`}
+                    label="Weekly Streak"
+                    value={overview.streak.current}
+                    suffix={overview.streak.current === 1 ? " wk" : " wks"}
                     color="orange"
                     highlighted
                   />
                   <StatCard
                     icon={<Trophy className="w-5 h-5" />}
-                    label="Longest Streak"
-                    value={`${summary.longestStreak} days`}
+                    label="Best Streak"
+                    value={overview.streak.longest}
+                    suffix={overview.streak.longest === 1 ? " wk" : " wks"}
                     color="amber"
                     highlighted
                   />
@@ -168,13 +159,13 @@ function StatsPage() {
                   <StatCard
                     icon={<Calendar className="w-5 h-5" />}
                     label="This Week"
-                    value={summary.workoutsThisWeek}
+                    value={overview.workoutsThisWeek}
                     color="purple"
                   />
                   <StatCard
                     icon={<Calendar className="w-5 h-5" />}
                     label="This Month"
-                    value={summary.workoutsThisMonth}
+                    value={overview.workoutsThisMonth}
                     color="cyan"
                   />
                 </div>
@@ -193,7 +184,7 @@ function StatsPage() {
                       .slice(0, 10)
                       .map((stat) => (
                         <ExerciseStatCard
-                          key={stat.id}
+                          key={stat.exerciseKey}
                           name={stat.exerciseName}
                           totalSets={stat.totalSets}
                           maxWeight={stat.maxWeight}
@@ -257,12 +248,12 @@ function StatsPage() {
                 </div>
               ) : null}
 
-              {exerciseStats.length > 0 && (
+              {overview.weeklyStats.length > 0 && (
                 <div className="pt-4">
                   <h2 className="text-xl font-bold text-white mb-4">
                     Weekly Volume Trend
                   </h2>
-                  <WeeklyVolumeChart stats={exerciseStats} />
+                  <WeeklyVolumeChart weeks={overview.weeklyStats} />
                 </div>
               )}
             </>
@@ -285,12 +276,14 @@ function StatCard({
   icon,
   label,
   value,
+  suffix,
   color,
   highlighted,
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string | number;
+  value: number;
+  suffix?: string;
   color: "orange" | "rose" | "emerald" | "blue" | "purple" | "cyan" | "amber";
   highlighted?: boolean;
 }) {
@@ -305,6 +298,12 @@ function StatCard({
   };
 
   const colorValue = colors[color];
+  // Starts at zero so the figure counts up once the screen is on stage.
+  const [shownValue, setShownValue] = useState(0);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShownValue(value), 120);
+    return () => window.clearTimeout(timer);
+  }, [value]);
 
   return (
     <div
@@ -317,7 +316,9 @@ function StatCard({
           {icon}
           <span className="text-xs uppercase tracking-wider font-bold">{label}</span>
         </div>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold tabular-nums">
+          <NumberFlow value={shownValue} suffix={suffix} aria-label={`${value}${suffix ?? ""}`} />
+        </div>
       </div>
     </div>
   );
@@ -381,24 +382,13 @@ function ExerciseStatCard({
   );
 }
 
-function WeeklyVolumeChart({ stats }: { stats: ExerciseStat[] }) {
-  const weeks: { weekStart: string; totalVolume: number }[] = [];
-  const weekMap = new Map<string, number>();
+function WeeklyVolumeChart({ weeks }: { weeks: WeeklyStat[] }) {
+  const volumes = weeks.map((week) => ({
+    weekStart: week.weekStart,
+    totalVolume: week.volume,
+  }));
 
-  for (const stat of stats) {
-    for (const week of stat.weeklyHistory || []) {
-      const current = weekMap.get(week.weekStart) || 0;
-      weekMap.set(week.weekStart, current + week.volume);
-    }
-  }
-
-  weekMap.forEach((volume, weekStart) => {
-    weeks.push({ weekStart, totalVolume: volume });
-  });
-
-  weeks.sort((a, b) => a.weekStart.localeCompare(b.weekStart));
-
-  const last8Weeks = weeks.slice(-8);
+  const last8Weeks = volumes.slice(-8);
 
   if (last8Weeks.length === 0) {
     return null;

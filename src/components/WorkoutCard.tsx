@@ -1,28 +1,26 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { PlayCircle } from "lucide-react";
+import { pressScale, springs } from "@/lib/motion";
 import { cn, formatCountLabel, formatDuration, formatLocaleDate } from "@/lib/utils";
-import type { Workout } from "@/lib/types";
+import type { WorkoutListItem } from "@/lib/types";
 
 interface WorkoutCardProps {
-  workout: Workout;
+  workout: WorkoutListItem;
   index?: number;
+  // Stagger in only when the list first arrives, not on every visit.
+  animateIn?: boolean;
 }
 
-export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
-  // Determine if workout is active (no end time or explicitly marked active)
-  const isActive = !workout.endTime || workout.isActive;
+export function WorkoutCard({ workout, index = 0, animateIn = false }: WorkoutCardProps) {
+  const isActive = workout.isActive === true;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={animateIn ? { opacity: 0, y: 16 } : false}
       animate={{ opacity: 1, y: 0 }}
-      transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        delay: index * 0.1,
-      }}
+      transition={{ ...springs.smooth, delay: Math.min(index, 6) * 0.04 }}
+      whileTap={pressScale}
     >
       <Link
         to="/workout/$id"
@@ -49,7 +47,7 @@ export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
             </div>
 
             <h3 className={cn("text-base font-semibold break-words", isActive ? "text-green-50" : "text-white")}>
-              {formatCountLabel(workout.exercises.length, "Exercise")}
+              {formatCountLabel(workout.exerciseCount, "Exercise")}
             </h3>
           </div>
 
@@ -59,7 +57,7 @@ export function WorkoutCard({ workout, index = 0 }: WorkoutCardProps) {
                 Duration
               </span>
               <span className={cn("block text-sm font-medium", isActive ? "text-green-300" : "text-purple-100")}>
-                {formatDuration(workout.duration)}
+                {isActive ? "Live" : formatDuration(workout.duration)}
               </span>
             </div>
           </div>

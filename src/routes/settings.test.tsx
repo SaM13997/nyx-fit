@@ -13,7 +13,11 @@ const mocks = vi.hoisted(() => ({
   session: { session: { id: "session-1" } } as
     | { session: { id: string } }
     | null,
-  profile: null as { notificationsEnabled: boolean } | null,
+  profile: null as {
+    notificationsEnabled: boolean;
+    weeklyWorkoutGoal?: number;
+    fitnessLevel?: "beginner" | "advanced";
+  } | null,
   upsert: vi.fn(),
   showError: vi.fn(),
   requestPermission: vi.fn<() => Promise<NotificationPermissionState>>(),
@@ -56,8 +60,6 @@ vi.mock("@/lib/AppearanceContext", () => ({
     setAttendanceVariant: vi.fn(),
     restTimerDuration: 180,
     setRestTimerDuration: vi.fn(),
-    attendanceSuccessThreshold: 5,
-    setAttendanceSuccessThreshold: vi.fn(),
   }),
 }));
 
@@ -264,5 +266,56 @@ describe("notifications settings", () => {
       name: /Send test notification/,
     }) as HTMLButtonElement;
     expect(testRow.disabled).toBe(true);
+  });
+});
+
+describe("weekly goal setting", () => {
+  const openAppearance = async () => {
+    // jsdom has no CSS.escape, which React's ViewTransition reads.
+    vi.stubGlobal("CSS", { escape: (value: string) => value });
+    renderSettings();
+    fireEvent.click(screen.getByRole("button", { name: /Appearance/ }));
+    return screen.findByText("Weekly goal");
+  };
+
+  it("shows the level-based default and saves changes to the profile", async () => {
+    mocks.profile = { notificationsEnabled: false, fitnessLevel: "advanced" };
+    mocks.upsert.mockResolvedValue({});
+    await openAppearance();
+
+    expect(screen.getByText("4 workouts")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Increase weekly goal" }));
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenCalledWith({ updates: { weeklyWorkoutGoal: 5 } }),
+    );
+  });
+
+  it("keeps the stepper enabled without a profile row and saves the new goal", async () => {
+    mocks.profile = null;
+    mocks.upsert.mockResolvedValue({});
+    await openAppearance();
+
+    expect(screen.getByText("3 workouts")).toBeTruthy();
+    const decrease = screen.getByRole("button", { name: "Decrease weekly goal" });
+    const increase = screen.getByRole("button", { name: "Increase weekly goal" });
+    expect((decrease as HTMLButtonElement).disabled).toBe(false);
+    expect((increase as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(increase);
+    await waitFor(() =>
+      expect(mocks.upsert).toHaveBeenCalledWith({ updates: { weeklyWorkoutGoal: 4 } }),
+    );
+  });
+
+  it("prefers a saved goal, stays within 1-7 and reports save failures", async () => {
+    mocks.profile = { notificationsEnabled: false, weeklyWorkoutGoal: 1 };
+    mocks.upsert.mockRejectedValue(new Error("offline"));
+    await openAppearance();
+
+    expect(screen.getByText("1 workout")).toBeTruthy();
+    const decrease = screen.getByRole("button", { name: "Decrease weekly goal" });
+    expect((decrease as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Increase weekly goal" }));
+    await waitFor(() => expect(mocks.showError).toHaveBeenCalled());
+    expect(mocks.upsert).toHaveBeenCalledWith({ updates: { weeklyWorkoutGoal: 2 } });
   });
 });

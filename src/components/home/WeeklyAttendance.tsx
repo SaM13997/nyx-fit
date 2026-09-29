@@ -5,24 +5,28 @@ import {
   IndicatorsV3,
   MonthlyIndicators,
   getWeekData,
-  getWeekNumber
+  getWeekNumber,
+  type AttendanceWorkout,
 } from "./WeeklyAttendanceVariations";
-import type { Workout } from "@/lib/types";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { springs } from "@/lib/motion";
+import { AnimatedHeight } from "@/components/motion/AnimatedHeight";
 
 interface WeeklyAttendanceProps {
-  workouts: Workout[];
+  workouts: AttendanceWorkout[];
+  // Workouts per week that unlock the success state.
+  goal: number;
   isLoading?: boolean;
 }
 
-export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendanceProps) {
-  const { attendanceVariant, attendanceSuccessThreshold } = useAppearance();
+export function WeeklyAttendance({ workouts, goal, isLoading = false }: WeeklyAttendanceProps) {
+  const { attendanceVariant } = useAppearance();
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
 
   const { workoutsThisWeek } = getWeekData(workouts);
-  const isSuccess = workoutsThisWeek >= attendanceSuccessThreshold;
+  const isSuccess = workoutsThisWeek >= goal;
 
   const toggleView = () => {
     setViewMode((prev) => (prev === "week" ? "month" : "week"));
@@ -31,89 +35,65 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
   if (isLoading) {
     return (
       <div className={cn(
-        "h-36 rounded-[2rem] animate-pulse",
+        "rounded-[2rem] animate-pulse",
         attendanceVariant === 'circle' ? "h-40" : attendanceVariant === 'bar' ? "h-24" : "h-36",
         "bg-white/5"
       )} />
     );
   }
 
+  const title = viewMode === "week" ? "This Week" : "Last 4 Weeks";
+
   return (
-    <motion.div
-      layout
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    <motion.button
+      type="button"
       onClick={toggleView}
+      whileTap={{ scale: 0.98 }}
+      transition={springs.snappy}
+      aria-label={`${title}: ${workoutsThisWeek} workouts. Show ${viewMode === "week" ? "last 4 weeks" : "this week"}`}
       className={cn(
-        "w-full cursor-pointer active:scale-[0.98] transition-all duration-500 overflow-hidden border backdrop-blur-xl shadow-xl",
-        attendanceVariant === "bar" ? "rounded-2xl p-4" : "rounded-[2rem] p-5",
+        "relative block w-full overflow-hidden border text-left shadow-xl backdrop-blur-xl transition-[border-color,background-color,box-shadow] duration-500 outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+        attendanceVariant === "bar" ? "rounded-2xl" : "rounded-[2rem]",
         isSuccess
           ? "border-amber-500/30 bg-amber-950/10 shadow-amber-500/10"
           : "border-white/10 bg-zinc-900/50"
       )}
     >
-      {/* Header (Stable Shell, Crossfading Content) */}
-      <div className="flex items-center justify-between mb-4 relative h-5">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {viewMode === "week" ? (
+      <AnimatedHeight innerClassName={attendanceVariant === "bar" ? "p-4" : "p-5"}>
+        <div className="relative mb-4 flex h-5 items-center justify-between">
+          <AnimatePresence mode="popLayout" initial={false}>
             <motion.h3
               key={viewMode}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.5, }}
+              initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
+              transition={springs.snappy}
               className={cn(
-                "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
+                "pl-1 text-xs font-bold uppercase tracking-widest transition-colors duration-500",
                 isSuccess ? "text-amber-500" : "text-zinc-400"
               )}
             >
-              This Week
+              {title}
             </motion.h3>
-          ) : (
-            <motion.h3
-              key={viewMode}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.5, }}
-              className={cn(
-                "text-xs font-bold uppercase tracking-widest pl-1 transition-colors duration-500",
-                isSuccess ? "text-amber-500" : "text-zinc-400"
-              )}
-            >
-              Last 4 Weeks
-            </motion.h3>
-          )}
-        </AnimatePresence>
+          </AnimatePresence>
 
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span
+          <span
             className={cn(
-              "text-xs font-medium px-2 py-0.5 rounded-full transition-colors duration-500",
-              isSuccess
-                ? "text-amber-300 bg-amber-500/20"
-                : "text-emerald-500 bg-emerald-500/10"
+              "rounded-full px-2 py-0.5 text-xs font-medium tabular-nums transition-colors duration-500",
+              isSuccess ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/10 text-emerald-400"
             )}
           >
-            {workoutsThisWeek} Workouts
-          </motion.span>
-        </AnimatePresence>
-      </div>
+            {workoutsThisWeek} {workoutsThisWeek === 1 ? "Workout" : "Workouts"}
+          </span>
+        </div>
 
-      {/* Content (Swappable with Animation) */}
-      <div className="relative">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={viewMode + attendanceVariant}
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{
-              type: "spring",
-              stiffness: 400,
-              damping: 30,
-              opacity: { duration: 0.2 }
-            }}
-            className="w-full flex"
+            initial={{ opacity: 0, filter: "blur(6px)" }}
+            animate={{ opacity: 1, filter: "blur(0px)", transition: { duration: 0.28, delay: 0.05 } }}
+            exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.12 } }}
+            className="flex w-full"
           >
             {viewMode === "month" ? (
               <MonthlyIndicators workouts={workouts} />
@@ -122,17 +102,16 @@ export function WeeklyAttendance({ workouts, isLoading = false }: WeeklyAttendan
             )}
           </motion.div>
         </AnimatePresence>
-      </div>
+      </AnimatedHeight>
 
-      {/* Special Success Glow for Bar variant */}
       {isSuccess && attendanceVariant === "bar" && (
         <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent blur-sm" />
       )}
-    </motion.div>
+    </motion.button>
   );
 }
 
-function renderIndicators(variant: string, workouts: Workout[], isSuccess: boolean) {
+function renderIndicators(variant: string, workouts: AttendanceWorkout[], isSuccess: boolean) {
   switch (variant) {
     case "circle":
       return <IndicatorsV2 workouts={workouts} isSuccess={isSuccess} />;

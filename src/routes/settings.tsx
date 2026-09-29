@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { APP_VERSION } from "@/lib/version";
 import {
   useAppearance,
@@ -8,6 +8,7 @@ import {
 } from "@/lib/AppearanceContext";
 import { authClient } from "@/lib/auth-client";
 import { useCurrentProfile, useUpsertCurrentProfile } from "@/lib/api/hooks";
+import { MAX_WEEKLY_GOAL, MIN_WEEKLY_GOAL, resolveWeeklyGoal } from "@/lib/goals";
 import { getEffectiveProfile } from "@/lib/profile";
 import {
   ChevronRight,
@@ -26,8 +27,17 @@ import {
   Type,
   Timer,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  ViewTransition,
+  addTransitionType,
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { pressScale } from "@/lib/motion";
 import { Switch } from "@/components/ui/switch";
 import {
   getNotificationPermission,
@@ -92,6 +102,13 @@ const restTimerOptions = [
 
 type SettingsView = "main" | "appearance";
 
+const SUBVIEW_TRANSITION = {
+  "nav-forward": "vt-subview-forward",
+  "nav-back": "vt-subview-back",
+  default: "none",
+};
+
+
 function SettingsPage() {
   const navigate = useNavigate();
   const { data: sessionData } = authClient.useSession();
@@ -99,6 +116,23 @@ function SettingsPage() {
   const { profile } = useCurrentProfile({ enabled: !!session });
   const effectiveProfile = getEffectiveProfile(profile, sessionData?.user);
   const [currentView, setCurrentView] = useState<SettingsView>("main");
+  const viewHeadingRef = useRef<HTMLHeadingElement>(null);
+  const openedViewRef = useRef(false);
+
+  // Sub-screens slide via React's <ViewTransition>; the type picks direction.
+  const openView = (next: SettingsView) => {
+    openedViewRef.current = true;
+    startTransition(() => {
+      addTransitionType(next === "main" ? "nav-back" : "nav-forward");
+      setCurrentView(next);
+    });
+  };
+
+  useEffect(() => {
+    if (!openedViewRef.current) return;
+    window.scrollTo({ top: 0 });
+    if (currentView === "appearance") viewHeadingRef.current?.focus({ preventScroll: true });
+  }, [currentView]);
   const {
     fontTheme,
     setFontTheme,
@@ -106,11 +140,10 @@ function SettingsPage() {
     setAttendanceVariant,
     restTimerDuration,
     setRestTimerDuration,
-    attendanceSuccessThreshold,
-    setAttendanceSuccessThreshold,
   } = useAppearance();
 
-  const { upsertCurrentProfile } = useUpsertCurrentProfile();
+  const { upsertCurrentProfile, isPending: isSavingProfile } = useUpsertCurrentProfile();
+  const weeklyGoal = resolveWeeklyGoal(profile?.weeklyWorkoutGoal, profile?.fitnessLevel);
   const { error: showError } = useToast();
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermissionState>("unsupported");
@@ -202,70 +235,23 @@ function SettingsPage() {
     }
   };
 
+  const handleWeeklyGoalChange = async (next: number) => {
+    if (isSavingProfile) return;
+    if (next < MIN_WEEKLY_GOAL || next > MAX_WEEKLY_GOAL) return;
+    try {
+      await upsertCurrentProfile({ updates: { weeklyWorkoutGoal: next } });
+    } catch {
+      showError("Couldn't save your weekly goal. Try again.");
+    }
+  };
+
   const handleLogout = async () => {
     await authClient.signOut();
     navigate({ to: "/login" });
   };
 
-  // Sub-components for cleaner render
-  const SettingsItem = ({
-    icon: Icon,
-    label,
-    onClick,
-    value,
-    isDestructive = false,
-    disabled = false,
-  }: {
-    icon: any;
-    label: string;
-    onClick?: () => void;
-    value?: string;
-    isDestructive?: boolean;
-    disabled?: boolean;
-  }) => (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors",
-        disabled && "opacity-50"
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className={cn(
-            "h-10 w-10 rounded-full flex items-center justify-center",
-            isDestructive
-              ? "bg-red-500/10 text-red-500"
-              : "bg-white/10 text-zinc-400"
-          )}
-        >
-          <Icon size={20} />
-        </div>
-        <span
-          className={cn(
-            "font-medium",
-            isDestructive ? "text-red-500" : "text-zinc-200"
-          )}
-        >
-          {label}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        {value && <span className="text-sm text-zinc-500">{value}</span>}
-        <ChevronRight size={18} className="text-zinc-600" />
-      </div>
-    </motion.button>
-  );
-
-  const MainSettings = () => (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col gap-6"
-    >
+  const mainSettings = (
+    <div className="flex flex-col gap-6">
       {/* User Profile Card */}
       <motion.button
         whileTap={{ scale: 0.98 }}
@@ -299,7 +285,7 @@ function SettingsPage() {
         <SettingsItem
           icon={Palette}
           label="Appearance"
-          onClick={() => setCurrentView("appearance")}
+          onClick={() => openView("appearance")}
         />
       </div>
 
@@ -375,25 +361,25 @@ function SettingsPage() {
       >
         Log Out
       </motion.button>
-    </motion.div>
+    </div>
   );
 
-  const AppearanceSettings = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="flex flex-col gap-6"
-    >
+  const appearanceSettings = (
+    <div className="flex flex-col gap-6">
       <button
-        onClick={() => setCurrentView("main")}
-        className="flex min-h-11 items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
+        type="button"
+        onClick={() => openView("main")}
+        className="-ml-2 flex min-h-11 items-center gap-1 self-start rounded-full pl-1 pr-3 text-zinc-400 transition-colors hover:text-white active:bg-white/5"
       >
         <ChevronLeft size={20} />
         <span className="font-medium">Back</span>
       </button>
 
-      <h2 className="text-2xl font-bold bg-linear-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+      <h2
+        ref={viewHeadingRef}
+        tabIndex={-1}
+        className="-mt-4 text-2xl font-bold bg-linear-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent outline-none"
+      >
         Appearance
       </h2>
 
@@ -447,24 +433,44 @@ function SettingsPage() {
           ))}
         </div>
 
-        {/* Weekly Goal Threshold */}
+        {/* Weekly workout goal (saved on the profile; drives streaks) */}
         <div className="mt-4 p-4 rounded-xl border border-white/10 bg-white/5">
-          <div className="flex justify-between items-center mb-2">
-            <label className="text-sm font-medium text-zinc-300">Weekly Goal</label>
-            <span className="text-sm font-bold text-amber-500">{attendanceSuccessThreshold} Days</span>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h4 id="weekly-goal-label" className="text-sm font-medium text-zinc-300">
+                Weekly goal
+              </h4>
+              <p className="text-xs text-zinc-500 mt-1">
+                Hit it each week to build your streak.
+              </p>
+            </div>
+            <div role="group" aria-labelledby="weekly-goal-label" className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Decrease weekly goal"
+                disabled={isSavingProfile || weeklyGoal <= MIN_WEEKLY_GOAL}
+                onClick={() => void handleWeeklyGoalChange(weeklyGoal - 1)}
+                className="h-11 w-11 rounded-full bg-white/10 text-lg font-bold text-white transition-colors hover:bg-white/15 disabled:opacity-40"
+              >
+                −
+              </button>
+              <output
+                aria-live="polite"
+                className="min-w-20 text-center text-sm font-bold tabular-nums text-amber-500"
+              >
+                {weeklyGoal} {weeklyGoal === 1 ? "workout" : "workouts"}
+              </output>
+              <button
+                type="button"
+                aria-label="Increase weekly goal"
+                disabled={isSavingProfile || weeklyGoal >= MAX_WEEKLY_GOAL}
+                onClick={() => void handleWeeklyGoalChange(weeklyGoal + 1)}
+                className="h-11 w-11 rounded-full bg-white/10 text-lg font-bold text-white transition-colors hover:bg-white/15 disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
           </div>
-          <input
-            type="range"
-            min="1"
-            max="7"
-            step="1"
-            value={attendanceSuccessThreshold}
-            onChange={(e) => setAttendanceSuccessThreshold(parseInt(e.target.value))}
-            className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
-          />
-          <p className="text-xs text-zinc-500 mt-2">
-            Work out {attendanceSuccessThreshold} days a week to unlock the success state.
-          </p>
         </div>
       </div>
 
@@ -552,22 +558,77 @@ function SettingsPage() {
           ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   return (
-    <div className="overflow-x-clip px-4 py-6 pb-24 min-h-screen text-white">
+    <div className="min-h-dvh overflow-x-clip px-4 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))] text-white">
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      <AnimatePresence mode="wait">
-        {currentView === "main" ? (
-          <MainSettings key="main" />
-        ) : (
-          <AppearanceSettings key="appearance" />
-        )}
-      </AnimatePresence>
+      <ViewTransition
+        key={currentView}
+        enter={SUBVIEW_TRANSITION}
+        exit={SUBVIEW_TRANSITION}
+        default="none"
+      >
+        <div>{currentView === "main" ? mainSettings : appearanceSettings}</div>
+      </ViewTransition>
     </div>
+  );
+}
+
+function SettingsItem({
+  icon: Icon,
+  label,
+  onClick,
+  value,
+  isDestructive = false,
+  disabled = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick?: () => void;
+  value?: string;
+  isDestructive?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <motion.button
+      whileTap={disabled ? undefined : pressScale}
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "w-full flex items-center justify-between p-4 min-h-[3.25rem] bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors",
+        disabled && "opacity-50"
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={cn(
+            "h-10 w-10 rounded-full flex items-center justify-center",
+            isDestructive
+              ? "bg-red-500/10 text-red-500"
+              : "bg-white/10 text-zinc-400"
+          )}
+        >
+          <Icon size={20} />
+        </div>
+        <span
+          className={cn(
+            "font-medium",
+            isDestructive ? "text-red-500" : "text-zinc-200"
+          )}
+        >
+          {label}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        {value && <span className="text-sm text-zinc-500">{value}</span>}
+        <ChevronRight size={18} className="text-zinc-600" />
+      </div>
+    </motion.button>
   );
 }

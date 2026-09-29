@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Loader2 } from "lucide-react";
 import {
@@ -42,6 +43,7 @@ function WeightsPage() {
   const weightUnit = profile?.weightUnit ?? "lbs";
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [hasOpenedDrawer, setHasOpenedDrawer] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WeightEntry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isChartReady, setIsChartReady] = useState(false);
@@ -53,11 +55,13 @@ function WeightsPage() {
   const handleOpenLog = () => {
     setEditingEntry(null);
     setIsDrawerOpen(true);
+    setHasOpenedDrawer(true);
   };
 
   const handleEdit = (entry: WeightEntry) => {
     setEditingEntry(entry);
     setIsDrawerOpen(true);
+    setHasOpenedDrawer(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -131,7 +135,11 @@ function WeightsPage() {
   );
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-screen overflow-x-clip pb-24">
+    <div className="bg-black text-white font-sans relative min-h-dvh overflow-x-clip pb-32">
+      <BackButton
+        fallback="/"
+        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20"
+      />
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background with ORANGE override */}
@@ -255,7 +263,8 @@ function WeightsPage() {
         <Plus className="w-8 h-8" strokeWidth={3} />
       </button>
 
-      {isDrawerOpen ? (
+      {/* Stays mounted after first open so closing can animate out. */}
+      {hasOpenedDrawer ? (
         <Suspense fallback={null}>
           <LogWeightDrawer
             isOpen={isDrawerOpen}

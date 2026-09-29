@@ -1,15 +1,18 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-import type { Workout } from "@/lib/types";
+import { springs } from "@/lib/motion";
+
+// Only the day matters for attendance.
+export type AttendanceWorkout = { date: string };
 
 export interface IndicatorProps {
-  workouts: Workout[];
+  workouts: AttendanceWorkout[];
   isSuccess: boolean;
 }
 
 // SHARED UTILS
-export const getWeekData = (workouts: Workout[]) => {
+export const getWeekData = (workouts: AttendanceWorkout[]) => {
   const today = new Date();
   const currentDay = today.getDay(); // 0 (Sun) - 6 (Sat)
   // Adjust so 0 is Monday, 6 is Sunday
@@ -60,31 +63,32 @@ export function IndicatorsV1({ workouts, isSuccess }: IndicatorProps) {
           )}>
             {day.dayName}
           </span>
-          <motion.div
-            layout
+          <div
             className={cn(
-              "w-9 rounded-full flex items-center justify-center transition-all duration-500 relative",
-              day.hasWorkout ? "h-12" : "h-9 bg-zinc-800/80 hover:bg-zinc-800",
+              "relative flex w-9 items-center justify-center rounded-full transition-[height,background-color] duration-500 ease-[var(--ease-out-quint)]",
+              day.hasWorkout ? "h-12" : "h-9 bg-zinc-800/80",
               day.isToday && !day.hasWorkout && "ring-1 ring-white/20"
             )}
           >
             {day.hasWorkout ? (
               <motion.div
+                initial={{ opacity: 0, scaleY: 0.4 }}
+                animate={{ opacity: 0.9, scaleY: 1 }}
+                transition={{ ...springs.pop, delay: i * 0.035 }}
                 className={cn(
-                  "absolute inset-0 rounded-full opacity-90 transition-colors",
+                  "absolute inset-0 origin-bottom rounded-full",
                   isSuccess
                     ? "bg-gradient-to-b from-amber-400 to-orange-600"
                     : "bg-gradient-to-b from-purple-500 to-pink-600"
                 )}
-                layoutId={`active-bg-${i}`}
               >
-                <div className="absolute inset-0 bg-white/20 blur-sm rounded-full" />
+                <div className="absolute inset-0 rounded-full bg-white/20 blur-sm" />
               </motion.div>
             ) : null}
             {day.isToday && !day.hasWorkout && (
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
             )}
-          </motion.div>
+          </div>
         </div>
       ))}
     </div>
@@ -108,7 +112,11 @@ export function IndicatorsV2({ workouts, isSuccess }: IndicatorProps) {
                 : "bg-transparent text-zinc-500"
           )}>
             {day.hasWorkout ? (
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ ...springs.pop, delay: i * 0.035 }}
+              >
                 {day.date.getDate()}
               </motion.div>
             ) : (
@@ -143,7 +151,9 @@ export function IndicatorsV3({ workouts, isSuccess }: IndicatorProps) {
           </div>
           {day.hasWorkout && (
             <motion.div
-              layoutId="glow"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...springs.pop, delay: i * 0.035 }}
               className={cn(
                 "absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full shadow-[0_0_8px]",
                 isSuccess ? "bg-amber-400 shadow-amber-500" : "bg-orange-500 shadow-orangered"
@@ -156,7 +166,7 @@ export function IndicatorsV3({ workouts, isSuccess }: IndicatorProps) {
   );
 }
 
-export function MonthlyIndicators({ workouts }: { workouts: Workout[] }) {
+export function MonthlyIndicators({ workouts }: { workouts: AttendanceWorkout[] }) {
   // Generate last 28 days for a neat 4x7 grid
   const days = useMemo(
     () =>
@@ -187,9 +197,12 @@ export function MonthlyIndicators({ workouts }: { workouts: Workout[] }) {
 
         return (
           <div key={i} className="flex flex-col items-center gap-1 group relative">
-            <div
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...springs.pop, delay: (i % 7) * 0.02 + Math.floor(i / 7) * 0.03 }}
               className={cn(
-                "w-full aspect-square rounded-md transition-all duration-300",
+                "w-full aspect-square rounded-md",
                 intensity === 0 ? "bg-zinc-900 border border-white/5" :
                   intensity === 1 ? "bg-emerald-800 border-none" :
                     "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]",

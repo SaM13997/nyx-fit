@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef } from "react";
 
@@ -9,7 +10,7 @@ import { getProfileFormDefaults, type ProfileFormValues } from "@/lib/profile";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, Camera, Loader2, Save, User, Mail } from "lucide-react";
+import { Camera, Loader2, Save, User, Mail } from "lucide-react";
 import { useToast } from "@/lib/toast";
 import {
   isNotificationSupported,
@@ -200,7 +201,7 @@ function ProfileDetailsPage() {
 
   if (isAuthPending) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+      <div className="flex items-center justify-center min-h-dvh bg-black text-white">
         <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
       </div>
     );
@@ -208,7 +209,7 @@ function ProfileDetailsPage() {
 
   if (!session) {
     return (
-      <div className="bg-black px-4 py-6 min-h-screen text-white flex flex-col items-center justify-center gap-4">
+      <div className="bg-black px-4 py-6 min-h-dvh text-white flex flex-col items-center justify-center gap-4">
         <p className="text-zinc-300">You need to be signed in.</p>
         <Link to="/login">
           <Button
@@ -224,29 +225,23 @@ function ProfileDetailsPage() {
 
   if (!form) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+      <div className="flex items-center justify-center min-h-dvh bg-black text-white">
         <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen text-white pb-24 relative overflow-hidden">
+    <div className="min-h-dvh text-white pb-24 relative overflow-hidden">
       {/* Background Gradient */}
       <div className="fixed inset-0 z-0 bg-black pointer-events-none">
         <div className="absolute top-0 right-0 w-3/4 h-3/4 bg-purple-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-3/4 h-3/4 bg-blue-900/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       </div>
 
-      <div className="relative z-10 px-4 py-6 max-w-lg mx-auto">
+      <div className="relative z-10 mx-auto max-w-lg px-4 pb-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-4 mb-8">
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/settings" })}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+          <BackButton fallback="/settings" />
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-zinc-400">
             Profile Details
           </h1>

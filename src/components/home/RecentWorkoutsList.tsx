@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import type { Workout } from "@/lib/types";
+import type { WorkoutListItem } from "@/lib/types";
 import { WorkoutCard } from "@/components/WorkoutCard";
 
 interface RecentWorkoutsListProps {
-  workouts: Workout[];
+  workouts: WorkoutListItem[];
   isLoading: boolean;
 }
 

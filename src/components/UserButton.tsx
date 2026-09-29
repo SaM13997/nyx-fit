@@ -88,7 +88,6 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
               <DropdownMenuItem asChild>
                 <Link
                   to="/settings/profile"
-                  viewTransition
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-200 hover:bg-white/10 focus:bg-white/10 outline-none"
                 >
                   <User size={16} className="text-zinc-400" />
@@ -98,7 +97,6 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
               <DropdownMenuItem asChild>
                 <Link
                   to="/settings"
-                  viewTransition
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-200 hover:bg-white/10 focus:bg-white/10 outline-none"
                 >
                   <Settings size={16} className="text-zinc-400" />
