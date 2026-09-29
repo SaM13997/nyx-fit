@@ -1,6 +1,6 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { Sheet } from "@/components/motion/Sheet";
 import { X, Camera, Calendar, Loader2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
 import { WheelPicker } from "../wheel-picker";
 import { getYear, getMonth, getDate, lastDayOfMonth } from "date-fns";
@@ -30,6 +30,7 @@ const WEIGHT_INTEGERS = Array.from({ length: 400 }, (_, i) => (i + 1).toString()
 const WEIGHT_DECIMALS = Array.from({ length: 10 }, (_, i) => i.toString());
 
 export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initialValues }: LogWeightDrawerProps) {
+  const titleId = useId();
   // Weight state split into integer and decimal
   const [weightInt, setWeightInt] = useState("180");
   const [weightDec, setWeightDec] = useState("0");
@@ -96,154 +97,144 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <Sheet
+      open={isOpen}
+      onClose={onClose}
+      labelledBy={titleId}
+      header={
+        <div className="flex items-center justify-between border-b border-white/10 px-4 pb-3 pt-2">
+          <h2 id={titleId} tabIndex={-1} className="text-xl font-bold text-white outline-none">
+            {initialValues ? "Edit Entry" : "Log Weight"}
+          </h2>
+          <button
+            type="button"
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-zinc-900 rounded-t-3xl z-[100] max-h-[90vh] flex flex-col border-t border-white/10"
+            aria-label="Close"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 active:scale-95"
           >
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">{initialValues ? "Edit Entry" : "Log Weight"}</h2>
-              <button
-                onClick={onClose}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-8 overflow-y-auto overscroll-contain p-6 pb-8 scrollbar-hide">
+        {/* Weight Wheel Picker */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center">Weight ({formatWeightUnit(unit)})</label>
+          <div className="flex justify-center items-center gap-2">
+            <div className="relative h-40 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
+              <WheelPicker
+                options={WEIGHT_INTEGERS.map(w => ({ value: w, label: w }))}
+                value={weightInt}
+                onValueChange={(val) => setWeightInt(val)}
+              />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
             </div>
-
-            <div className="p-6 flex flex-col gap-8 overflow-y-auto pb-12 scrollbar-hide">
-              {/* Weight Wheel Picker */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center">Weight ({formatWeightUnit(unit)})</label>
-                <div className="flex justify-center items-center gap-2">
-                  <div className="relative h-40 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
-                    <WheelPicker
-                      options={WEIGHT_INTEGERS.map(w => ({ value: w, label: w }))}
-                      value={weightInt}
-                      onValueChange={(val) => setWeightInt(val)}
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                  </div>
-                  <span className="text-3xl font-bold text-zinc-600">.</span>
-                  <div className="relative h-40 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
-                    <WheelPicker
-                      options={WEIGHT_DECIMALS.map(w => ({ value: w, label: w }))}
-                      value={weightDec}
-                      onValueChange={(val) => setWeightDec(val)}
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Date Wheel Picker */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center flex items-center justify-center gap-2">
-                  <Calendar className="w-4 h-4" /> Date
-                </label>
-                <div className="flex justify-center gap-2">
-                  <div className="relative h-32 w-28 overflow-hidden rounded-xl bg-zinc-800/50">
-                    <WheelPicker
-                      options={MONTHS.map(m => ({ value: m, label: m.substring(0, 3) }))}
-                      value={month}
-                      onValueChange={(val) => setMonth(val)}
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                  </div>
-                  <div className="relative h-32 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
-                    <WheelPicker
-                      options={dayOptions.map(d => ({ value: d, label: d }))}
-                      value={day}
-                      onValueChange={(val) => setDay(val)}
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                  </div>
-                  <div className="relative h-32 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
-                    <WheelPicker
-                      options={YEARS.map(y => ({ value: y, label: y }))}
-                      value={year}
-                      onValueChange={(val) => setYear(val)}
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Note Input */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Note (Optional)</label>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="How are you feeling?"
-                  className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl p-4 text-white focus:outline-hidden focus:ring-2 focus:ring-orange-500 transition-all resize-none h-20"
-                />
-              </div>
-
-              {/* Photo Input */}
-              <div>
-                <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-2 block">Progress Photo</label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className={cn(
-                    "border-2 border-dashed border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800/50 transition-colors",
-                    photo ? "border-orange-500/50 bg-orange-500/10" : ""
-                  )}
-                >
-                  {photo ? (
-                    <div className="text-center">
-                      <div className="text-orange-300 font-medium truncate max-w-[200px] text-sm">{photo.name}</div>
-                      <div className="text-xs text-orange-400/60 mt-1">Click to change</div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
-                        <Camera className="w-5 h-5" />
-                      </div>
-                      <div className="text-zinc-400 text-xs text-center">Tap to upload photo</div>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                onClick={handleSubmit}
-                disabled={isSaving}
-                className="w-full bg-linear-to-r from-orange-600 to-rose-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-orange-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Entry"
-                )}
-              </button>
+            <span className="text-3xl font-bold text-zinc-600">.</span>
+            <div className="relative h-40 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
+              <WheelPicker
+                options={WEIGHT_DECIMALS.map(w => ({ value: w, label: w }))}
+                value={weightDec}
+                onValueChange={(val) => setWeightDec(val)}
+              />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Date Wheel Picker */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center flex items-center justify-center gap-2">
+            <Calendar className="w-4 h-4" /> Date
+          </label>
+          <div className="flex justify-center gap-2">
+            <div className="relative h-32 w-28 overflow-hidden rounded-xl bg-zinc-800/50">
+              <WheelPicker
+                options={MONTHS.map(m => ({ value: m, label: m.substring(0, 3) }))}
+                value={month}
+                onValueChange={(val) => setMonth(val)}
+              />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+            </div>
+            <div className="relative h-32 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
+              <WheelPicker
+                options={dayOptions.map(d => ({ value: d, label: d }))}
+                value={day}
+                onValueChange={(val) => setDay(val)}
+              />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+            </div>
+            <div className="relative h-32 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
+              <WheelPicker
+                options={YEARS.map(y => ({ value: y, label: y }))}
+                value={year}
+                onValueChange={(val) => setYear(val)}
+              />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+            </div>
+          </div>
+        </div>
+
+        {/* Note Input */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Note (Optional)</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="How are you feeling?"
+            className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl p-4 text-white focus:outline-hidden focus:ring-2 focus:ring-orange-500 transition-all resize-none h-20"
+          />
+        </div>
+
+        {/* Photo Input */}
+        <div>
+          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-2 block">Progress Photo</label>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className={cn(
+              "border-2 border-dashed border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800/50 transition-colors",
+              photo ? "border-orange-500/50 bg-orange-500/10" : ""
+            )}
+          >
+            {photo ? (
+              <div className="text-center">
+                <div className="text-orange-300 font-medium truncate max-w-[200px] text-sm">{photo.name}</div>
+                <div className="text-xs text-orange-400/60 mt-1">Click to change</div>
+              </div>
+            ) : (
+              <>
+                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div className="text-zinc-400 text-xs text-center">Tap to upload photo</div>
+              </>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={isSaving}
+          className="w-full bg-linear-to-r from-orange-600 to-rose-600 text-white font-bold py-4 rounded-xl text-lg shadow-lg shadow-orange-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Entry"
+          )}
+        </button>
+      </div>
+    </Sheet>
   );
 }

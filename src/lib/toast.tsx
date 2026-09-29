@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Check, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { springs } from "@/lib/motion";
 import { createPortal } from "react-dom";
 
 export type ToastType = "success" | "error" | "info";
@@ -37,6 +38,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     addToast(message, type);
   }, [addToast]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const success = useCallback((message: string) => {
     addToast(message, "success");
   }, [addToast]);
@@ -48,8 +52,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, success, error }}>
       {children}
-      {typeof document !== "undefined" && createPortal(
-        <div className="fixed top-4 left-0 right-0 z-[100] flex flex-col items-center gap-2 pointer-events-none p-4">
+      {/* Portal only after mount: rendering it during hydration would not
+          match the server HTML and React would re-render the whole app. */}
+      {mounted && createPortal(
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[100] flex flex-col items-center gap-2 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
           <AnimatePresence mode="popLayout">
             {toasts.map((t) => (
               <ToastItem key={t.id} toast={t} onClose={() => removeToast(t.id)} />
@@ -78,11 +84,20 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      role={toast.type === "error" ? "alert" : "status"}
+      initial={{ opacity: 0, y: -24, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+      exit={{ opacity: 0, y: -16, scale: 0.95, transition: { duration: 0.18 } }}
+      transition={springs.pop}
+      // Flick up to dismiss, like a native banner.
+      drag="y"
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={{ top: 0.8, bottom: 0.1 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.y < -32 || info.velocity.y < -400) onClose();
+      }}
       className={cn(
-        "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md min-w-[300px] max-w-md",
+        "pointer-events-auto flex w-full max-w-md touch-none items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md",
         bgColors[toast.type]
       )}
     >
@@ -91,8 +106,10 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       </div>
       <p className="text-sm font-medium text-white flex-1">{toast.message}</p>
       <button
+        type="button"
+        aria-label="Dismiss"
         onClick={onClose}
-        className="p-1 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white"
+        className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
       >
         <X className="w-4 h-4" />
       </button>

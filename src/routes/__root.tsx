@@ -6,8 +6,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { BottomNav } from "../components/BottomNav";
+import { ActionDock } from "../components/dock/ActionDock";
 import { QueryClient } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
 import { fetchAuth } from "@/lib/api/auth.functions";
 import { useApiUserCache } from "@/lib/api/hooks";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
@@ -53,6 +54,20 @@ const Devtools = import.meta.env.DEV
       };
     })
   : null;
+
+type AuthContext = { userId: string | null };
+
+let lastClientAuth: AuthContext | null = null;
+
+async function loadAuth(): Promise<AuthContext> {
+  try {
+    const { userId } = await fetchAuth();
+    if (typeof window !== "undefined") lastClientAuth = { userId };
+    return { userId };
+  } catch {
+    return { userId: null };
+  }
+}
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -131,12 +146,14 @@ export const Route = createRootRouteWithContext<{
     ],
   }),
   beforeLoad: async () => {
-    try {
-      const { userId } = await fetchAuth();
-      return { userId };
-    } catch {
-      return { userId: null };
+    // On the client, navigations reuse the last resolved auth and refresh it
+    // in the background, so route transitions start on tap instead of after
+    // a network round trip.
+    if (typeof window !== "undefined" && lastClientAuth) {
+      void loadAuth();
+      return lastClientAuth;
     }
+    return loadAuth();
   },
   component: RootComponent,
 });
@@ -145,16 +162,18 @@ function RootComponent() {
   useApiUserCache();
 
   return (
-    <AppearanceProvider>
-      <ToastProvider>
-        <RootDocument>
-          <ServiceWorkerRegistration />
-          <OfflineBanner />
-          <Outlet />
-          <InstallPrompt />
-        </RootDocument>
-      </ToastProvider>
-    </AppearanceProvider>
+    <MotionConfig reducedMotion="user">
+      <AppearanceProvider>
+        <ToastProvider>
+          <RootDocument>
+            <ServiceWorkerRegistration />
+            <OfflineBanner />
+            <Outlet />
+            <InstallPrompt />
+          </RootDocument>
+        </ToastProvider>
+      </AppearanceProvider>
+    </MotionConfig>
   );
 }
 
@@ -166,9 +185,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <title>Nyx Fitness</title>
       </head>
       <body className="bg-background">
-        <div className="mx-auto max-w-lg flex flex-col overflow-x-clip w-full">
-          <div className="flex-1 flex flex-col">{children}</div>
-          <BottomNav />
+        <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col overflow-x-clip">
+          <div className="flex flex-1 flex-col">{children}</div>
+          <ActionDock />
           {Devtools ? (
             <React.Suspense fallback={null}>
               <Devtools />
@@ -179,8 +198,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               <Agentation />
             </React.Suspense>
           ) : null}
-          <Scripts />
         </div>
+        {/* Must be a direct child of <body>: the server also emits the
+            client-entry script here, which React 19 only tolerates at body
+            level (inside a <div> it is a hydration mismatch on every load). */}
+        <Scripts />
       </body>
     </html>
   );

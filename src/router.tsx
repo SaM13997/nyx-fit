@@ -1,9 +1,11 @@
 import { createRouter } from "@tanstack/react-router";
-import { routeTree } from "./routeTree.gen";
-import { routerWithQueryClient } from "@tanstack/react-router-with-query";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { QueryClient } from "@tanstack/react-query";
+import { routeTree } from "./routeTree.gen";
+import { getRouteTransitionTypes, installViewTransitionGuard } from "./lib/view-transitions";
 
 export function getRouter() {
+  installViewTransitionGuard();
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -14,16 +16,15 @@ export function getRouter() {
     },
   });
 
-  const router = routerWithQueryClient(
-    createRouter({
-      routeTree,
-      defaultPreload: "intent",
-      scrollRestoration: true,
-      defaultViewTransition: true,
-      context: { queryClient },
-    }),
-    queryClient
-  );
+  const router = createRouter({
+    routeTree,
+    defaultPreload: "intent",
+    scrollRestoration: true,
+    defaultViewTransition: { types: getRouteTransitionTypes },
+    context: { queryClient },
+  });
+
+  setupRouterSsrQueryIntegration({ router, queryClient });
 
   return router;
 }

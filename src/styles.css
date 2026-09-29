@@ -245,9 +245,173 @@ code {
   }
 }
 
-::view-transition-old(root),
+/* ---------------------------------------------------------------------------
+   Native feel: touch polish shared by every screen
+   ------------------------------------------------------------------------- */
+:root {
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-quick: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Native apps have no page scrollbar; hiding it also stops desktop layouts
+   from shifting when a page becomes scrollable. */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-width: none;
+  background: var(--background);
+}
+
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  touch-action: manipulation;
+  overscroll-behavior-x: none;
+}
+
+a,
+button,
+[role="button"],
+label {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ---------------------------------------------------------------------------
+   Route view transitions (router-driven, typed by lib/view-transitions.ts)
+   ------------------------------------------------------------------------- */
+@keyframes vt-fade-in { from { opacity: 0; } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-rise-in { from { opacity: 0; transform: translateY(12px) scale(0.985); } }
+@keyframes vt-sink-out { to { opacity: 0; transform: scale(0.97); } }
+@keyframes vt-from-right { from { transform: translateX(100%); } }
+@keyframes vt-to-right { to { transform: translateX(100%); } }
+@keyframes vt-from-left-parallax { from { transform: translateX(-28%); filter: brightness(0.55); } }
+@keyframes vt-to-left-parallax { to { transform: translateX(-28%); filter: brightness(0.55); } }
+@keyframes vt-from-right-sm { from { opacity: 0; transform: translateX(24px); } }
+@keyframes vt-from-left-sm { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes vt-to-left-sm { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes vt-to-right-sm { to { opacity: 0; transform: translateX(24px); } }
+
+/* Taps land on the live page underneath, so logging never waits on motion. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.42s;
+  animation-timing-function: var(--ease-ios);
+}
+
+/* Persistent chrome never flashes between routes; its live layer shows the
+   nav pill sliding while the page underneath transitions. The group keeps
+   its default animation (a no-op, since the nav never moves) so every engine
+   positions it where the nav actually is. */
+::view-transition-group(bottom-nav) {
+  z-index: 50;
+}
+::view-transition-old(bottom-nav) {
+  display: none;
+}
+::view-transition-new(bottom-nav) {
+  animation: none;
+}
+
+/* Untyped transitions (in-page React updates, browsers without types):
+   the page itself only crossfades, so it never shifts under the user. */
+::view-transition-old(root) {
+  animation: 0.18s ease both vt-fade-out;
+}
 ::view-transition-new(root) {
-  animation-duration: 0.3s;
+  animation: 0.18s ease both vt-fade-in;
+}
+
+/* In-page sub-screens animate their own element; the page stays still. */
+html:active-view-transition-type(nav-forward, nav-back)::view-transition-old(root),
+html:active-view-transition-type(nav-forward, nav-back)::view-transition-new(root) {
+  animation: none;
+}
+
+/* Auth and onboarding hand-offs: fade-through with a slight rise. */
+html:active-view-transition-type(fade)::view-transition-old(root) {
+  animation: 0.14s var(--ease-in-quick) both vt-fade-out;
+}
+html:active-view-transition-type(fade)::view-transition-new(root) {
+  animation: 0.34s var(--ease-out-quint) 0.06s both vt-rise-in;
+}
+
+/* Tabs: short directional slide with a crossfade. */
+html:active-view-transition-type(tab-forward)::view-transition-old(root) {
+  animation: 0.2s var(--ease-in-quick) both vt-to-left-sm;
+}
+html:active-view-transition-type(tab-forward)::view-transition-new(root) {
+  animation: 0.36s var(--ease-out-quint) 0.04s both vt-from-right-sm;
+}
+html:active-view-transition-type(tab-back)::view-transition-old(root) {
+  animation: 0.2s var(--ease-in-quick) both vt-to-right-sm;
+}
+html:active-view-transition-type(tab-back)::view-transition-new(root) {
+  animation: 0.36s var(--ease-out-quint) 0.04s both vt-from-left-sm;
+}
+
+/* Drill-in screens: iOS-style push/pop with parallax on the covered page. */
+html:active-view-transition-type(push)::view-transition-old(root) {
+  animation: 0.5s var(--ease-ios) both vt-to-left-parallax;
+}
+html:active-view-transition-type(push)::view-transition-new(root) {
+  animation: 0.5s var(--ease-ios) both vt-from-right;
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.45);
+}
+html:active-view-transition-type(pop)::view-transition-old(root) {
+  z-index: 1;
+  animation: 0.44s var(--ease-ios) both vt-to-right;
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.45);
+}
+html:active-view-transition-type(pop)::view-transition-new(root) {
+  animation: 0.44s var(--ease-ios) both vt-from-left-parallax;
+}
+
+/* ---------------------------------------------------------------------------
+   React <ViewTransition> classes (in-page state changes)
+   ------------------------------------------------------------------------- */
+/* Sub-screens inside a tab (settings > appearance). */
+::view-transition-old(.vt-subview-forward) {
+  animation: 0.2s var(--ease-in-quick) both vt-to-left-sm;
+}
+::view-transition-new(.vt-subview-forward) {
+  animation: 0.36s var(--ease-out-quint) 0.04s both vt-from-right-sm;
+}
+::view-transition-old(.vt-subview-back) {
+  animation: 0.2s var(--ease-in-quick) both vt-to-right-sm;
+}
+::view-transition-new(.vt-subview-back) {
+  animation: 0.36s var(--ease-out-quint) 0.04s both vt-from-left-sm;
+}
+
+/* List rows entering/leaving; siblings glide via the group morph. */
+::view-transition-new(.vt-item-enter):only-child {
+  animation: 0.38s var(--ease-out-quint) both vt-rise-in;
+}
+::view-transition-old(.vt-item-exit):only-child {
+  animation: 0.22s var(--ease-in-quick) both vt-sink-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

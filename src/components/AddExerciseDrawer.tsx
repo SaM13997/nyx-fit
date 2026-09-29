@@ -1,6 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { AnimatedHeight } from "@/components/motion/AnimatedHeight";
+import { Sheet } from "@/components/motion/Sheet";
+import { springs } from "@/lib/motion";
 import { WheelPicker } from "./wheel-picker";
 import { Exercise, type WeightUnit } from "@/lib/types";
 import {
@@ -38,6 +41,12 @@ const COMMON_EXERCISES = [
   "Leg Press",
 ];
 
+const stepSwap = {
+  initial: { opacity: 0, x: 24 },
+  animate: { opacity: 1, x: 0, transition: springs.smooth },
+  exit: { opacity: 0, x: -24, transition: { duration: 0.14 } },
+};
+
 const REP_OPTIONS = Array.from({ length: 15 }, (_, i) => (i + 2).toString()); // 2 to 16
 
 export function AddExerciseDrawer({
@@ -48,6 +57,7 @@ export function AddExerciseDrawer({
   exercises,
   isSaving = false,
 }: AddExerciseDrawerProps) {
+  const titleId = useId();
   const weightStep = getWeightStep(unit);
   const weightOptions = Array.from({ length: 80 }, (_, i) =>
     Math.round((i + 1) * weightStep * 10) / 10
@@ -129,260 +139,256 @@ export function AddExerciseDrawer({
   };
 
   return (
-    <AnimatePresence onExitComplete={resetState}>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-zinc-900 rounded-t-3xl z-[100] max-h-[85vh] flex flex-col border-t border-white/10"
-          >
-            {/* Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {selectedExercise ? (
-                    <motion.h2
-                      key="selected"
-                      initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="text-xl font-bold text-white block"
-                    >
-                      {selectedExercise}
-                    </motion.h2>
-                  ) : (
-                    <motion.h2
-                      key="default"
-                      initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="text-xl font-bold text-white block"
-                    >
-                      Add Exercise
-                    </motion.h2>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {selectedExercise && (
-                  <motion.div
-                    key={currentExerciseSetCount}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-sm font-bold border border-purple-500/20"
-                  >
-                    {currentExerciseSetCount} sets
-                  </motion.div>
-                )}
-                <button
-                  onClick={onClose}
-                  className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+    <Sheet
+      open={isOpen}
+      onClose={onClose}
+      onExitComplete={resetState}
+      labelledBy={titleId}
+      header={
+        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4 pb-2">
+          <div className="flex items-center gap-3">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {selectedExercise ? (
+                <motion.h2
+                  key="selected"
+                  id={titleId}
+                  tabIndex={-1}
+                  initial={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                  transition={springs.snappy}
+                  className="block truncate text-xl font-bold text-white outline-none"
                 >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center gap-8">
-              {!selectedExercise ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="w-full flex flex-col items-center gap-6"
-                >
-                  {isCustomMode ? (
-                    <input
-                      type="text"
-                      value={customName}
-                      maxLength={120}
-                      placeholder="e.g. Chest Supported Row"
-                      aria-label="Custom exercise name"
-                      onChange={(e) => {
-                        const nextName = e.target.value;
-                        setCustomName(nextName);
-                        if (!categoryOverriddenRef.current) {
-                          setCategory(inferExerciseCategory(nextName));
-                        }
-                      }}
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
-                    />
-                  ) : (
-                    <div className="w-full space-y-3">
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        placeholder="Search exercises"
-                        aria-label="Search exercises"
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
-                      />
-
-                      {filteredExercises === null ? (
-                        <div className="relative h-48 w-full overflow-hidden">
-                          <WheelPicker
-                            options={COMMON_EXERCISES.map((ex) => ({
-                              value: ex,
-                              label: ex,
-                            }))}
-                            value={pickerExercise}
-                            onValueChange={(val) => {
-                              setPickerExercise(val);
-                              setCategory(inferExerciseCategory(val));
-                              categoryOverriddenRef.current = false;
-                            }}
-                          />
-                          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
-                        </div>
-                      ) : (
-                        <div className="h-48 w-full space-y-2 overflow-y-auto">
-                          {hasNoSearchMatches ? (
-                            <p className="flex h-full items-center justify-center text-sm text-zinc-500">
-                              No exercises match that search.
-                            </p>
-                          ) : (
-                            filteredExercises.map((name) => (
-                              <button
-                                key={name}
-                                type="button"
-                                onClick={() => handleSearchSelect(name)}
-                                className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl bg-white/5 px-4 text-left transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
-                              >
-                                <span className="font-medium text-white">{name}</span>
-                                <span className="text-xs text-zinc-500">
-                                  {formatExerciseCategory(inferExerciseCategory(name))}
-                                </span>
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isCustomMode) {
-                        setCategory(inferExerciseCategory(pickerExercise));
-                      } else {
-                        setCategory(inferExerciseCategory(""));
-                      }
-                      categoryOverriddenRef.current = false;
-                      setCustomName("");
-                      setIsCustomMode((open) => !open);
-                    }}
-                    className="min-h-11 text-sm font-semibold text-purple-300 transition-colors hover:text-purple-200"
-                  >
-                    {isCustomMode ? "Pick from the list instead" : "Type a custom exercise"}
-                  </button>
-
-                  <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                          Category
-                        </p>
-                        <p className="text-sm text-zinc-300">
-                          Auto-selected from the exercise name.
-                        </p>
-                      </div>
-                    </div>
-                    <select
-                      value={category}
-                      onChange={(e) => {
-                        categoryOverriddenRef.current = true;
-                        setCategory(e.target.value as ExerciseCategory);
-                      }}
-                      className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-purple-400"
-                    >
-                      {EXERCISE_CATEGORIES.map((option) => (
-                        <option key={option} value={option}>
-                          {formatExerciseCategory(option)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <motion.button
-                    onClick={() => {
-                      const name = isCustomMode ? customName.trim() : pickerExercise;
-                      if (!name) return;
-                      setSelectedExercise(name);
-                    }}
-                    disabled={!candidateExercise || hasNoSearchMatches}
-                    className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
-                  >
-                    {selectLabel}
-                  </motion.button>
-                </motion.div>
+                  {selectedExercise}
+                </motion.h2>
               ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="w-full flex flex-col gap-8"
+                <motion.h2
+                  key="default"
+                  id={titleId}
+                  tabIndex={-1}
+                  initial={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                  transition={springs.snappy}
+                  className="block truncate text-xl font-bold text-white outline-none"
                 >
-                  <div className="flex justify-center gap-4">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{formatWeightUnit(unit)}</span>
-                      <div className="relative h-40 w-32 overflow-hidden">
-                        <WheelPicker
-                          options={weightOptions.map((w) => ({
-                            value: w.toString(),
-                            label: formatWeight(convertWeightToLbs(w, unit), unit, unit === "kgs" ? 1 : 0),
-                          }))}
-                          value={weight}
-                          onValueChange={(val) => setWeight(val)}
-                        />
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Reps</span>
-                      <div className="relative h-40 w-32 overflow-hidden">
-                        <WheelPicker
-                          options={REP_OPTIONS.map((r) => ({ value: r, label: r }))}
-                          value={reps}
-                          onValueChange={(val) => setReps(val)}
-                        />
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {commitFailed ? (
-                    <p className="w-full rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200">
-                      Couldn&apos;t save that set. Try again.
-                    </p>
-                  ) : null}
-
-                  <button
-                    onClick={handleAddSet}
-                    disabled={isSaving || isSubmitting}
-                    className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50"
-                  >
-                    Log Set
-                  </button>
-                </motion.div>
+                  Add Exercise
+                </motion.h2>
               )}
+            </AnimatePresence>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {selectedExercise && (
+              <motion.div
+                key={currentExerciseSetCount}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={springs.pop}
+                className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-sm font-bold border border-purple-500/20"
+              >
+                {currentExerciseSetCount} sets
+              </motion.div>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20 active:scale-95"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <div className="flex-1 overflow-y-auto overscroll-contain">
+        <AnimatedHeight innerClassName="p-6">
+        <AnimatePresence mode="popLayout" initial={false}>
+        {!selectedExercise ? (
+          <motion.div
+            key="pick"
+            {...stepSwap}
+            className="w-full flex flex-col items-center gap-6"
+          >
+            {isCustomMode ? (
+              <input
+                type="text"
+                value={customName}
+                maxLength={120}
+                placeholder="e.g. Chest Supported Row"
+                aria-label="Custom exercise name"
+                onChange={(e) => {
+                  const nextName = e.target.value;
+                  setCustomName(nextName);
+                  if (!categoryOverriddenRef.current) {
+                    setCategory(inferExerciseCategory(nextName));
+                  }
+                }}
+                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
+              />
+            ) : (
+              <div className="w-full space-y-3">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  placeholder="Search exercises"
+                  aria-label="Search exercises"
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
+                />
+
+                {filteredExercises === null ? (
+                  <div className="relative h-48 w-full overflow-hidden">
+                    <WheelPicker
+                      options={COMMON_EXERCISES.map((ex) => ({
+                        value: ex,
+                        label: ex,
+                      }))}
+                      value={pickerExercise}
+                      onValueChange={(val) => {
+                        setPickerExercise(val);
+                        setCategory(inferExerciseCategory(val));
+                        categoryOverriddenRef.current = false;
+                      }}
+                    />
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+                  </div>
+                ) : (
+                  <div className="h-48 w-full space-y-2 overflow-y-auto">
+                    {hasNoSearchMatches ? (
+                      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+                        No exercises match that search.
+                      </p>
+                    ) : (
+                      filteredExercises.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={() => handleSearchSelect(name)}
+                          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl bg-white/5 px-4 text-left transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+                        >
+                          <span className="font-medium text-white">{name}</span>
+                          <span className="text-xs text-zinc-500">
+                            {formatExerciseCategory(inferExerciseCategory(name))}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isCustomMode) {
+                  setCategory(inferExerciseCategory(pickerExercise));
+                } else {
+                  setCategory(inferExerciseCategory(""));
+                }
+                categoryOverriddenRef.current = false;
+                setCustomName("");
+                setIsCustomMode((open) => !open);
+              }}
+              className="min-h-11 text-sm font-semibold text-purple-300 transition-colors hover:text-purple-200"
+            >
+              {isCustomMode ? "Pick from the list instead" : "Type a custom exercise"}
+            </button>
+
+            <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                    Category
+                  </p>
+                  <p className="text-sm text-zinc-300">
+                    Auto-selected from the exercise name.
+                  </p>
+                </div>
+              </div>
+              <select
+                value={category}
+                onChange={(e) => {
+                  categoryOverriddenRef.current = true;
+                  setCategory(e.target.value as ExerciseCategory);
+                }}
+                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-purple-400"
+              >
+                {EXERCISE_CATEGORIES.map((option) => (
+                  <option key={option} value={option}>
+                    {formatExerciseCategory(option)}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            <motion.button
+              onClick={() => {
+                const name = isCustomMode ? customName.trim() : pickerExercise;
+                if (!name) return;
+                setSelectedExercise(name);
+              }}
+              disabled={!candidateExercise || hasNoSearchMatches}
+              className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
+            >
+              {selectLabel}
+            </motion.button>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        ) : (
+          <motion.div
+            key="log"
+            {...stepSwap}
+            className="w-full flex flex-col gap-8"
+          >
+            <div className="flex justify-center gap-4">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{formatWeightUnit(unit)}</span>
+                <div className="relative h-40 w-32 overflow-hidden">
+                  <WheelPicker
+                    options={weightOptions.map((w) => ({
+                      value: w.toString(),
+                      label: formatWeight(convertWeightToLbs(w, unit), unit, unit === "kgs" ? 1 : 0),
+                    }))}
+                    value={weight}
+                    onValueChange={(val) => setWeight(val)}
+                  />
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Reps</span>
+                <div className="relative h-40 w-32 overflow-hidden">
+                  <WheelPicker
+                    options={REP_OPTIONS.map((r) => ({ value: r, label: r }))}
+                    value={reps}
+                    onValueChange={(val) => setReps(val)}
+                  />
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+                </div>
+              </div>
+            </div>
+
+            {commitFailed ? (
+              <p className="w-full rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200">
+                Couldn&apos;t save that set. Try again.
+              </p>
+            ) : null}
+
+            <button
+              onClick={handleAddSet}
+              disabled={isSaving || isSubmitting}
+              className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50"
+            >
+              Log Set
+            </button>
+          </motion.div>
+        )}
+        </AnimatePresence>
+        </AnimatedHeight>
+      </div>
+    </Sheet>
   );
 }

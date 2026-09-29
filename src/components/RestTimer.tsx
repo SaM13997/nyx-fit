@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, X, Bell } from "lucide-react";
 import { RiRestTimeLine } from "react-icons/ri";
 import { cn } from "@/lib/utils";
+import { springs } from "@/lib/motion";
+import { Sheet } from "@/components/motion/Sheet";
 import { useAppearance } from "@/lib/AppearanceContext";
 import {
   getNotificationPermission,
@@ -200,19 +202,27 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
         </AnimatePresence>
 
         <div className="flex items-center gap-3">
-          {isActive && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              onClick={resetTimer}
-              className="p-3 rounded-full bg-white/5 border border-white/10 text-zinc-500 hover:text-white transition-all active:scale-90"
-            >
-              <RotateCcw className="h-5 w-5" />
-            </motion.button>
-          )}
+          <AnimatePresence initial={false}>
+            {isActive && (
+              <motion.button
+                type="button"
+                aria-label="Reset rest timer"
+                initial={{ opacity: 0, scale: 0.5, width: 0, marginRight: -12 }}
+                animate={{ opacity: 1, scale: 1, width: 46, marginRight: 0 }}
+                exit={{ opacity: 0, scale: 0.5, width: 0, marginRight: -12 }}
+                transition={springs.snappy}
+                whileTap={{ scale: 0.88 }}
+                onClick={resetTimer}
+                className="flex h-[46px] items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-colors hover:text-white"
+              >
+                <RotateCcw className="h-5 w-5 shrink-0" />
+              </motion.button>
+            )}
+          </AnimatePresence>
 
           <button
+            type="button"
+            aria-label={isActive ? `Rest timer, ${formatTime(timeLeft)} left. Tap to stop` : "Start rest timer. Hold for info"}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerUp}
@@ -296,103 +306,89 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
         </div>
       </div>
 
-      {/* Info Drawer - Portal to Root */}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <AnimatePresence>
-            {isDrawerOpen && (
-              <div className="fixed inset-0 z-999">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                />
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="absolute bottom-0 left-0 right-0 bg-zinc-900 rounded-t-[40px] p-8 border-t border-white/10 max-w-lg mx-auto"
-                >
-                  <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+      {/* Info sheet */}
+      <Sheet
+        open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        labelledBy="rest-timer-info-title"
+        className="rounded-t-[2.5rem]"
+      >
+        <div className="overflow-y-auto overscroll-contain px-8 pb-8 pt-6">
+          <div className="flex items-center gap-5 mb-8">
+            <div className="h-16 w-16 rounded-3xl bg-violet-500/20 flex items-center justify-center border border-violet-500/20 shadow-lg shadow-violet-500/10">
+              <RiRestTimeLine className="h-9 w-9 text-violet-400" />
+            </div>
+            <div>
+              <h2
+                id="rest-timer-info-title"
+                tabIndex={-1}
+                className="text-2xl font-black font-heading text-white outline-none"
+              >
+                REST TIMER
+              </h2>
+              <p className="text-zinc-400 text-sm font-medium tracking-tight">
+                Focus on your recovery
+              </p>
+            </div>
+          </div>
 
-                  <div className="flex items-center gap-5 mb-8">
-                    <div className="h-16 w-16 rounded-3xl bg-violet-500/20 flex items-center justify-center border border-violet-500/20 shadow-lg shadow-violet-500/10">
-                      <RiRestTimeLine className="h-9 w-9 text-violet-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black font-heading text-white">
-                        REST TIMER
-                      </h2>
-                      <p className="text-zinc-400 text-sm font-medium tracking-tight">
-                        Focus on your recovery
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 mb-10">
-                    <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-                      <div className="h-10 w-10 shrink-0 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
-                        <RiRestTimeLine className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
-                          Timer at a glance
-                        </h3>
-                        <p className="text-zinc-400 text-xs leading-relaxed font-medium">
-                          Tap the icon to start a timer that will stop you from
-                          scrolling on your phone.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-                      <div className="h-10 w-10 shrink-0 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                        <Bell className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
-                          Never miss a set
-                        </h3>
-                        <p className="text-zinc-400 text-xs leading-relaxed font-medium">
-                          You'll get a notification, vibration, and a toast
-                          alert when your rest is finished, even if you're in
-                          another app.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-                      <div className="h-10 w-10 shrink-0 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
-                        <RotateCcw className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
-                          Your rest, your rules
-                        </h3>
-                        <p className="text-zinc-400 text-xs leading-relaxed font-medium">
-                          Adjust your default rest period (30s to 5m) in the
-                          settings anytime. We'll remember your preferences for
-                          every workout.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setIsDrawerOpen(false)}
-                    className="w-full bg-white text-black py-5 rounded-2xl font-black font-heading text-lg transition-all active:scale-[0.98] shadow-xl hover:bg-zinc-100 uppercase tracking-widest"
-                  >
-                    GOT IT
-                  </button>
-                </motion.div>
+          <div className="space-y-4 mb-10">
+            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+                <RiRestTimeLine className="h-5 w-5" />
               </div>
-            )}
-          </AnimatePresence>,
-          document.body
-        )}
+              <div>
+                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                  Timer at a glance
+                </h3>
+                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                  Tap the icon to start a timer that will stop you from
+                  scrolling on your phone.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <Bell className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                  Never miss a set
+                </h3>
+                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                  You'll get a notification, vibration, and a toast
+                  alert when your rest is finished, even if you're in
+                  another app.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <RotateCcw className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                  Your rest, your rules
+                </h3>
+                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                  Adjust your default rest period (30s to 5m) in the
+                  settings anytime. We'll remember your preferences for
+                  every workout.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsDrawerOpen(false)}
+            className="w-full bg-white text-black py-5 rounded-2xl font-black font-heading text-lg transition-all active:scale-[0.98] shadow-xl hover:bg-zinc-100 uppercase tracking-widest"
+          >
+            GOT IT
+          </button>
+        </div>
+      </Sheet>
 
       {/* Toast - Portal to Root */}
       {typeof document !== "undefined" &&
@@ -403,7 +399,8 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                 initial={{ opacity: 0, y: -50, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -50, scale: 0.9 }}
-                className="fixed top-6 left-4 right-4 z-1000 flex justify-center pointer-events-none"
+                transition={springs.pop}
+                className="fixed top-[max(1.5rem,env(safe-area-inset-top))] left-4 right-4 z-1000 flex justify-center pointer-events-none"
               >
                 <div className="bg-violet-600 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-violet-500/40 flex items-center gap-4 pointer-events-auto border border-violet-400 w-full max-w-sm">
                   <div className="bg-white/20 p-2 rounded-full">
@@ -418,8 +415,10 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                     </p>
                   </div>
                   <button
+                    type="button"
+                    aria-label="Dismiss"
                     onClick={() => setShowToast(false)}
-                    className="ml-auto p-1 hover:bg-white/10 rounded-full transition-colors"
+                    className="ml-auto flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-white/10"
                   >
                     <X className="h-4 w-4" />
                   </button>

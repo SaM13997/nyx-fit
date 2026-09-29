@@ -1,7 +1,7 @@
 import { WorkoutSet, Workout, type WeightUnit } from "@/lib/types";
-import { AnimatePresence, motion } from "framer-motion";
 import { Copy, Minus, Plus, Trash2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ViewTransition, startTransition, useEffect, useId, useRef, useState } from "react";
+import { Sheet } from "@/components/motion/Sheet";
 import { v4 as uuidv4 } from "uuid";
 import { formatWeight, formatWeightUnit, getWeightStep } from "@/lib/units";
 
@@ -70,6 +70,7 @@ export function SetDrawer({
   const submittingRef = useRef(false);
   const revisionRef = useRef(workout.revision);
   const weightStep = getWeightStep(unit);
+  const titleId = useId();
 
   useEffect(() => {
     if (exercise) {
@@ -102,7 +103,11 @@ export function SetDrawer({
       const saved = await onUpdate(exerciseId, nextSets);
 
       if (saved) {
-        setSets(nextSets);
+        const structural =
+          nextSets.length !== sets.length ||
+          nextSets.some((set, index) => set.id !== sets[index]?.id);
+        if (structural) startTransition(() => setSets(nextSets));
+        else setSets(nextSets);
         setDraft(null);
         setCommitError(null);
       } else {
@@ -216,205 +221,201 @@ export function SetDrawer({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+    <Sheet
+      open={isOpen}
+      onClose={onClose}
+      labelledBy={titleId}
+      header={
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 pb-3 pt-2">
+          <h2 id={titleId} tabIndex={-1} className="min-w-0 truncate text-xl font-bold outline-none">
+            {exercise.name}
+          </h2>
+          <button
+            type="button"
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-[90] backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-zinc-900 rounded-t-3xl z-[100] max-h-[85vh] flex flex-col"
+            aria-label="Close"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20 active:scale-95"
           >
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
-              <h2 className="text-xl font-bold">{exercise.name}</h2>
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      }
+    >
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="grid grid-cols-10 gap-2 text-sm text-gray-400 font-medium px-2">
+        <div className="col-span-1 text-center">Set</div>
+        <div className="col-span-4 text-center">{formatWeightUnit(unit)}</div>
+        <div className="col-span-4 text-center">Reps</div>
+        <div className="col-span-1"></div>
+      </div>
+
+      {sets.map((set, index) => (
+        <ViewTransition
+          key={set.id}
+          name={`set-row-${set.id}`}
+          enter="vt-item-enter"
+          exit="vt-item-exit"
+        >
+          <div
+            className="grid grid-cols-10 gap-2 items-center bg-white/5 p-2 rounded-xl"
+          >
+            <div className="col-span-1 text-center font-bold text-gray-500">
+              {index + 1}
+            </div>
+            <div className="col-span-4 space-y-1">
+              <div className="flex items-center bg-black/40 rounded-lg p-1">
+                <input
+                  type="number"
+                  value={draftValue(set.id, "weight", set.weight)}
+                  disabled={controlsDisabled}
+                  onFocus={() =>
+                    startDraft(set.id, "weight", set.weight)
+                  }
+                  onChange={(e) =>
+                    updateDraft(set.id, "weight", e.target.value)
+                  }
+                  onBlur={commitDraft}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
+                />
+                <span className="pr-2 text-xs text-zinc-500">{formatWeight(set.weight, unit, 0)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Decrease weight"
+                  onClick={() => nudgeFieldValue(set.id, "weight", -weightStep)}
+                  disabled={
+                    controlsDisabled ||
+                    !canNudgeFieldValue(set.weight, "weight", -weightStep)
+                  }
+                  className={STEPPER_BUTTON_CLASS}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Increase weight"
+                  onClick={() => nudgeFieldValue(set.id, "weight", weightStep)}
+                  disabled={
+                    controlsDisabled ||
+                    !canNudgeFieldValue(set.weight, "weight", weightStep)
+                  }
+                  className={STEPPER_BUTTON_CLASS}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="col-span-4 space-y-1">
+              <div className="flex items-center bg-black/40 rounded-lg p-1">
+                <input
+                  type="number"
+                  value={draftValue(set.id, "reps", set.reps)}
+                  disabled={controlsDisabled}
+                  onFocus={() => startDraft(set.id, "reps", set.reps)}
+                  onChange={(e) =>
+                    updateDraft(set.id, "reps", e.target.value)
+                  }
+                  onBlur={commitDraft}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
+                />
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label="Decrease reps"
+                  onClick={() => nudgeFieldValue(set.id, "reps", -1)}
+                  disabled={
+                    controlsDisabled ||
+                    !canNudgeFieldValue(set.reps, "reps", -1)
+                  }
+                  className={STEPPER_BUTTON_CLASS}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Increase reps"
+                  onClick={() => nudgeFieldValue(set.id, "reps", 1)}
+                  disabled={
+                    controlsDisabled ||
+                    !canNudgeFieldValue(set.reps, "reps", 1)
+                  }
+                  className={STEPPER_BUTTON_CLASS}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="col-span-1 flex flex-col items-center gap-1">
+              {index === sets.length - 1 && (
+                <button
+                  onClick={handleDuplicateLastSet}
+                  disabled={controlsDisabled}
+                  className="p-2 text-zinc-300 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40"
+                  aria-label="Duplicate last set"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              )}
               <button
-                onClick={onClose}
-                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+                onClick={() => handleDeleteSet(set.id)}
+                disabled={controlsDisabled}
+                className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-40"
+                aria-label="Delete set"
               >
-                <X className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
+          </div>
+        </ViewTransition>
+      ))}
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="grid grid-cols-10 gap-2 text-sm text-gray-400 font-medium px-2">
-                <div className="col-span-1 text-center">Set</div>
-                <div className="col-span-4 text-center">{formatWeightUnit(unit)}</div>
-                <div className="col-span-4 text-center">Reps</div>
-                <div className="col-span-1"></div>
-              </div>
+      {commitError !== null ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-1.5">
+          <p className="text-xs text-red-200">{commitError}</p>
+          {draft !== null ? (
+            <button
+              type="button"
+              onClick={commitDraft}
+              disabled={controlsDisabled}
+              className="min-h-11 rounded-lg border border-red-500/30 px-3 text-xs font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-40"
+            >
+              Retry
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
-              {sets.map((set, index) => (
-                <div
-                  key={set.id}
-                  className="grid grid-cols-10 gap-2 items-center bg-white/5 p-2 rounded-xl"
-                >
-                  <div className="col-span-1 text-center font-bold text-gray-500">
-                    {index + 1}
-                  </div>
-                  <div className="col-span-4 space-y-1">
-                    <div className="flex items-center bg-black/40 rounded-lg p-1">
-                      <input
-                        type="number"
-                        value={draftValue(set.id, "weight", set.weight)}
-                        disabled={controlsDisabled}
-                        onFocus={() =>
-                          startDraft(set.id, "weight", set.weight)
-                        }
-                        onChange={(e) =>
-                          updateDraft(set.id, "weight", e.target.value)
-                        }
-                        onBlur={commitDraft}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                        className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
-                      />
-                      <span className="pr-2 text-xs text-zinc-500">{formatWeight(set.weight, unit, 0)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        aria-label="Decrease weight"
-                        onClick={() => nudgeFieldValue(set.id, "weight", -weightStep)}
-                        disabled={
-                          controlsDisabled ||
-                          !canNudgeFieldValue(set.weight, "weight", -weightStep)
-                        }
-                        className={STEPPER_BUTTON_CLASS}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Increase weight"
-                        onClick={() => nudgeFieldValue(set.id, "weight", weightStep)}
-                        disabled={
-                          controlsDisabled ||
-                          !canNudgeFieldValue(set.weight, "weight", weightStep)
-                        }
-                        className={STEPPER_BUTTON_CLASS}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="col-span-4 space-y-1">
-                    <div className="flex items-center bg-black/40 rounded-lg p-1">
-                      <input
-                        type="number"
-                        value={draftValue(set.id, "reps", set.reps)}
-                        disabled={controlsDisabled}
-                        onFocus={() => startDraft(set.id, "reps", set.reps)}
-                        onChange={(e) =>
-                          updateDraft(set.id, "reps", e.target.value)
-                        }
-                        onBlur={commitDraft}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                        className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        aria-label="Decrease reps"
-                        onClick={() => nudgeFieldValue(set.id, "reps", -1)}
-                        disabled={
-                          controlsDisabled ||
-                          !canNudgeFieldValue(set.reps, "reps", -1)
-                        }
-                        className={STEPPER_BUTTON_CLASS}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Increase reps"
-                        onClick={() => nudgeFieldValue(set.id, "reps", 1)}
-                        disabled={
-                          controlsDisabled ||
-                          !canNudgeFieldValue(set.reps, "reps", 1)
-                        }
-                        className={STEPPER_BUTTON_CLASS}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="col-span-1 flex flex-col items-center gap-1">
-                    {index === sets.length - 1 && (
-                      <button
-                        onClick={handleDuplicateLastSet}
-                        disabled={controlsDisabled}
-                        className="p-2 text-zinc-300 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40"
-                        aria-label="Duplicate last set"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDeleteSet(set.id)}
-                      disabled={controlsDisabled}
-                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-40"
-                      aria-label="Delete set"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {commitError !== null ? (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-1.5">
-                  <p className="text-xs text-red-200">{commitError}</p>
-                  {draft !== null ? (
-                    <button
-                      type="button"
-                      onClick={commitDraft}
-                      disabled={controlsDisabled}
-                      className="min-h-11 rounded-lg border border-red-500/30 px-3 text-xs font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-40"
-                    >
-                      Retry
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={handleAddSet}
-                  disabled={controlsDisabled}
-                  className="w-full py-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold rounded-xl border border-purple-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add Set
-                </button>
-                <button
-                  onClick={handleAddIncrementedSet}
-                  disabled={controlsDisabled}
-                  className="w-full py-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
-                >
-                  <Plus className="h-5 w-5" />
-                  Auto +{formatWeight(weightStep, unit, unit === "kgs" ? 1 : 0)}/-2
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={handleAddSet}
+          disabled={controlsDisabled}
+          className="w-full py-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold rounded-xl border border-purple-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          <Plus className="h-5 w-5" />
+          Add Set
+        </button>
+        <button
+          onClick={handleAddIncrementedSet}
+          disabled={controlsDisabled}
+          className="w-full py-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          <Plus className="h-5 w-5" />
+          Auto +{formatWeight(weightStep, unit, unit === "kgs" ? 1 : 0)}/-2
+        </button>
+      </div>
+    </div>
+    </Sheet>
   );
 }

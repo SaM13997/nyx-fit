@@ -1,35 +1,62 @@
 import type { LucideIcon } from 'lucide-react'
-import { Dumbbell, Home, Settings } from 'lucide-react'
+import { BarChart3, Dumbbell, Home, Scale, Settings } from 'lucide-react'
 
-export type BottomNavItem = {
-  href: '/' | '/workouts' | '/settings'
+export type NavHref = '/' | '/workouts' | '/stats' | '/weights' | '/settings'
+
+export type NavItem = {
+  href: NavHref
   icon: LucideIcon
   label: string
-  color: string
-  darkColor: string
+  // Icon color for the current route in the dock menu.
+  iconColor: string
 }
 
-export const bottomNavItems: BottomNavItem[] = [
+export const navItems: NavItem[] = [
   {
     href: '/',
     label: 'Home',
     icon: Home,
-    color: 'bg-cyan-500/10',
-    darkColor: 'text-cyan-400',
+    iconColor: '#67e8f9',
   },
   {
     href: '/workouts',
     label: 'Workouts',
     icon: Dumbbell,
-    color: 'bg-purple-500/10',
-    darkColor: 'text-purple-400',
+    iconColor: '#d8b4fe',
+  },
+  {
+    href: '/stats',
+    label: 'Stats',
+    icon: BarChart3,
+    iconColor: '#fdba74',
+  },
+  {
+    href: '/weights',
+    label: 'Weight',
+    icon: Scale,
+    iconColor: '#fda4af',
   },
   {
     href: '/settings',
     label: 'Settings',
     icon: Settings,
-    color: 'bg-purple-500/10',
-    darkColor: 'text-purple-400',
+    iconColor: '#ffffff',
   },
-] as const
+]
 
+// Pushed screens keep the tab they were opened from highlighted.
+export function getActiveNavHref(pathname: string): NavHref {
+  if (pathname === '/workouts' || pathname.startsWith('/workout/')) {
+    return '/workouts'
+  }
+  if (pathname === '/stats') return '/stats'
+  if (pathname === '/weights') return '/weights'
+  if (
+    pathname.startsWith('/settings') ||
+    pathname === '/privacy' ||
+    pathname === '/terms'
+  ) {
+    return '/settings'
+  }
+  return '/'
+}
