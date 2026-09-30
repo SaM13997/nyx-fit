@@ -17,7 +17,7 @@ export function LegalDocumentPage({
   const canGoBack = useCanGoBack();
 
   return (
-    <div className="min-h-screen px-4 py-6 pb-24 text-white">
+    <div className="min-h-screen px-4 py-6 pb-24 text-foreground">
       <div className="mx-auto max-w-lg">
         <button
           type="button"
@@ -28,21 +28,21 @@ export function LegalDocumentPage({
             }
             void router.navigate({ to: "/login" });
           }}
-          className="mb-6 inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-zinc-400 transition-colors hover:text-white"
+          className="mb-6 inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden />
           Back
         </button>
 
         <header className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-400">
             Nyx Fitness
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="mt-2 text-sm text-zinc-500">Last updated {lastUpdated}</p>
+          <p className="mt-2 text-sm text-ink-subtle">Last updated {lastUpdated}</p>
         </header>
 
-        <article className="space-y-8 text-sm leading-relaxed text-zinc-300">
+        <article className="space-y-8 text-sm leading-relaxed text-ink-secondary">
           {children}
         </article>
       </div>
@@ -57,8 +57,8 @@ type LegalSectionProps = {
 
 export function LegalSection({ title, children }: LegalSectionProps) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-base font-semibold text-white">{title}</h2>
+    <section className="rounded-2xl border border-border bg-fill p-5">
+      <h2 className="text-base font-semibold text-foreground">{title}</h2>
       <div className="mt-3 space-y-3">{children}</div>
     </section>
   );
@@ -74,7 +74,7 @@ export function LegalLink({
   return (
     <Link
       to={to}
-      className="font-medium text-orange-400 underline decoration-orange-400/40 underline-offset-4 transition-colors hover:text-orange-300"
+      className="font-medium text-orange-700 dark:text-orange-400 underline decoration-orange-600/40 dark:decoration-orange-400/40 underline-offset-4 transition-colors hover:text-orange-800 dark:hover:text-orange-300"
     >
       {children}
     </Link>

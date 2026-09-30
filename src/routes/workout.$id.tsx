@@ -206,26 +206,26 @@ function WorkoutPage() {
     return (
       <div role="status" aria-label="Loading workout" className="flex min-h-dvh flex-col gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-4 py-4">
-          <div className="h-11 w-11 animate-pulse rounded-full bg-white/5" />
-          <div className="h-6 w-40 animate-pulse rounded-lg bg-white/10" />
+          <div className="h-11 w-11 animate-pulse rounded-full bg-fill" />
+          <div className="h-6 w-40 animate-pulse rounded-lg bg-fill-strong" />
         </div>
-        <div className="h-64 animate-pulse rounded-[2rem] bg-white/5" />
-        <div className="h-24 animate-pulse rounded-2xl bg-white/5" />
-        <div className="h-24 animate-pulse rounded-2xl bg-white/5" />
+        <div className="h-64 animate-pulse rounded-[2rem] bg-fill" />
+        <div className="h-24 animate-pulse rounded-2xl bg-fill" />
+        <div className="h-24 animate-pulse rounded-2xl bg-fill" />
       </div>
     );
   }
 
   if (isError && !workout) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-4 text-white">
-        <p className="text-zinc-300">
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-4 text-foreground">
+        <p className="text-ink-secondary">
           Couldn&apos;t load this workout. Check your connection and try again.
         </p>
         <button
           type="button"
           onClick={() => void refetch()}
-          className="min-h-11 rounded-xl bg-purple-600 px-6 font-semibold text-white transition-colors hover:bg-purple-500"
+          className="min-h-11 rounded-xl bg-brand px-6 font-semibold text-white transition-colors hover:bg-brand-hover"
         >
           Try again
         </button>
@@ -235,11 +235,11 @@ function WorkoutPage() {
 
   if (!workout) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-4 text-white">
-        <p className="text-zinc-300">This workout no longer exists.</p>
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 p-4 text-foreground">
+        <p className="text-ink-secondary">This workout no longer exists.</p>
         <Link
           to="/workouts"
-          className="flex min-h-11 items-center rounded-xl bg-white/10 px-6 font-semibold text-white transition-colors hover:bg-white/20"
+          className="flex min-h-11 items-center rounded-xl bg-fill-strong px-6 font-semibold text-foreground transition-colors hover:bg-line-strong"
         >
           Back to workouts
         </Link>
@@ -248,25 +248,25 @@ function WorkoutPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col gap-2 px-4 pb-32 text-white font-sans">
+    <div className="flex min-h-dvh flex-col gap-2 px-4 pb-32 text-foreground font-sans">
       {isError ? (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
-          <p className="text-sm text-red-200">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-600/40 dark:border-red-500/20 bg-red-500/10 px-4 py-2">
+          <p className="text-sm text-red-700 dark:text-red-200">
             Connection issue. Showing saved workout data.
           </p>
           <button
             type="button"
             onClick={() => void refetch()}
-            className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+            className="min-h-11 shrink-0 rounded-xl border border-red-600/40 dark:border-red-500/30 px-4 text-sm font-semibold text-red-700 dark:text-red-100 transition-colors hover:bg-red-500/10"
           >
             Try again
           </button>
         </div>
       ) : null}
       {/* Header */}
-      <header className="sticky top-0 z-30 -mx-4 flex items-center justify-between bg-black/70 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl backdrop-saturate-150">
+      <header className="sticky top-0 z-30 -mx-4 flex items-center justify-between bg-glass px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl backdrop-saturate-150">
         <div className="flex items-center gap-3">
-          <BackButton fallback="/workouts" className="border-white/5 bg-zinc-900/50" />
+          <BackButton fallback="/workouts" className="border-hairline bg-card/50" />
           <div>
             <h1 className="text-xl font-bold tracking-tight">
               {workout.isActive ? "Active Workout" : "Workout Details"}
@@ -277,7 +277,7 @@ function WorkoutPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <p className="text-green-400 text-xs font-medium tracking-wide uppercase">
+                <p className="text-green-700 dark:text-green-400 text-xs font-medium tracking-wide uppercase">
                   In Progress
                 </p>
               </div>
@@ -288,16 +288,16 @@ function WorkoutPage() {
           <button
             type="button"
             aria-label="Share workout"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/5 bg-zinc-900/50 transition-colors hover:bg-zinc-800 active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-card/50 transition-colors hover:bg-fill-strong active:scale-95"
           >
-            <Share2 className="h-5 w-5 text-gray-400" />
+            <Share2 className="h-5 w-5 text-muted-foreground" />
           </button>
           <button
             type="button"
             aria-label="More options"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/5 bg-zinc-900/50 transition-colors hover:bg-zinc-800 active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-hairline bg-card/50 transition-colors hover:bg-fill-strong active:scale-95"
           >
-            <MoreHorizontal className="h-5 w-5 text-gray-400" />
+            <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
           </button>
         </div>
       </header>
@@ -307,27 +307,27 @@ function WorkoutPage() {
         style={{
           viewTransitionName: workout.isActive ? ACTIVE_WORKOUT_TRANSITION_NAME : undefined,
         }}
-        className="relative isolate mb-4 overflow-hidden rounded-[2rem] border border-white/10 bg-black/80 p-6 shadow-2xl"
+        className="relative isolate mb-4 overflow-hidden rounded-[2rem] border border-border bg-card p-6 shadow-float"
       >
         <div
           className={`absolute inset-0 -z-10 ${
             workout.isActive
-              ? "bg-linear-to-br from-green-900/40 via-zinc-900 to-black"
-              : "bg-linear-to-br from-purple-900/40 via-zinc-900 to-black"
+              ? "bg-linear-to-br from-green-700/40 dark:from-green-900/40 via-card to-background"
+              : "bg-linear-to-br from-purple-700/40 dark:from-purple-900/40 via-card to-background"
           }`}
         />
 
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-3xl font-heading font-bold text-white mb-1">
+              <h2 className="text-3xl font-heading font-bold text-foreground mb-1">
                 {new Date(workout.date).toLocaleDateString("en-US", {
                   weekday: "short",
                   month: "short",
                   day: "numeric",
                 })}
               </h2>
-              <div className="flex items-center gap-2 text-gray-400">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <span className="text-sm  font-medium">
                   {workout.isActive ? "Current Duration" : "Total Duration"}
                 </span>
@@ -340,13 +340,13 @@ function WorkoutPage() {
                 onClick={() => setShowEndWorkoutDialog(true)}
                 disabled={isSavePending}
                 aria-label="End workout"
-                className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-red-600/40 dark:border-red-500/20 bg-red-500/10 transition-colors hover:bg-red-500/20 disabled:opacity-50"
               >
                 <div className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Square className="h-5 w-5 text-red-500 fill-current relative z-10" />
+                <Square className="h-5 w-5 text-red-700 dark:text-red-500 fill-current relative z-10" />
               </motion.button>
             ) : (
-              <div className="h-14 w-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <div className="h-14 w-14 rounded-full bg-fill border border-border flex items-center justify-center">
                 <span className="text-lg font-bold">
                   {workout.exercises.length}
                 </span>
@@ -379,9 +379,9 @@ function WorkoutPage() {
 
           {/* Time Details */}
           {workout.startTime && (
-            <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-xs text-gray-500 font-medium uppercase tracking-wider">
+            <div className="mt-6 pt-4 border-t border-hairline flex justify-between items-center text-xs text-ink-subtle font-medium uppercase tracking-wider">
               <div>
-                <span className="block text-gray-600 mb-0.5">Started</span>
+                <span className="block text-ink-subtle mb-0.5">Started</span>
                 {new Date(workout.startTime).toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -393,7 +393,7 @@ function WorkoutPage() {
 
               {workout.endTime && (
                 <div className="text-right">
-                  <span className="block text-gray-600 mb-0.5">Ended</span>
+                  <span className="block text-ink-subtle mb-0.5">Ended</span>
                   {new Date(workout.endTime).toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -410,7 +410,7 @@ function WorkoutPage() {
         <div className="flex items-center justify-between mb-6 px-1">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold">Exercises</h2>
-            <span className="bg-white/10 text-gray-300 px-2.5 py-0.5 rounded-full text-xs font-bold">
+            <span className="bg-fill-strong text-ink-secondary px-2.5 py-0.5 rounded-full text-xs font-bold">
               {workout.exercises.length}
             </span>
           </div>
@@ -419,7 +419,7 @@ function WorkoutPage() {
             whileTap={pressScale}
             onClick={() => setShowAddExercise(true)}
             disabled={isSavePending}
-            className="flex min-h-11 items-center gap-2 rounded-full bg-purple-600 px-4 text-sm font-medium text-white shadow-lg shadow-purple-900/20 transition-colors hover:bg-purple-500 disabled:opacity-50"
+            className="flex min-h-11 items-center gap-2 rounded-full bg-brand px-4 text-sm font-medium text-white shadow-lg shadow-purple-900/20 transition-colors hover:bg-brand-hover disabled:opacity-50"
           >
             <Plus className="h-4 w-4" />
             Add Exercise
@@ -427,20 +427,20 @@ function WorkoutPage() {
         </div>
 
         {workout.exercises.length === 0 ? (
-          <div className="border border-dashed border-white/10 rounded-3xl p-12 text-center bg-white/5">
-            <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
-              <Plus className="h-8 w-8 text-gray-600" />
+          <div className="border border-dashed border-border rounded-3xl p-12 text-center bg-fill">
+            <div className="w-16 h-16 bg-card rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
+              <Plus className="h-8 w-8 text-ink-subtle" />
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">
+            <h3 className="text-lg font-bold text-foreground mb-2">
               Start your workout
             </h3>
-            <p className="text-gray-400 text-sm mb-6 max-w-[200px] mx-auto">
+            <p className="text-muted-foreground text-sm mb-6 max-w-[200px] mx-auto">
               Add your first exercise to begin tracking your progress
             </p>
             <button
               onClick={() => setShowAddExercise(true)}
               disabled={isSavePending}
-              className="bg-white text-black hover:bg-gray-200 rounded-xl px-6 py-3 font-bold text-sm transition-colors disabled:opacity-50"
+              className="bg-foreground text-background hover:bg-foreground/85 rounded-xl px-6 py-3 font-bold text-sm transition-colors disabled:opacity-50"
             >
               Add Exercise
             </button>
@@ -506,7 +506,7 @@ function WorkoutPage() {
           <h3 id="end-workout-title" tabIndex={-1} className="mb-2 text-xl font-bold outline-none">
             End Workout?
           </h3>
-          <p className="mb-8 text-sm leading-relaxed text-gray-400">
+          <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
             This will save your workout and stop the timer. You can&apos;t undo
             this action.
           </p>
@@ -516,7 +516,7 @@ function WorkoutPage() {
               whileTap={pressScale}
               onClick={() => setShowEndWorkoutDialog(false)}
               disabled={isSavePending}
-              className="min-h-12 flex-1 rounded-2xl bg-zinc-800 text-sm font-bold text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+              className="min-h-12 flex-1 rounded-2xl bg-muted text-sm font-bold text-foreground transition-colors hover:bg-line-strong disabled:opacity-50"
             >
               Cancel
             </motion.button>

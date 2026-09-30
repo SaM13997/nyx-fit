@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Check, AlertCircle, Info } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { springs } from "@/lib/motion";
 import { createPortal } from "react-dom";
 
@@ -70,15 +69,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
 function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
   const icons = {
-    success: <Check className="w-4 h-4 text-emerald-400" />,
-    error: <AlertCircle className="w-4 h-4 text-red-400" />,
-    info: <Info className="w-4 h-4 text-blue-400" />,
-  };
-
-  const bgColors = {
-    success: "bg-zinc-900/95 border-emerald-500/20",
-    error: "bg-zinc-900/95 border-red-500/20",
-    info: "bg-zinc-900/95 border-blue-500/20",
+    success: <Check className="w-4 h-4 text-success-ink" />,
+    error: <AlertCircle className="w-4 h-4 text-danger-ink" />,
+    info: <Info className="w-4 h-4 text-info-ink" />,
   };
 
   return (
@@ -96,20 +89,17 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       onDragEnd={(_, info) => {
         if (info.offset.y < -32 || info.velocity.y < -400) onClose();
       }}
-      className={cn(
-        "pointer-events-auto flex w-full max-w-md touch-none items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md",
-        bgColors[toast.type]
-      )}
+      className="pointer-events-auto flex w-full max-w-md touch-none items-center gap-3 rounded-2xl border border-border bg-popover px-4 py-3 text-popover-foreground shadow-float backdrop-blur-md"
     >
-      <div className={cn("p-1.5 rounded-full bg-white/5 border border-white/5")}>
+      <div className="p-1.5 rounded-full bg-fill border border-hairline">
         {icons[toast.type]}
       </div>
-      <p className="text-sm font-medium text-white flex-1">{toast.message}</p>
+      <p className="text-sm font-medium text-foreground flex-1">{toast.message}</p>
       <button
         type="button"
         aria-label="Dismiss"
         onClick={onClose}
-        className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
+        className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-fill-strong hover:text-foreground"
       >
         <X className="w-4 h-4" />
       </button>

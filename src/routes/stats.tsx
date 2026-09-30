@@ -39,7 +39,7 @@ function StatsPage() {
   const frequency = overview?.bodyPartFrequency ?? [];
 
   return (
-    <div className="relative bg-black text-white font-sans min-h-dvh pb-32 overflow-x-clip">
+    <div className="relative bg-background text-foreground font-sans min-h-dvh pb-32 overflow-x-clip">
       <BackButton
         fallback="/"
         className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20"
@@ -47,15 +47,15 @@ function StatsPage() {
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         <div
           className="absolute inset-0 animated-hex-bg opacity-50"
-          style={{ "--c": "#f97316" } as any}
+          style={{ "--c": "var(--color-series-accent)" } as React.CSSProperties}
         />
         <div className="absolute inset-0 backdrop-blur-sm" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-background via-background/60 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background h-10 to-transparent" />
 
         <div className="relative flex flex-col justify-end h-full px-4 pt-12">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-6xl font-bold tracking-tighter text-orange-500">
+            <h1 className="text-6xl font-bold tracking-tighter text-orange-700 dark:text-orange-500">
               Stats
             </h1>
           </div>
@@ -65,43 +65,43 @@ function StatsPage() {
       <div className="relative px-4">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
-            <p className="text-sm text-zinc-400 font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Your fitness journey at a glance
             </p>
           </div>
 
           {isError && !overview ? (
-            <div className="p-8 rounded-3xl bg-red-500/5 border border-red-500/20 text-center">
-              <p className="text-red-200 font-medium">
+            <div className="p-8 rounded-3xl bg-red-500/10 dark:bg-red-500/5 border border-red-600/20 dark:border-red-500/20 text-center">
+              <p className="text-red-700 dark:text-red-200 font-medium">
                 Couldn&apos;t load your stats.
               </p>
-              <p className="text-red-200/70 text-sm mt-1">
+              <p className="text-red-700/70 dark:text-red-200/70 text-sm mt-1">
                 Check your connection and try again.
               </p>
               <button
                 type="button"
                 onClick={() => void refetch()}
-                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
+                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-zinc-950 transition-colors hover:bg-orange-400"
               >
                 Try again
               </button>
             </div>
           ) : isLoading && !overview ? (
             <div className="text-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500" />
-              <p className="text-zinc-500 mt-2">Loading stats...</p>
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-700 dark:text-orange-500" />
+              <p className="text-ink-subtle mt-2">Loading stats...</p>
             </div>
           ) : overview ? (
             <>
               {isError ? (
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
-                  <p className="text-sm text-red-200">
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-600/20 dark:border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-700 dark:text-red-200">
                     Connection issue. Showing saved stats.
                   </p>
                   <button
                     type="button"
                     onClick={() => void refetch()}
-                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                    className="min-h-11 shrink-0 rounded-xl border border-red-600/30 dark:border-red-500/30 px-4 text-sm font-semibold text-red-700 dark:text-red-100 transition-colors hover:bg-red-500/10"
                   >
                     Try again
                   </button>
@@ -172,8 +172,8 @@ function StatsPage() {
               </div>
 
               <div className="pt-4">
-                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
+                <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-orange-700 dark:text-orange-500" />
                   Exercise Records
                 </h2>
 
@@ -195,9 +195,9 @@ function StatsPage() {
                       ))}
                   </div>
                 ) : (
-                  <div className="p-6 rounded-3xl bg-zinc-900/30 border border-zinc-800/50 text-center">
-                    <p className="text-zinc-500">No exercise data yet</p>
-                    <p className="text-zinc-600 text-sm mt-1">
+                  <div className="p-6 rounded-3xl bg-card border border-border text-center">
+                    <p className="text-ink-subtle">No exercise data yet</p>
+                    <p className="text-ink-subtle text-sm mt-1">
                       Complete workouts to see your stats
                     </p>
                   </div>
@@ -206,18 +206,18 @@ function StatsPage() {
 
               {records.length > 0 ? (
                 <div className="pt-4">
-                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-orange-700 dark:text-orange-500" />
                     Personal Records
                   </h2>
                   <div className="space-y-3">
                     {records.map((record) => (
                       <div
                         key={record.exerciseName}
-                        className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50 flex items-center justify-between gap-3"
+                        className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between gap-3"
                       >
-                        <span className="font-bold text-white truncate">{record.exerciseName}</span>
-                        <span className="text-sm font-semibold text-orange-400 whitespace-nowrap">
+                        <span className="font-bold text-foreground truncate">{record.exerciseName}</span>
+                        <span className="text-sm font-semibold text-orange-700 dark:text-orange-400 whitespace-nowrap">
                           {formatWeight(record.maxWeight, unit)} {formatWeightUnit(unit)} × {record.maxWeightReps}
                         </span>
                       </div>
@@ -228,18 +228,18 @@ function StatsPage() {
 
               {frequency.length > 0 ? (
                 <div className="pt-4">
-                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-orange-500" />
+                  <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-orange-700 dark:text-orange-500" />
                     Training Frequency
                   </h2>
                   <div className="space-y-3">
                     {frequency.map((entry) => (
                       <div
                         key={entry.bodyPart}
-                        className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50 flex items-center justify-between gap-3"
+                        className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between gap-3"
                       >
-                        <span className="font-bold text-white">{formatExerciseCategory(entry.bodyPart)}</span>
-                        <span className="text-sm text-zinc-400 whitespace-nowrap">
+                        <span className="font-bold text-foreground">{formatExerciseCategory(entry.bodyPart)}</span>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
                           {formatCountLabel(entry.sessions, "session")}
                         </span>
                       </div>
@@ -250,7 +250,7 @@ function StatsPage() {
 
               {overview.weeklyStats.length > 0 && (
                 <div className="pt-4">
-                  <h2 className="text-xl font-bold text-white mb-4">
+                  <h2 className="text-xl font-bold text-foreground mb-4">
                     Weekly Volume Trend
                   </h2>
                   <WeeklyVolumeChart weeks={overview.weeklyStats} />
@@ -258,10 +258,10 @@ function StatsPage() {
               )}
             </>
           ) : (
-            <div className="p-8 rounded-3xl bg-zinc-900/30 border border-zinc-800/50 text-center">
-              <Dumbbell className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-              <p className="text-zinc-400 font-medium">No workout data yet</p>
-              <p className="text-zinc-500 text-sm mt-1">
+            <div className="p-8 rounded-3xl bg-card border border-border text-center">
+              <Dumbbell className="w-12 h-12 text-ink-subtle mx-auto mb-4" />
+              <p className="text-muted-foreground font-medium">No workout data yet</p>
+              <p className="text-ink-subtle text-sm mt-1">
                 Complete your first workout to see stats
               </p>
             </div>
@@ -288,13 +288,13 @@ function StatCard({
   highlighted?: boolean;
 }) {
   const colors = {
-    orange: "from-orange-500/20 to-orange-600/10 border-orange-500/30 text-orange-400",
-    rose: "from-rose-500/20 to-rose-600/10 border-rose-500/30 text-rose-400",
-    emerald: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 text-emerald-400",
-    blue: "from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400",
-    purple: "from-purple-500/20 to-purple-600/10 border-purple-500/30 text-purple-400",
-    cyan: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30 text-cyan-400",
-    amber: "from-amber-500/20 to-amber-600/10 border-amber-500/30 text-amber-400",
+    orange: "from-orange-500/20 to-orange-600/10 border-orange-600/30 text-orange-700 dark:border-orange-500/30 dark:text-orange-400",
+    rose: "from-rose-500/20 to-rose-600/10 border-rose-600/30 text-rose-700 dark:border-rose-500/30 dark:text-rose-400",
+    emerald: "from-emerald-500/20 to-emerald-600/10 border-emerald-600/30 text-success-ink dark:border-emerald-500/30",
+    blue: "from-blue-500/20 to-blue-600/10 border-blue-600/30 text-info-ink dark:border-blue-500/30",
+    purple: "from-purple-500/20 to-purple-600/10 border-purple-600/30 text-purple-700 dark:border-purple-500/30 dark:text-purple-400",
+    cyan: "from-cyan-500/20 to-cyan-600/10 border-cyan-600/30 text-cyan-700 dark:border-cyan-500/30 dark:text-cyan-400",
+    amber: "from-amber-500/20 to-amber-600/10 border-amber-600/30 text-amber-800 dark:border-amber-500/30 dark:text-amber-400",
   };
 
   const colorValue = colors[color];
@@ -359,23 +359,23 @@ function ExerciseStatCard({
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+    <div className="p-4 rounded-2xl bg-card border border-border">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="font-bold text-white truncate pr-4">{name}</h3>
-        <span className="text-xs text-zinc-500">{formatDate(lastPerformed)}</span>
+        <h3 className="font-bold text-foreground truncate pr-4">{name}</h3>
+        <span className="text-xs text-ink-subtle">{formatDate(lastPerformed)}</span>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-orange-400">{totalSets}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Sets</div>
+        <div className="bg-fill rounded-xl p-2">
+          <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{totalSets}</div>
+          <div className="text-[10px] uppercase text-ink-subtle">Sets</div>
         </div>
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-emerald-400">{formatWeight(maxWeight, unit, 0)}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Max {formatWeightUnit(unit)}</div>
+        <div className="bg-fill rounded-xl p-2">
+          <div className="text-lg font-bold text-success-ink">{formatWeight(maxWeight, unit, 0)}</div>
+          <div className="text-[10px] uppercase text-ink-subtle">Max {formatWeightUnit(unit)}</div>
         </div>
-        <div className="bg-zinc-800/50 rounded-xl p-2">
-          <div className="text-lg font-bold text-blue-400">{formatVolume(convertWeightFromLbs(totalVolume, unit))}</div>
-          <div className="text-[10px] uppercase text-zinc-500">Volume</div>
+        <div className="bg-fill rounded-xl p-2">
+          <div className="text-lg font-bold text-info-ink">{formatVolume(convertWeightFromLbs(totalVolume, unit))}</div>
+          <div className="text-[10px] uppercase text-ink-subtle">Volume</div>
         </div>
       </div>
     </div>
@@ -402,7 +402,7 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyStat[] }) {
   };
 
   return (
-    <div className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800/50">
+    <div className="p-4 rounded-2xl bg-card border border-border">
       <div className="flex items-end gap-1 h-32">
         {last8Weeks.map((week, i) => {
           const height = maxVolume > 0 ? (week.totalVolume / maxVolume) * 100 : 0;
@@ -417,11 +417,11 @@ function WeeklyVolumeChart({ weeks }: { weeks: WeeklyStat[] }) {
                 className="w-full bg-gradient-to-t from-orange-600 to-orange-500 rounded-t-sm relative group"
                 style={{ height: `${height}%`, minHeight: "4px" }}
               >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-muted text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                   {(week.totalVolume / 1000).toFixed(1)}K
                 </div>
               </div>
-              <span className="text-[8px] text-zinc-600 truncate w-full text-center">
+              <span className="text-[8px] text-ink-subtle truncate w-full text-center">
                 {formatWeek(week.weekStart)}
               </span>
             </div>

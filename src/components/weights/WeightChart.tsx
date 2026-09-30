@@ -41,7 +41,7 @@ function XAxisTick(props: ChartTickProps): ReactElement {
     <text
       x={x ?? 0}
       y={(y ?? 0) + 14}
-      fill="#71717a"
+      fill="var(--color-muted-foreground)"
       fontSize={12}
       textAnchor="middle"
     >
@@ -54,7 +54,7 @@ function YAxisTick(props: ChartTickProps): ReactElement {
   const { x, y, payload } = props;
 
   return (
-    <text x={(x ?? 0) - 6} y={(y ?? 0) + 4} fill="#71717a" fontSize={12} textAnchor="end">
+    <text x={(x ?? 0) - 6} y={(y ?? 0) + 4} fill="var(--color-muted-foreground)" fontSize={12} textAnchor="end">
       {payload?.value}
     </text>
   );
@@ -72,10 +72,10 @@ function RangeHeader({ range, onRangeChange, unit }: RangeHeaderProps): ReactEle
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <p className="text-sm font-semibold text-white">Progress</p>
-        <p className="text-xs text-zinc-500">Weight trend over time in {formatWeightUnit(unit)}</p>
+        <p className="text-sm font-semibold text-foreground">Progress</p>
+        <p className="text-xs text-ink-subtle">Weight trend over time in {formatWeightUnit(unit)}</p>
       </div>
-      <div className="inline-flex rounded-full border border-zinc-800 bg-zinc-950/70 p-1">
+      <div className="inline-flex rounded-full border border-border bg-glass p-1">
         {CHART_RANGES.map((key) => (
           <Button
             key={key}
@@ -86,8 +86,8 @@ function RangeHeader({ range, onRangeChange, unit }: RangeHeaderProps): ReactEle
             onClick={() => onRangeChange(key)}
             className={
               range === key
-                ? "min-h-11 bg-orange-500 text-black hover:bg-orange-400 hover:text-black"
-                : "min-h-11 text-zinc-400 hover:text-white"
+                ? "min-h-11 bg-orange-500 text-zinc-950 hover:bg-orange-400 hover:text-zinc-950"
+                : "min-h-11 text-muted-foreground hover:text-foreground"
             }
           >
             {RANGE_CONFIG[key].label}
@@ -112,8 +112,8 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
 
   if (weights.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/50">
-        <p className="text-zinc-500 text-sm">No data to chart</p>
+      <div className="h-64 flex items-center justify-center border border-dashed border-border rounded-xl bg-card">
+        <p className="text-ink-subtle text-sm">No data to chart</p>
       </div>
     );
   }
@@ -122,8 +122,8 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
     return (
       <div className="space-y-4">
         <RangeHeader range={range} onRangeChange={setRange} unit={unit} />
-        <div className="h-64 flex items-center justify-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/50">
-          <p className="text-zinc-500 text-sm">No weigh-ins in this range</p>
+        <div className="h-64 flex items-center justify-center border border-dashed border-border rounded-xl bg-card">
+          <p className="text-ink-subtle text-sm">No weigh-ins in this range</p>
         </div>
       </div>
     );
@@ -144,12 +144,12 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
           <LineChart data={data} margin={CHART_MARGIN}>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#27272a"
+              stroke="var(--color-border)"
               vertical={false}
             />
             <XAxis
               dataKey="dateFormatted"
-              stroke="#71717a"
+              stroke="var(--color-muted-foreground)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -161,7 +161,7 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
             <YAxis
               domain={[domainMin, domainMax]}
               ticks={ticks}
-              stroke="#71717a"
+              stroke="var(--color-muted-foreground)"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -172,25 +172,25 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "#18181b",
-                borderColor: "#27272a",
+                background: "var(--color-popover)",
+                borderColor: "var(--color-border)",
                 borderRadius: "12px",
-                color: "#fff",
-                border: "1px solid rgba(255,255,255,0.1)",
+                color: "var(--color-popover-foreground)",
+                border: "1px solid var(--color-border)",
               }}
-              itemStyle={{ color: "#fff" }}
-              labelStyle={{ color: "#a1a1aa" }}
+              itemStyle={{ color: "var(--color-popover-foreground)" }}
+              labelStyle={{ color: "var(--color-muted-foreground)" }}
               formatter={(value) => [typeof value === "number" ? Math.round(value * 10) / 10 : "—", `Weight (${formatWeightUnit(unit)})`]}
             />
             {goal && (
               <ReferenceLine
                 y={convertWeightFromLbs(goal.targetWeight, unit)}
-                stroke="#10b981"
+                stroke="var(--color-series-weight)"
                 strokeDasharray="3 3"
                 label={{
                   value: "Goal",
                   position: "right",
-                  fill: "#10b981",
+                  fill: "var(--color-series-weight)",
                   fontSize: 12,
                 }}
               />
@@ -198,10 +198,10 @@ export function WeightChart({ weights, goal, unit }: WeightChartProps) {
             <Line
               type="monotone"
               dataKey="weightConverted"
-              stroke="#f97316"
+              stroke="var(--color-series-accent)"
               strokeWidth={4}
-              dot={{ r: 4, fill: "#f97316", strokeWidth: 0 }}
-              activeDot={{ r: 6, strokeWidth: 0, fill: "#fff" }}
+              dot={{ r: 4, fill: "var(--color-series-accent)", strokeWidth: 0 }}
+              activeDot={{ r: 6, strokeWidth: 0, fill: "var(--color-white)" }}
             />
           </LineChart>
         </ResponsiveContainer>

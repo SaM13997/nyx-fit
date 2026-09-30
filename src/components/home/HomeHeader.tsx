@@ -15,7 +15,7 @@ export function HomeHeader({ userName, profilePicture, email }: HomeHeaderProps)
         <h1 className="text-2xl font-bold break-words">
           Hey, <span>{firstName}</span>!
         </h1>
-        <p className="text-gray-400 text-sm break-words">
+        <p className="text-muted-foreground text-sm break-words">
           Ready to crush your workout?
         </p>
       </div>

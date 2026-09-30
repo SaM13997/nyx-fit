@@ -53,16 +53,6 @@ const CLOSE_FALLBACK_MS = 400;
 
 // The surface hugs the dock row when closed and stretches to the full width
 // when open. Its bottom edge is always below the viewport, so it never shows.
-const SURFACE_OPEN = {
-  backgroundColor: "rgba(24,24,27,1)",
-  borderRadius: 28,
-  boxShadow: "0 -12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
-};
-const SURFACE_CLOSED = {
-  backgroundColor: "rgba(24,24,27,0)",
-  borderRadius: 36,
-  boxShadow: "0 -12px 48px rgba(0,0,0,0), inset 0 1px 0 rgba(255,255,255,0)",
-};
 const SURFACE_FADE = { duration: 0.22, ease: [0.2, 0, 0, 1] } satisfies Transition;
 
 // Options enter one after another once the surface is mostly up, and leave together.
@@ -219,7 +209,7 @@ export function StartDrawer({
       animate={isOpen ? "visible" : "hidden"}
       onAnimationComplete={handleAnimationComplete}
       className={cn(
-        "relative isolate flex max-h-[88dvh] w-full max-w-lg flex-col pb-[max(1.25rem,env(safe-area-inset-bottom))] text-white",
+        "relative isolate flex max-h-[88dvh] w-full max-w-lg flex-col pb-[max(1.25rem,env(safe-area-inset-bottom))] text-foreground",
         isOpen && "pointer-events-auto"
       )}
     >
@@ -228,10 +218,10 @@ export function StartDrawer({
         aria-hidden
         layout
         initial={false}
-        animate={isMounted ? SURFACE_OPEN : SURFACE_CLOSED}
+        animate={{ opacity: isMounted ? 1 : 0, borderRadius: isMounted ? 28 : 36 }}
         transition={{ layout: layoutSpring, default: SURFACE_FADE }}
         className={cn(
-          "pointer-events-none absolute -bottom-24 -z-10",
+          "pointer-events-none absolute -bottom-24 -z-10 bg-card shadow-sheet",
           isMounted ? "inset-x-0 top-0" : "inset-x-2 -top-2"
         )}
       />
@@ -245,16 +235,16 @@ export function StartDrawer({
               layoutId={START_TITLE_LAYOUT_ID}
               layoutCrossfade={false}
               transition={springs.sheet}
-              className={`w-fit whitespace-nowrap text-xl text-white outline-none ${START_TITLE_TEXT}`}
+              className={`w-fit whitespace-nowrap text-xl text-foreground outline-none ${START_TITLE_TEXT}`}
             >
               Start workout
             </motion.h2>
-            <motion.p variants={variants} custom={0} className="mt-1 text-sm text-zinc-400">
+            <motion.p variants={variants} custom={0} className="mt-1 text-sm text-muted-foreground">
               What are you working on today?
             </motion.p>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-b border-white/5 px-5 pb-3 pt-3">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-b border-hairline px-5 pb-3 pt-3">
             {lastLabel ? (
               <motion.button
                 type="button"
@@ -263,12 +253,12 @@ export function StartDrawer({
                 whileTap={pressScale}
                 disabled={isStarting}
                 onClick={() => onStart(lastWorkedParts)}
-                className="mb-4 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-4 text-left outline-none transition-colors hover:bg-emerald-500/15 focus-visible:ring-2 focus-visible:ring-emerald-300/70 disabled:opacity-60"
+                className="mb-4 flex min-h-14 w-full items-center gap-3 rounded-2xl border border-success-line bg-success-tint px-4 text-left outline-none transition-colors hover:bg-emerald-500/15 focus-visible:ring-2 focus-visible:ring-success-line disabled:opacity-60"
               >
-                <RotateCcw aria-hidden className="h-5 w-5 shrink-0 text-emerald-400" />
+                <RotateCcw aria-hidden className="h-5 w-5 shrink-0 text-success-ink" />
                 <span className="min-w-0">
-                  <span className="block text-sm font-bold text-white">Repeat last</span>
-                  <span className="block truncate text-xs font-medium text-emerald-300">
+                  <span className="block text-sm font-bold text-foreground">Repeat last</span>
+                  <span className="block truncate text-xs font-medium text-success-ink">
                     {lastLabel}
                   </span>
                 </span>
@@ -330,8 +320,8 @@ export function StartDrawer({
                                   className={cn(
                                     "flex min-h-11 items-center justify-center gap-1.5 rounded-xl border px-3 text-sm font-medium transition-colors duration-200",
                                     selected
-                                      ? "border-purple-400/50 bg-purple-500/20 text-purple-100"
-                                      : "border-white/10 bg-white/5 text-zinc-400"
+                                      ? "border-brand-line bg-brand-tint text-brand-ink"
+                                      : "border-border bg-fill text-muted-foreground"
                                   )}
                                 >
                                   <AnimatePresence initial={false}>
@@ -352,7 +342,7 @@ export function StartDrawer({
                                     <>
                                       <span
                                         aria-hidden
-                                        className="h-1.5 w-1.5 rounded-full bg-emerald-400"
+                                        className="h-1.5 w-1.5 rounded-full bg-success-ink"
                                       />
                                       <span className="sr-only">, trained last session</span>
                                     </>
@@ -390,7 +380,7 @@ export function StartDrawer({
               custom={footerBase}
               whileTap={pressScale}
               onClick={onClose}
-              className="h-14 flex-1 rounded-full bg-white/10 text-base font-bold text-white outline-none transition-colors hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/60"
+              className="h-14 flex-1 rounded-full bg-fill-strong text-base font-bold text-foreground outline-none transition-colors hover:bg-fill-strong focus-visible:ring-2 focus-visible:ring-foreground/60"
             >
               Cancel
             </motion.button>
@@ -402,10 +392,10 @@ export function StartDrawer({
               onClick={() => onStart(Array.from(selectedParts))}
               disabled={!canStart}
               className={cn(
-                "h-14 flex-[1.4] rounded-full text-base font-bold outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-purple-300/70",
+                "h-14 flex-[1.4] rounded-full text-base font-bold outline-none transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-brand-line",
                 canStart
-                  ? "bg-purple-600 text-white shadow-lg shadow-purple-900/30 hover:bg-purple-500"
-                  : "cursor-not-allowed bg-white/5 text-zinc-400"
+                  ? "bg-brand text-white shadow-lg shadow-purple-900/30 hover:bg-brand-hover"
+                  : "cursor-not-allowed bg-fill text-muted-foreground"
               )}
             >
               {isStarting ? "Starting…" : "Start"}
@@ -453,14 +443,14 @@ function BodyPartTile({ label, variants, index, selected, lastWorked, onToggle }
       className={cn(
         "relative flex min-h-14 items-center justify-between gap-2 rounded-2xl border px-4 text-left transition-[background-color,border-color,box-shadow] duration-200",
         selected
-          ? "border-purple-400/60 bg-purple-500/15 shadow-[inset_0_0_0_1px_rgb(168_85_247/0.35)]"
-          : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
+          ? "border-brand-line bg-brand-tint shadow-[inset_0_0_0_1px_var(--brand-line)]"
+          : "border-border bg-fill hover:bg-fill-strong"
       )}
     >
       <span
         className={cn(
           "text-base font-bold transition-colors duration-200",
-          selected ? "text-white" : "text-zinc-300"
+          selected ? "text-foreground" : "text-ink-secondary"
         )}
       >
         {label}
@@ -470,7 +460,7 @@ function BodyPartTile({ label, variants, index, selected, lastWorked, onToggle }
           <>
             <span
               aria-hidden
-              className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400"
+              className="rounded-full bg-success-tint px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success-ink"
             >
               Last
             </span>
@@ -481,7 +471,7 @@ function BodyPartTile({ label, variants, index, selected, lastWorked, onToggle }
           aria-hidden
           className={cn(
             "flex h-6 w-6 items-center justify-center rounded-full border transition-colors duration-200",
-            selected ? "border-purple-400 bg-purple-500" : "border-white/20"
+            selected ? "border-purple-400 bg-purple-500" : "border-line-strong"
           )}
         >
           <AnimatePresence initial={false}>

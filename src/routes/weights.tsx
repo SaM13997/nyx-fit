@@ -9,7 +9,7 @@ import {
   useWeightGoal,
   useCurrentProfile,
 } from "@/lib/api/hooks";
-import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { WeightStatsCard } from "@/components/weights/WeightStatsCard";
 import { WeightHistoryList } from "@/components/weights/WeightHistoryList";
 import type { WeightEntry } from "@/lib/types";
@@ -135,7 +135,7 @@ function WeightsPage() {
   );
 
   return (
-    <div className="bg-black text-white font-sans relative min-h-dvh overflow-x-clip pb-32">
+    <div className="bg-background text-foreground font-sans relative min-h-dvh overflow-x-clip pb-32">
       <BackButton
         fallback="/"
         className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20"
@@ -145,21 +145,21 @@ function WeightsPage() {
         {/* Animated hexagonal pattern background with ORANGE override */}
         <div
           className="absolute inset-0 animated-hex-bg opacity-50"
-          style={{ "--c": "#f97316" } as any}
+          style={{ "--c": "var(--color-series-accent)" } as CSSProperties}
         />
 
         {/* Backdrop blur layer */}
         <div className="absolute inset-0 backdrop-blur-sm" />
 
         {/* Gradient fade from black (top-left) to transparent (bottom-right) */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-background via-background/60 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background h-10 to-transparent" />
 
         {/* Content */}
         <div className="relative flex flex-col justify-end h-full px-4 pt-12">
           <div className="max-w-md mx-auto w-full">
-            <h1 className="text-6xl font-bold tracking-tighter text-orange-500">
+            <h1 className="text-6xl font-bold tracking-tighter text-orange-700 dark:text-orange-500">
               Weights
             </h1>
           </div>
@@ -170,23 +170,23 @@ function WeightsPage() {
       <div className="relative px-4">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
-            <p className="text-sm text-zinc-400 font-medium">
+            <p className="text-sm text-muted-foreground font-medium">
               Track your body weight and progress.
             </p>
           </div>
 
           {isError && weights.length === 0 ? (
-            <div className="rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
-              <h2 className="text-lg font-bold text-white break-words">
+            <div className="rounded-3xl border border-red-600/20 dark:border-red-500/20 bg-red-500/10 dark:bg-red-500/5 p-8 text-center">
+              <h2 className="text-lg font-bold text-foreground break-words">
                 Couldn&apos;t load your weigh-ins
               </h2>
-              <p className="mt-2 text-sm text-zinc-400 break-words">
+              <p className="mt-2 text-sm text-muted-foreground break-words">
                 Check your connection and try again.
               </p>
               <button
                 type="button"
                 onClick={() => void refetch()}
-                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-orange-400"
+                className="mt-4 min-h-11 rounded-xl bg-orange-500 px-6 text-sm font-semibold text-zinc-950 transition-colors hover:bg-orange-400"
               >
                 Try again
               </button>
@@ -194,14 +194,14 @@ function WeightsPage() {
           ) : (
             <>
               {isError ? (
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
-                  <p className="text-sm text-red-200">
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-600/20 dark:border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-700 dark:text-red-200">
                     Connection issue. Showing saved weigh-ins.
                   </p>
                   <button
                     type="button"
                     onClick={() => void refetch()}
-                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                    className="min-h-11 shrink-0 rounded-xl border border-red-600/30 dark:border-red-500/30 px-4 text-sm font-semibold text-red-700 dark:text-red-100 transition-colors hover:bg-red-500/10"
                   >
                     Try again
                   </button>
@@ -213,17 +213,17 @@ function WeightsPage() {
                 unit={weightUnit}
               />
 
-              <div className="rounded-3xl bg-zinc-900/30 border border-zinc-800/50 p-4 relative overflow-hidden backdrop-blur-xs">
+              <div className="rounded-3xl bg-card border border-border p-4 relative overflow-hidden backdrop-blur-xs">
                 {isChartReady ? (
                   <Suspense
                     fallback={
-                      <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+                      <div className="h-64 animate-pulse rounded-xl bg-fill" />
                     }
                   >
                     <WeightChart weights={weights} goal={goal} unit={weightUnit} />
                   </Suspense>
                 ) : (
-                  <div className="h-64 animate-pulse rounded-xl bg-zinc-900/60" />
+                  <div className="h-64 animate-pulse rounded-xl bg-fill" />
                 )}
               </div>
 
@@ -235,16 +235,16 @@ function WeightsPage() {
               />
 
               {!isLoading && weights.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-orange-500/20 bg-orange-500/5 p-8 text-center">
-                  <h2 className="text-lg font-bold text-white break-words">No weigh-ins yet</h2>
-                  <p className="mt-2 text-sm text-zinc-400 break-words">
+                <div className="rounded-3xl border border-dashed border-orange-600/20 dark:border-orange-500/20 bg-orange-500/10 dark:bg-orange-500/5 p-8 text-center">
+                  <h2 className="text-lg font-bold text-foreground break-words">No weigh-ins yet</h2>
+                  <p className="mt-2 text-sm text-muted-foreground break-words">
                     Log your first entry to start tracking trends, changes, and milestones over time.
                   </p>
                 </div>
               ) : null}
 
               {isLoading && (
-                <div className="text-center text-zinc-500 py-10">
+                <div className="text-center text-ink-subtle py-10">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 opacity-50" />
                   Loading history...
                 </div>

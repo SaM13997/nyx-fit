@@ -12,7 +12,7 @@ const MAX_WEIGHT = 100000;
 const MAX_REPS = 10000;
 
 const STEPPER_BUTTON_CLASS =
-  "flex h-11 flex-1 items-center justify-center rounded-md text-zinc-300 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:opacity-40";
+  "flex h-11 flex-1 items-center justify-center rounded-md text-ink-secondary transition-colors hover:bg-fill-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500 disabled:opacity-40";
 
 type SetField = "weight" | "reps";
 
@@ -226,7 +226,7 @@ export function SetDrawer({
       onClose={onClose}
       labelledBy={titleId}
       header={
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 pb-3 pt-2">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-4 pb-3 pt-2">
           <h2 id={titleId} tabIndex={-1} className="min-w-0 truncate text-xl font-bold outline-none">
             {exercise.name}
           </h2>
@@ -234,7 +234,7 @@ export function SetDrawer({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20 active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-fill-strong transition-colors hover:bg-line-strong active:scale-95"
           >
             <X className="h-5 w-5" />
           </button>
@@ -242,7 +242,7 @@ export function SetDrawer({
       }
     >
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      <div className="grid grid-cols-10 gap-2 text-sm text-gray-400 font-medium px-2">
+      <div className="grid grid-cols-10 gap-2 text-sm text-muted-foreground font-medium px-2">
         <div className="col-span-1 text-center">Set</div>
         <div className="col-span-4 text-center">{formatWeightUnit(unit)}</div>
         <div className="col-span-4 text-center">Reps</div>
@@ -257,13 +257,13 @@ export function SetDrawer({
           exit="vt-item-exit"
         >
           <div
-            className="grid grid-cols-10 gap-2 items-center bg-white/5 p-2 rounded-xl"
+            className="grid grid-cols-10 gap-2 items-center bg-fill p-2 rounded-xl"
           >
-            <div className="col-span-1 text-center font-bold text-gray-500">
+            <div className="col-span-1 text-center font-bold text-ink-subtle">
               {index + 1}
             </div>
             <div className="col-span-4 space-y-1">
-              <div className="flex items-center bg-black/40 rounded-lg p-1">
+              <div className="flex items-center bg-fill-strong rounded-lg p-1">
                 <input
                   type="number"
                   value={draftValue(set.id, "weight", set.weight)}
@@ -282,7 +282,7 @@ export function SetDrawer({
                   }}
                   className="w-full min-w-0 bg-transparent text-center font-bold outline-none disabled:opacity-40"
                 />
-                <span className="pr-2 text-xs text-zinc-500">{formatWeight(set.weight, unit, 0)}</span>
+                <span className="pr-2 text-xs text-ink-subtle">{formatWeight(set.weight, unit, 0)}</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -312,7 +312,7 @@ export function SetDrawer({
               </div>
             </div>
             <div className="col-span-4 space-y-1">
-              <div className="flex items-center bg-black/40 rounded-lg p-1">
+              <div className="flex items-center bg-fill-strong rounded-lg p-1">
                 <input
                   type="number"
                   value={draftValue(set.id, "reps", set.reps)}
@@ -362,7 +362,7 @@ export function SetDrawer({
                 <button
                   onClick={handleDuplicateLastSet}
                   disabled={controlsDisabled}
-                  className="p-2 text-zinc-300 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-40"
+                  className="p-2 text-ink-secondary hover:bg-fill-strong rounded-lg transition-colors disabled:opacity-40"
                   aria-label="Duplicate last set"
                 >
                   <Copy className="h-4 w-4" />
@@ -371,7 +371,7 @@ export function SetDrawer({
               <button
                 onClick={() => handleDeleteSet(set.id)}
                 disabled={controlsDisabled}
-                className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors disabled:opacity-40"
+                className="p-2 text-danger-ink hover:bg-danger-ink/10 rounded-lg transition-colors disabled:opacity-40"
                 aria-label="Delete set"
               >
                 <Trash2 className="h-4 w-4" />
@@ -382,14 +382,14 @@ export function SetDrawer({
       ))}
 
       {commitError !== null ? (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-1.5">
-          <p className="text-xs text-red-200">{commitError}</p>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-danger-ink/20 bg-danger-ink/10 px-3 py-1.5">
+          <p className="text-xs text-danger-ink">{commitError}</p>
           {draft !== null ? (
             <button
               type="button"
               onClick={commitDraft}
               disabled={controlsDisabled}
-              className="min-h-11 rounded-lg border border-red-500/30 px-3 text-xs font-semibold text-red-100 transition-colors hover:bg-red-500/10 disabled:opacity-40"
+              className="min-h-11 rounded-lg border border-danger-ink/30 px-3 text-xs font-semibold text-danger-ink transition-colors hover:bg-danger-ink/10 disabled:opacity-40"
             >
               Retry
             </button>
@@ -401,7 +401,7 @@ export function SetDrawer({
         <button
           onClick={handleAddSet}
           disabled={controlsDisabled}
-          className="w-full py-4 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold rounded-xl border border-purple-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+          className="w-full py-4 bg-brand-tint hover:bg-purple-600/30 text-brand-ink font-bold rounded-xl border border-brand-line transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
         >
           <Plus className="h-5 w-5" />
           Add Set
@@ -409,7 +409,7 @@ export function SetDrawer({
         <button
           onClick={handleAddIncrementedSet}
           disabled={controlsDisabled}
-          className="w-full py-4 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 font-bold rounded-xl border border-emerald-500/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
+          className="w-full py-4 bg-success-tint hover:bg-emerald-500/25 text-success-ink font-bold rounded-xl border border-success-line transition-colors flex items-center justify-center gap-2 disabled:opacity-40"
         >
           <Plus className="h-5 w-5" />
           Auto +{formatWeight(weightStep, unit, unit === "kgs" ? 1 : 0)}/-2

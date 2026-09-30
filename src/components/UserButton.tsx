@@ -41,11 +41,11 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
           <button
             type="button"
             aria-label="Open account menu"
-            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 transition-transform active:scale-95"
+            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/60 transition-transform active:scale-95"
           >
-            <Avatar className="size-10 border border-white/10">
+            <Avatar className="size-10 border border-border">
               {image ? <AvatarImage src={image} alt={name} /> : null}
-              <AvatarFallback className="bg-white/10 text-white">
+              <AvatarFallback className="bg-fill-strong text-foreground">
                 <span className="text-sm font-semibold">
                   {getInitialCharacter(name)}
                 </span>
@@ -56,7 +56,7 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
         <DropdownMenuContent
           align="end"
           sideOffset={8}
-          className="w-72 overflow-hidden rounded-2xl border border-white/10 bg-black/80 p-0 shadow-xl backdrop-blur-xl"
+          className="w-72 overflow-hidden rounded-2xl border border-border bg-glass p-0 shadow-[var(--elev-float),var(--highlight)] backdrop-blur-xl"
           asChild
         >
           <motion.div
@@ -66,54 +66,54 @@ export function UserButton({ name, email, image, className }: UserButtonProps) {
             transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
           >
             <div className="flex items-center gap-3 px-4 py-4">
-              <Avatar className="size-12 border border-white/10">
+              <Avatar className="size-12 border border-border">
                 {image ? <AvatarImage src={image} alt={name} /> : null}
-                <AvatarFallback className="bg-white/10 text-white">
+                <AvatarFallback className="bg-fill-strong text-foreground">
                   <span className="text-base font-semibold">
                     {getInitialCharacter(name)}
                   </span>
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <div className="truncate font-semibold text-white">{name || "Athlete"}</div>
+                <div className="truncate font-semibold text-foreground">{name || "Athlete"}</div>
                 {email ? (
-                  <div className="truncate text-sm text-zinc-400">{email}</div>
+                  <div className="truncate text-sm text-muted-foreground">{email}</div>
                 ) : null}
               </div>
             </div>
 
-            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuSeparator className="bg-border" />
 
             <div className="p-2">
               <DropdownMenuItem asChild>
                 <Link
                   to="/settings/profile"
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-200 hover:bg-white/10 focus:bg-white/10 outline-none"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-secondary hover:bg-fill-strong focus:bg-fill-strong outline-none"
                 >
-                  <User size={16} className="text-zinc-400" />
+                  <User size={16} className="text-muted-foreground" />
                   Account
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   to="/settings"
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-200 hover:bg-white/10 focus:bg-white/10 outline-none"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-ink-secondary hover:bg-fill-strong focus:bg-fill-strong outline-none"
                 >
-                  <Settings size={16} className="text-zinc-400" />
+                  <Settings size={16} className="text-muted-foreground" />
                   Settings
                 </Link>
               </DropdownMenuItem>
             </div>
 
-            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuSeparator className="bg-border" />
 
             <div className="p-2">
               <DropdownMenuItem
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-300 hover:bg-red-500/10 focus:bg-red-500/10 outline-none cursor-pointer"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger-ink hover:bg-danger-ink/10 focus:bg-danger-ink/10 outline-none cursor-pointer"
               >
-                <LogOut size={16} className="text-red-300" />
+                <LogOut size={16} className="text-danger-ink" />
                 {isLoggingOut ? "Logging out..." : "Log out"}
               </DropdownMenuItem>
             </div>

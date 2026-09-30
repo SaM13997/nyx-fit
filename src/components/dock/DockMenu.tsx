@@ -54,7 +54,7 @@ export function DockMenu({ open, activeHref, onOpenChange }: DockMenuProps) {
         whileTap={pressScale}
         transition={springs.snappy}
         onClick={() => onOpenChange(!open)}
-        className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-zinc-900/70 text-white shadow-[0_12px_40px_rgb(0_0_0/0.5),inset_0_1px_0_rgb(255_255_255/0.08)] outline-none backdrop-blur-2xl backdrop-saturate-150 focus-visible:ring-2 focus-visible:ring-white/60"
+        className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-glass text-foreground shadow-[var(--elev-float),var(--highlight)] outline-none backdrop-blur-2xl backdrop-saturate-150 focus-visible:ring-2 focus-visible:ring-foreground/60"
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
@@ -80,7 +80,7 @@ export function DockMenu({ open, activeHref, onOpenChange }: DockMenuProps) {
             exit={{ opacity: 0, y: 8, scale: 0.96, transition: fade }}
             transition={springs.sheet}
             style={{ transformOrigin: "bottom left" }}
-            className="absolute bottom-[calc(100%+0.75rem)] left-0 w-56 rounded-3xl border border-white/10 bg-zinc-900/85 p-1.5 shadow-[0_12px_40px_rgb(0_0_0/0.5),inset_0_1px_0_rgb(255_255_255/0.08)] backdrop-blur-2xl backdrop-saturate-150"
+            className="absolute bottom-[calc(100%+0.75rem)] left-0 w-56 rounded-3xl border border-border bg-glass p-1.5 shadow-[var(--elev-float),var(--highlight)] backdrop-blur-2xl backdrop-saturate-150"
           >
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -92,15 +92,11 @@ export function DockMenu({ open, activeHref, onOpenChange }: DockMenuProps) {
                     aria-current={active ? "page" : undefined}
                     onClick={() => close(true)}
                     className={cn(
-                      "flex min-h-12 items-center gap-3 rounded-2xl px-3.5 text-[15px] font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-white/60",
-                      active ? "bg-white/10 text-white" : "text-zinc-300 hover:bg-white/5"
+                      "flex min-h-12 items-center gap-3 rounded-2xl px-3.5 text-[15px] font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-foreground/60",
+                      active ? "bg-fill-strong text-foreground" : "text-ink-secondary hover:bg-fill"
                     )}
                   >
-                    <Icon
-                      aria-hidden
-                      className="h-5 w-5"
-                      style={{ color: active ? item.iconColor : undefined }}
-                    />
+                    <Icon aria-hidden className={cn("h-5 w-5", active ? item.iconClass : undefined)} />
                     {item.label}
                   </Link>
                 </li>

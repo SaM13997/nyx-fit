@@ -34,24 +34,24 @@ function PrivacyPage() {
 
       <LegalSection title="Information we collect">
         <p>
-          <strong className="text-white">Account information.</strong> When you
+          <strong className="text-foreground">Account information.</strong> When you
           sign in (including with Google), we receive identifiers and profile
           details such as your name and email address through our authentication
           provider.
         </p>
         <p>
-          <strong className="text-white">Fitness data you provide.</strong> This
+          <strong className="text-foreground">Fitness data you provide.</strong> This
           includes workouts, exercises, sets, reps, weights, session notes, body
           weight entries, goals, and optional profile details such as fitness
           level or profile photo.
         </p>
         <p>
-          <strong className="text-white">App preferences.</strong> We store
+          <strong className="text-foreground">App preferences.</strong> We store
           settings such as appearance theme, rest timer duration, and unit
           preferences locally and/or in your account so they sync across devices.
         </p>
         <p>
-          <strong className="text-white">Device and usage data.</strong> When
+          <strong className="text-foreground">Device and usage data.</strong> When
           you install or use the app, basic technical information (such as
           browser type, app version, and crash logs) may be processed by our
           hosting providers to keep the service secure and reliable.
@@ -104,7 +104,7 @@ function PrivacyPage() {
             Request account or data deletion by contacting{" "}
             <a
               href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-              className="font-medium text-orange-400 underline decoration-orange-400/40 underline-offset-4"
+              className="font-medium text-orange-700 dark:text-orange-400 underline decoration-orange-600/40 dark:decoration-orange-400/40 underline-offset-4"
             >
               {LEGAL_CONTACT_EMAIL}
             </a>
@@ -134,7 +134,7 @@ function PrivacyPage() {
           Questions about this Privacy Policy? Email{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="font-medium text-orange-400 underline decoration-orange-400/40 underline-offset-4"
+            className="font-medium text-orange-700 dark:text-orange-400 underline decoration-orange-600/40 dark:decoration-orange-400/40 underline-offset-4"
           >
             {LEGAL_CONTACT_EMAIL}
           </a>

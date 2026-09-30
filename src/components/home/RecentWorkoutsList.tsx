@@ -15,7 +15,7 @@ export function RecentWorkoutsList({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Recent Workouts</h2>
-        <Link to="/workouts" className="text-purple-400 text-sm">
+        <Link to="/workouts" className="text-purple-700 dark:text-purple-400 text-sm">
           View All
         </Link>
       </div>
@@ -25,17 +25,17 @@ export function RecentWorkoutsList({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-white/5 rounded-2xl p-4 animate-pulse"
+              className="bg-fill rounded-2xl p-4 animate-pulse"
             >
-              <div className="h-4 bg-white/10 rounded mb-2"></div>
-              <div className="h-3 bg-white/10 rounded w-2/3"></div>
+              <div className="h-4 bg-fill-strong rounded mb-2"></div>
+              <div className="h-3 bg-fill-strong rounded w-2/3"></div>
             </div>
           ))}
         </div>
       ) : workouts.length === 0 ? (
-        <div className="bg-white/5 rounded-2xl p-6 text-center">
-          <p className="text-gray-400 mb-2">No workouts yet</p>
-          <p className="text-gray-500 text-sm">
+        <div className="bg-fill rounded-2xl p-6 text-center">
+          <p className="text-muted-foreground mb-2">No workouts yet</p>
+          <p className="text-ink-subtle text-sm">
             Start your first workout above!
           </p>
         </div>

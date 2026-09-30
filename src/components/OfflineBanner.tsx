@@ -28,9 +28,9 @@ export function OfflineBanner() {
           role="status"
           aria-live="polite"
         >
-          <div className="flex items-center gap-3 rounded-xl border border-orange-500/30 bg-zinc-900/95 px-4 py-3 shadow-lg backdrop-blur-md">
-            <WifiOff className="h-5 w-5 shrink-0 text-orange-400" aria-hidden />
-            <p className="text-sm text-zinc-200">
+          <div className="flex items-center gap-3 rounded-xl border border-orange-600/40 dark:border-orange-500/30 bg-popover px-4 py-3 shadow-lg backdrop-blur-md">
+            <WifiOff className="h-5 w-5 shrink-0 text-orange-700 dark:text-orange-400" aria-hidden />
+            <p className="text-sm text-ink-secondary">
               You&apos;re offline. Cached pages work; sign in and sync need a
               connection.
             </p>

@@ -17,8 +17,8 @@ export function WeightStatsCard({
 }: WeightStatsCardProps) {
   if (!currentWeight) {
     return (
-      <div className="p-6 rounded-3xl bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm">
-        <p className="text-zinc-400 text-center">Log your weight to see stats</p>
+      <div className="p-6 rounded-3xl bg-card border border-border backdrop-blur-sm">
+        <p className="text-muted-foreground text-center">Log your weight to see stats</p>
       </div>
     );
   }
@@ -30,12 +30,12 @@ export function WeightStatsCard({
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Current Weight */}
-      <div className="col-span-2 p-6 rounded-3xl bg-linear-to-br from-zinc-900 to-zinc-950 border border-zinc-800 relative overflow-hidden">
+      <div className="col-span-2 p-6 rounded-3xl bg-linear-to-br from-card to-background border border-border relative overflow-hidden">
         <div className="relative z-10 flex flex-col items-center">
-          <span className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Current Weight</span>
+          <span className="text-ink-subtle text-xs uppercase tracking-wider font-bold mb-1">Current Weight</span>
           <div className="flex items-baseline gap-1">
-            <span className="text-6xl font-black text-white tracking-tighter">{formatWeight(currentWeight, unit)}</span>
-            <span className="text-orange-500 font-bold">{formatWeightUnit(unit)}</span>
+            <span className="text-6xl font-black text-foreground tracking-tighter">{formatWeight(currentWeight, unit)}</span>
+            <span className="text-orange-700 dark:text-orange-500 font-bold">{formatWeightUnit(unit)}</span>
           </div>
         </div>
 
@@ -44,12 +44,12 @@ export function WeightStatsCard({
       </div>
 
       {/* Change */}
-      <div className="p-4 rounded-[2rem] bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center backdrop-blur-xs">
-        <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold mb-1">Total Change</span>
+      <div className="p-4 rounded-[2rem] bg-card border border-border flex flex-col items-center justify-center backdrop-blur-xs">
+        <span className="text-ink-subtle text-[10px] uppercase tracking-widest font-bold mb-1">Total Change</span>
         <div className={cn("flex items-center gap-1 font-bold text-xl", {
-          "text-emerald-400": isLoss,
-          "text-rose-400": isGain,
-          "text-zinc-400": !isLoss && !isGain
+          "text-success-ink": isLoss,
+          "text-rose-700 dark:text-rose-400": isGain,
+          "text-muted-foreground": !isLoss && !isGain
         })}>
           {isLoss && <TrendingDown className="w-4 h-4" />}
           {isGain && <TrendingUp className="w-4 h-4" />}
@@ -59,9 +59,9 @@ export function WeightStatsCard({
       </div>
 
       {/* Start */}
-      <div className="p-4 rounded-[2rem] bg-zinc-900/50 border border-zinc-800 flex flex-col items-center justify-center backdrop-blur-xs">
-        <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold mb-1">Starting</span>
-        <div className="font-bold text-xl text-white">
+      <div className="p-4 rounded-[2rem] bg-card border border-border flex flex-col items-center justify-center backdrop-blur-xs">
+        <span className="text-ink-subtle text-[10px] uppercase tracking-widest font-bold mb-1">Starting</span>
+        <div className="font-bold text-xl text-foreground">
           {startWeight !== undefined ? formatWeight(startWeight, unit) : "-"}
         </div>
       </div>

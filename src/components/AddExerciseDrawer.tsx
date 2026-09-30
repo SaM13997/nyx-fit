@@ -145,7 +145,7 @@ export function AddExerciseDrawer({
       onExitComplete={resetState}
       labelledBy={titleId}
       header={
-        <div className="flex h-14 items-center justify-between border-b border-white/10 px-4 pb-2">
+        <div className="flex h-14 items-center justify-between border-b border-border px-4 pb-2">
           <div className="flex items-center gap-3">
             <AnimatePresence mode="popLayout" initial={false}>
               {selectedExercise ? (
@@ -157,7 +157,7 @@ export function AddExerciseDrawer({
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 8, filter: "blur(4px)" }}
                   transition={springs.snappy}
-                  className="block truncate text-xl font-bold text-white outline-none"
+                  className="block truncate text-xl font-bold text-foreground outline-none"
                 >
                   {selectedExercise}
                 </motion.h2>
@@ -170,7 +170,7 @@ export function AddExerciseDrawer({
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 8, filter: "blur(4px)" }}
                   transition={springs.snappy}
-                  className="block truncate text-xl font-bold text-white outline-none"
+                  className="block truncate text-xl font-bold text-foreground outline-none"
                 >
                   Add Exercise
                 </motion.h2>
@@ -185,7 +185,7 @@ export function AddExerciseDrawer({
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={springs.pop}
-                className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-sm font-bold border border-purple-500/20"
+                className="bg-brand-tint text-brand-ink px-3 py-1 rounded-full text-sm font-bold border border-brand-line"
               >
                 {currentExerciseSetCount} sets
               </motion.div>
@@ -194,7 +194,7 @@ export function AddExerciseDrawer({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors hover:bg-white/20 active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-fill-strong transition-colors hover:bg-line-strong active:scale-95"
             >
               <X className="h-5 w-5" />
             </button>
@@ -225,7 +225,7 @@ export function AddExerciseDrawer({
                     setCategory(inferExerciseCategory(nextName));
                   }
                 }}
-                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
+                className="w-full rounded-xl border border-border bg-background px-4 py-4 text-lg text-foreground outline-none transition focus:border-purple-600 dark:focus:border-purple-400"
               />
             ) : (
               <div className="w-full space-y-3">
@@ -235,7 +235,7 @@ export function AddExerciseDrawer({
                   placeholder="Search exercises"
                   aria-label="Search exercises"
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-4 text-lg text-white outline-none transition focus:border-purple-400"
+                  className="w-full rounded-xl border border-border bg-background px-4 py-4 text-lg text-foreground outline-none transition focus:border-purple-600 dark:focus:border-purple-400"
                 />
 
                 {filteredExercises === null ? (
@@ -252,12 +252,12 @@ export function AddExerciseDrawer({
                         categoryOverriddenRef.current = false;
                       }}
                     />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900 via-transparent to-zinc-900" />
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card via-transparent to-card" />
                   </div>
                 ) : (
                   <div className="h-48 w-full space-y-2 overflow-y-auto">
                     {hasNoSearchMatches ? (
-                      <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+                      <p className="flex h-full items-center justify-center text-sm text-ink-subtle">
                         No exercises match that search.
                       </p>
                     ) : (
@@ -266,10 +266,10 @@ export function AddExerciseDrawer({
                           key={name}
                           type="button"
                           onClick={() => handleSearchSelect(name)}
-                          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl bg-white/5 px-4 text-left transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+                          className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl bg-fill px-4 text-left transition-colors hover:bg-fill-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
                         >
-                          <span className="font-medium text-white">{name}</span>
-                          <span className="text-xs text-zinc-500">
+                          <span className="font-medium text-foreground">{name}</span>
+                          <span className="text-xs text-ink-subtle">
                             {formatExerciseCategory(inferExerciseCategory(name))}
                           </span>
                         </button>
@@ -292,18 +292,18 @@ export function AddExerciseDrawer({
                 setCustomName("");
                 setIsCustomMode((open) => !open);
               }}
-              className="min-h-11 text-sm font-semibold text-purple-300 transition-colors hover:text-purple-200"
+              className="min-h-11 text-sm font-semibold text-brand-ink transition-colors hover:text-purple-700 dark:hover:text-purple-200"
             >
               {isCustomMode ? "Pick from the list instead" : "Type a custom exercise"}
             </button>
 
-            <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="w-full rounded-2xl border border-border bg-fill p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-subtle">
                     Category
                   </p>
-                  <p className="text-sm text-zinc-300">
+                  <p className="text-sm text-ink-secondary">
                     Auto-selected from the exercise name.
                   </p>
                 </div>
@@ -314,7 +314,7 @@ export function AddExerciseDrawer({
                   categoryOverriddenRef.current = true;
                   setCategory(e.target.value as ExerciseCategory);
                 }}
-                className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-purple-400"
+                className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:border-purple-600 dark:focus:border-purple-400"
               >
                 {EXERCISE_CATEGORIES.map((option) => (
                   <option key={option} value={option}>
@@ -331,7 +331,7 @@ export function AddExerciseDrawer({
                 setSelectedExercise(name);
               }}
               disabled={!candidateExercise || hasNoSearchMatches}
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
+              className="w-full bg-brand hover:bg-brand-hover text-white rounded-xl py-4 font-bold text-lg transition-colors shadow-lg shadow-purple-900/20 disabled:opacity-50"
             >
               {selectLabel}
             </motion.button>
@@ -344,7 +344,7 @@ export function AddExerciseDrawer({
           >
             <div className="flex justify-center gap-4">
               <div className="flex flex-col items-center gap-2">
-                <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">{formatWeightUnit(unit)}</span>
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">{formatWeightUnit(unit)}</span>
                 <div className="relative h-40 w-32 overflow-hidden">
                   <WheelPicker
                     options={weightOptions.map((w) => ({
@@ -354,25 +354,25 @@ export function AddExerciseDrawer({
                     value={weight}
                     onValueChange={(val) => setWeight(val)}
                   />
-                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
                 </div>
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <span className="text-sm font-medium text-gray-400 uppercase tracking-wider">Reps</span>
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Reps</span>
                 <div className="relative h-40 w-32 overflow-hidden">
                   <WheelPicker
                     options={REP_OPTIONS.map((r) => ({ value: r, label: r }))}
                     value={reps}
                     onValueChange={(val) => setReps(val)}
                   />
-                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+                  <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
                 </div>
               </div>
             </div>
 
             {commitFailed ? (
-              <p className="w-full rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200">
+              <p className="w-full rounded-xl border border-danger-ink/20 bg-danger-ink/10 px-3 py-2 text-center text-xs text-danger-ink">
                 Couldn&apos;t save that set. Try again.
               </p>
             ) : null}
@@ -380,7 +380,7 @@ export function AddExerciseDrawer({
             <button
               onClick={handleAddSet}
               disabled={isSaving || isSubmitting}
-              className="w-full bg-white text-black hover:bg-gray-200 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50"
+              className="w-full bg-foreground text-background hover:bg-foreground/85 rounded-xl py-4 font-bold text-lg transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50"
             >
               Log Set
             </button>

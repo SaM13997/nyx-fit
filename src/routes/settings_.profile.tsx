@@ -74,7 +74,7 @@ function ProfileDetailsPage() {
   }, [authUser, form, profile, readyToInit]);
 
   const inputBaseClasses =
-    "dark:bg-white/5 border-white/10 h-11 w-full min-w-0 rounded-xl border bg-transparent px-4 py-2 text-base shadow-sm transition-all outline-none focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-white placeholder:text-zinc-500";
+    "bg-fill border-border h-11 w-full min-w-0 rounded-xl border px-4 py-2 text-base shadow-sm transition-all outline-none focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-foreground placeholder:text-ink-subtle";
 
   const setField = <K extends keyof ProfileFormValues>(
     key: K,
@@ -201,20 +201,20 @@ function ProfileDetailsPage() {
 
   if (isAuthPending) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-black text-white">
-        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+        <Loader2 className="h-6 w-6 animate-spin text-purple-700 dark:text-purple-500" />
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="bg-black px-4 py-6 min-h-dvh text-white flex flex-col items-center justify-center gap-4">
-        <p className="text-zinc-300">You need to be signed in.</p>
+      <div className="bg-background px-4 py-6 min-h-dvh text-foreground flex flex-col items-center justify-center gap-4">
+        <p className="text-ink-secondary">You need to be signed in.</p>
         <Link to="/login">
           <Button
             size="lg"
-            className="font-semibold rounded-xl bg-purple-600 hover:bg-purple-500"
+            className="font-semibold rounded-xl bg-brand hover:bg-brand-hover"
           >
             Go to login
           </Button>
@@ -225,24 +225,24 @@ function ProfileDetailsPage() {
 
   if (!form) {
     return (
-      <div className="flex items-center justify-center min-h-dvh bg-black text-white">
-        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+      <div className="flex items-center justify-center min-h-dvh bg-background text-foreground">
+        <Loader2 className="h-6 w-6 animate-spin text-purple-700 dark:text-purple-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh text-white pb-24 relative overflow-hidden">
+    <div className="min-h-dvh text-foreground pb-24 relative overflow-hidden">
       {/* Background Gradient */}
-      <div className="fixed inset-0 z-0 bg-black pointer-events-none">
-        <div className="absolute top-0 right-0 w-3/4 h-3/4 bg-purple-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-3/4 h-3/4 bg-blue-900/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+      <div className="fixed inset-0 z-0 bg-background pointer-events-none">
+        <div className="absolute top-0 right-0 w-3/4 h-3/4 bg-brand-tint rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-3/4 h-3/4 bg-blue-500/10 dark:bg-blue-900/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-lg px-4 pb-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-4 mb-8">
           <BackButton fallback="/settings" />
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-zinc-400">
+          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-foreground to-muted-foreground">
             Profile Details
           </h1>
         </div>
@@ -251,7 +251,7 @@ function ProfileDetailsPage() {
           {/* Avatar Section */}
           <div className="flex flex-col items-center justify-center mb-8">
             <div className="relative group">
-              <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-white/5 bg-zinc-900 shadow-2xl relative">
+              <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-hairline bg-card shadow-float relative">
                 {form.profilePicture ? (
                   <img
                     src={form.profilePicture}
@@ -261,12 +261,12 @@ function ProfileDetailsPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-zinc-800 text-zinc-500 text-4xl font-bold">
+                  <div className="h-full w-full flex items-center justify-center bg-muted text-ink-subtle text-4xl font-bold">
                     {form.name?.[0]?.toUpperCase() ?? "?"}
                   </div>
                 )}
 
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                <div className="absolute inset-0 bg-linear-to-t from-scrim to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
                   <span className="text-xs font-medium text-white/90">
                     Change
                   </span>
@@ -277,7 +277,7 @@ function ProfileDetailsPage() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading || isSaving}
-                className="absolute bottom-1 right-1 h-10 w-10 bg-purple-600 hover:bg-purple-500 text-white rounded-full flex items-center justify-center shadow-lg border-4 border-black transition-transform active:scale-95 disabled:opacity-70 disabled:active:scale-100"
+                className="absolute bottom-1 right-1 h-10 w-10 bg-brand hover:bg-brand-hover text-white rounded-full flex items-center justify-center shadow-lg border-4 border-background transition-transform active:scale-95 disabled:opacity-70 disabled:active:scale-100"
               >
                 {isUploading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -294,7 +294,7 @@ function ProfileDetailsPage() {
                 className="hidden"
               />
             </div>
-            <p className="mt-4 text-sm text-zinc-500">
+            <p className="mt-4 text-sm text-ink-subtle">
               Tap the camera icon to upload a new photo
             </p>
           </div>
@@ -302,7 +302,7 @@ function ProfileDetailsPage() {
           {/* Form Fields */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">
+              <label className="text-sm font-medium text-muted-foreground ml-1">
                 Display Name
               </label>
               <div className="relative">
@@ -316,11 +316,11 @@ function ProfileDetailsPage() {
                   aria-describedby="profile-name-help profile-form-error"
                   className={cn(inputBaseClasses, "pl-11")}
                 />
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
               </div>
               <div
                 id="profile-name-help"
-                className="flex items-center justify-between gap-3 px-1 text-xs text-zinc-500"
+                className="flex items-center justify-between gap-3 px-1 text-xs text-ink-subtle"
               >
                 <span className="min-w-0 break-words">
                   This name appears across the app and should stay readable on smaller screens.
@@ -333,14 +333,14 @@ function ProfileDetailsPage() {
               <div
                 id="profile-form-error"
                 role="alert"
-                className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200 break-words"
+                className="rounded-2xl border border-red-600/40 dark:border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-danger-ink break-words"
               >
                 {formError}
               </div>
             ) : null}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">
+              <label className="text-sm font-medium text-muted-foreground ml-1">
                 Email Address
               </label>
               <div className="relative">
@@ -349,13 +349,13 @@ function ProfileDetailsPage() {
                   disabled
                   className={cn(inputBaseClasses, "pl-11 opacity-70")}
                 />
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-subtle" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400 ml-1">
+                <label className="text-sm font-medium text-muted-foreground ml-1">
                   Gender
                 </label>
                 <select
@@ -368,20 +368,20 @@ function ProfileDetailsPage() {
                     )
                   }
                 >
-                  <option value="" className="bg-zinc-900">
+                  <option value="" className="bg-popover">
                     Prefer not to say
                   </option>
-                  <option value="male" className="bg-zinc-900">
+                  <option value="male" className="bg-popover">
                     Male
                   </option>
-                  <option value="female" className="bg-zinc-900">
+                  <option value="female" className="bg-popover">
                     Female
                   </option>
                 </select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400 ml-1">
+                <label className="text-sm font-medium text-muted-foreground ml-1">
                   Fitness Level
                 </label>
                 <select
@@ -394,19 +394,19 @@ function ProfileDetailsPage() {
                     )
                   }
                 >
-                  <option value="" className="bg-zinc-900">
+                  <option value="" className="bg-popover">
                     Not set
                   </option>
-                  <option value="beginner" className="bg-zinc-900">
+                  <option value="beginner" className="bg-popover">
                     Beginner
                   </option>
-                  <option value="intermediary" className="bg-zinc-900">
+                  <option value="intermediary" className="bg-popover">
                     Intermediary
                   </option>
-                  <option value="advanced" className="bg-zinc-900">
+                  <option value="advanced" className="bg-popover">
                     Advanced
                   </option>
-                  <option value="pro" className="bg-zinc-900">
+                  <option value="pro" className="bg-popover">
                     Pro
                   </option>
                 </select>
@@ -414,7 +414,7 @@ function ProfileDetailsPage() {
             </div>
 
             <div className="space-y-2 pt-2">
-              <label className="text-sm font-medium text-zinc-400 ml-1">
+              <label className="text-sm font-medium text-muted-foreground ml-1">
                 Weight Unit
               </label>
               <select
@@ -424,25 +424,25 @@ function ProfileDetailsPage() {
                   setField("weightUnit", e.target.value as WeightUnit)
                 }
               >
-                <option value="lbs" className="bg-zinc-900">
+                <option value="lbs" className="bg-popover">
                   Pounds (lbs)
                 </option>
-                <option value="kgs" className="bg-zinc-900">
+                <option value="kgs" className="bg-popover">
                   Kilograms (kgs)
                 </option>
               </select>
             </div>
 
-            <label className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 mt-2 cursor-pointer transition-colors hover:bg-white/10">
+            <label className="flex items-center gap-4 rounded-2xl border border-border bg-fill p-4 mt-2 cursor-pointer transition-colors hover:bg-fill-strong">
               <input
                 type="checkbox"
-                className="h-5 w-5 accent-purple-500 rounded-md"
+                className="h-5 w-5 accent-brand rounded-md"
                 checked={form.notificationsEnabled}
                 onChange={(e) => void handleNotificationToggle(e.target.checked)}
               />
               <div className="flex-1">
-                <div className="font-medium text-white">Notifications</div>
-                <div className="text-xs text-zinc-400">
+                <div className="font-medium text-foreground">Notifications</div>
+                <div className="text-xs text-muted-foreground">
                   Receive workout reminders and weekly updates
                 </div>
               </div>
@@ -454,14 +454,14 @@ function ProfileDetailsPage() {
               variant="outline"
               onClick={() => navigate({ to: "/settings" })}
               disabled={isSaving}
-              className="flex-1 h-12 rounded-xl border-white/10 hover:bg-white/10 hover:text-white"
+              className="flex-1 h-12 rounded-xl border-border hover:bg-fill-strong hover:text-foreground"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               disabled={!canSubmit || isSaving}
-              className="flex-1 h-12 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold shadow-lg shadow-purple-900/20"
+              className="flex-1 h-12 rounded-xl bg-brand hover:bg-brand-hover text-white font-semibold shadow-lg shadow-purple-900/20"
             >
               {isSaving ? (
                 <>

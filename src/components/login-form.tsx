@@ -68,17 +68,17 @@ export function LoginForm({
         <h1
           id="login-heading"
           tabIndex={-1}
-          className="text-2xl font-bold tracking-tight text-white focus:outline-none"
+          className="text-2xl font-bold tracking-tight text-foreground focus:outline-none"
         >
           {heading}
         </h1>
-        <p className="text-sm text-zinc-400">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
       {errorMessage ? (
         <div
           id="login-error"
           role="alert"
-          className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200 break-words"
+          className="rounded-xl border border-red-600/40 dark:border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-danger-ink break-words"
         >
           {errorMessage}
         </div>
@@ -87,7 +87,7 @@ export function LoginForm({
         type="button"
         onClick={signIn}
         disabled={isSubmitting || isEmailSubmitting}
-        className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold h-12 rounded-xl text-base transition-all active:scale-[0.98] shadow-lg shadow-purple-900/20 gap-3"
+        className="w-full bg-brand hover:bg-brand-hover text-white font-bold h-12 rounded-xl text-base transition-all active:scale-[0.98] shadow-lg shadow-purple-900/20 gap-3"
       >
         {isSubmitting ? (
           <>
@@ -113,18 +113,18 @@ export function LoginForm({
           onCollapse={clearEmailError}
         />
       )}
-      <div className="text-center text-xs text-gray-500 break-words">
+      <div className="text-center text-xs text-ink-subtle break-words">
         By clicking continue, you agree to our{" "}
         <Link
           to="/terms"
-          className="inline-flex min-h-11 items-center underline decoration-white/30 underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+          className="inline-flex min-h-11 items-center underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
         >
           Terms
         </Link>{" "}
         and{" "}
         <Link
           to="/privacy"
-          className="inline-flex min-h-11 items-center underline decoration-white/30 underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
+          className="inline-flex min-h-11 items-center underline decoration-foreground/30 underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-500"
         >
           Privacy Policy
         </Link>

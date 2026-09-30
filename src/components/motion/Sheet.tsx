@@ -101,7 +101,7 @@ export function Sheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-scrim"
           />
           <motion.div
             ref={panelRef}
@@ -127,19 +127,19 @@ export function Sheet({
             dragElastic={{ top: 0.04, bottom: 0.9 }}
             onDragEnd={handleDragEnd}
             className={cn(
-              "absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] w-full max-w-lg flex-col rounded-t-[1.75rem] border-t border-white/10 bg-zinc-900 pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-12px_48px_rgb(0_0_0/0.5)] outline-none",
+              "absolute inset-x-0 bottom-0 mx-auto flex max-h-[88dvh] w-full max-w-lg flex-col rounded-t-[1.75rem] border-t border-border bg-card pb-[env(safe-area-inset-bottom)] text-foreground shadow-sheet outline-none",
               className
             )}
           >
             {/* Overscroll filler so the spring's bounce never reveals a gap. */}
             {slide ? (
-              <div aria-hidden className="absolute inset-x-0 top-full h-24 bg-zinc-900" />
+              <div aria-hidden className="absolute inset-x-0 top-full h-24 bg-card" />
             ) : null}
             <div
               className="shrink-0 cursor-grab touch-none active:cursor-grabbing"
               onPointerDown={(event) => dragControls.start(event)}
             >
-              <div aria-hidden className="mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-white/20" />
+              <div aria-hidden className="mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-line-strong" />
               {header}
             </div>
             {children}

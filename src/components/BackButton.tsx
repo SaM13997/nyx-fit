@@ -27,7 +27,7 @@ export function BackButton({ fallback, className }: BackButtonProps) {
         else void router.navigate({ to: fallback, replace: true });
       }}
       className={cn(
-        "flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-xl transition-colors hover:bg-white/10",
+        "flex h-11 w-11 items-center justify-center rounded-full border border-border bg-glass text-foreground backdrop-blur-xl transition-colors hover:bg-fill-strong",
         className
       )}
     >

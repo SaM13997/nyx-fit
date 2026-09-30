@@ -55,7 +55,7 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-dvh overflow-x-clip px-4 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))] text-white">
+    <div className="min-h-dvh overflow-x-clip px-4 pb-32 pt-[max(1.5rem,env(safe-area-inset-top))] text-foreground">
       <div className="flex flex-col gap-6">
         <HomeHeader
           userName={effectiveProfile.name}
@@ -63,14 +63,14 @@ function HomePage() {
           profilePicture={effectiveProfile.profilePicture}
         />
         {isSnapshotError && snapshot === null ? (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
-            <p className="text-sm text-red-200">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-700/20 dark:border-red-500/20 bg-red-700/10 dark:bg-red-500/10 px-4 py-2">
+            <p className="text-sm text-red-700 dark:text-red-200">
               Couldn&apos;t load your workout data.
             </p>
             <button
               type="button"
               onClick={() => void refetchSnapshot()}
-              className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+              className="min-h-11 shrink-0 rounded-xl border border-red-700/30 dark:border-red-500/30 px-4 text-sm font-semibold text-red-700 dark:text-red-100 transition-colors hover:bg-red-700/10 dark:hover:bg-red-500/10"
             >
               Try again
             </button>

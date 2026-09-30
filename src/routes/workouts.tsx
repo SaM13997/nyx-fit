@@ -62,7 +62,7 @@ function WorkoutsPage() {
   const [animateList] = useState(isLoading && workouts.length === 0);
 
   return (
-    <div className="overflow-x-clip bg-black text-white font-sans relative min-h-dvh">
+    <div className="overflow-x-clip bg-background text-foreground font-sans relative min-h-dvh">
       {/* Visual Design Element - Top 35% */}
       <div className="relative h-[35vh] pointer-events-none overflow-hidden">
         {/* Animated hexagonal pattern background */}
@@ -72,9 +72,9 @@ function WorkoutsPage() {
         <div className="absolute inset-0 backdrop-blur-sm" />
 
         {/* Gradient fade from black (top-left) to transparent (bottom-right) */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-background via-background/60 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black h-10 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background h-10 to-transparent" />
 
         {/* Content */}
         <div className="relative flex flex-col justify-end  h-full px-4 pt-12">
@@ -90,21 +90,21 @@ function WorkoutsPage() {
       <div className="relative px-4 pb-32">
         <div className="mx-auto max-w-md space-y-6">
           <div className="px-1">
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               Your training history and progress.
             </p>
           </div>
 
           {isError && workouts.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-500/20 bg-red-500/5 p-8 text-center">
-              <p className="text-sm text-red-200">
+            <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-600/40 dark:border-red-500/20 bg-red-500/10 dark:bg-red-500/5 p-8 text-center">
+              <p className="text-sm text-red-700 dark:text-red-200">
                 Couldn&apos;t load your workouts. Check your connection and try
                 again.
               </p>
               <button
                 type="button"
                 onClick={() => void refetch()}
-                className="min-h-11 rounded-xl bg-purple-600 px-6 text-sm font-semibold text-white transition-colors hover:bg-purple-500"
+                className="min-h-11 rounded-xl bg-brand px-6 text-sm font-semibold text-white transition-colors hover:bg-brand-hover"
               >
                 Try again
               </button>
@@ -112,14 +112,14 @@ function WorkoutsPage() {
           ) : (
             <>
               {isError ? (
-                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-2">
-                  <p className="text-sm text-red-200">
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-600/40 dark:border-red-500/20 bg-red-500/10 px-4 py-2">
+                  <p className="text-sm text-red-700 dark:text-red-200">
                     Connection issue. Showing saved workouts.
                   </p>
                   <button
                     type="button"
                     onClick={() => void refetch()}
-                    className="min-h-11 shrink-0 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/10"
+                    className="min-h-11 shrink-0 rounded-xl border border-red-600/40 dark:border-red-500/30 px-4 text-sm font-semibold text-red-700 dark:text-red-100 transition-colors hover:bg-red-500/10"
                   >
                     Try again
                   </button>
@@ -128,7 +128,7 @@ function WorkoutsPage() {
               {isLoading && workouts.length === 0 ? (
                 <div role="status" aria-label="Loading workouts" className="space-y-3">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="h-[76px] animate-pulse rounded-xl bg-white/5" />
+                    <div key={i} className="h-[76px] animate-pulse rounded-xl bg-fill" />
                   ))}
                 </div>
               ) : (
@@ -187,7 +187,7 @@ function LoadMore({
       type="button"
       disabled={isFetching}
       onClick={onLoadMore}
-      className="mt-4 min-h-11 w-full rounded-xl border border-white/10 text-sm font-semibold text-zinc-300 transition-colors hover:bg-white/5 disabled:opacity-60"
+      className="mt-4 min-h-11 w-full rounded-xl border border-border text-sm font-semibold text-ink-secondary transition-colors hover:bg-fill disabled:opacity-60"
     >
       {isFetching ? "Loading…" : "Load more"}
     </button>
@@ -207,18 +207,18 @@ function WorkoutList({
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
         <h2 className="text-xl font-bold">Recent History</h2>
-        <span className="bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full text-xs font-bold border border-purple-500/20">
+        <span className="bg-brand-tint text-brand-ink px-2.5 py-0.5 rounded-full text-xs font-bold border border-purple-600/40 dark:border-purple-500/20">
           {workouts.length}
           {hasMore ? "+" : ""}
         </span>
       </div>
       {workouts.length === 0 ? (
-        <div className="border border-dashed border-purple-500/20 rounded-3xl p-12 text-center bg-purple-500/5">
-          <div className="w-16 h-16 bg-purple-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/20">
-            <Dumbbell className="h-8 w-8 text-purple-400" />
+        <div className="border border-dashed border-purple-600/40 dark:border-purple-500/20 rounded-3xl p-12 text-center bg-purple-500/10 dark:bg-purple-500/5">
+          <div className="w-16 h-16 bg-brand-tint rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-600/40 dark:border-purple-500/20">
+            <Dumbbell className="h-8 w-8 text-purple-700 dark:text-purple-400" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">No workouts yet</h3>
-          <p className="text-gray-400 text-sm max-w-[200px] mx-auto">
+          <h3 className="text-lg font-bold text-foreground mb-2">No workouts yet</h3>
+          <p className="text-muted-foreground text-sm max-w-[200px] mx-auto">
             Start your first workout to begin tracking your progress
           </p>
         </div>

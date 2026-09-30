@@ -19,18 +19,18 @@ export function ExerciseItem({ exercise, unit, onClick }: ExerciseItemProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white/5 hover:bg-white/10 active:bg-white/15 rounded-2xl p-4 transition-colors text-left group"
+      className="w-full bg-fill hover:bg-fill-strong active:bg-line-strong rounded-2xl p-4 transition-colors text-left group"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="font-bold text-lg break-words">{exercise.name}</h3>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             {exercise.category && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-300">
+              <span className="rounded-full border border-border bg-fill px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-secondary">
                 {formatExerciseCategory(exercise.category)}
               </span>
             )}
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               {formatCountLabel(exercise.sets.length, "Set")}
               {totalVolume > 0
                 ? ` • ${formatWeight(totalVolume, unit, 0)} ${formatWeightUnit(unit)} total`
@@ -38,7 +38,7 @@ export function ExerciseItem({ exercise, unit, onClick }: ExerciseItemProps) {
             </p>
           </div>
         </div>
-        <ChevronRight className="h-5 w-5 shrink-0 text-gray-500 group-hover:text-white transition-colors" />
+        <ChevronRight className="h-5 w-5 shrink-0 text-ink-subtle group-hover:text-foreground transition-colors" />
       </div>
 
       {/* Mini preview of sets */}
@@ -47,9 +47,9 @@ export function ExerciseItem({ exercise, unit, onClick }: ExerciseItemProps) {
           {exercise.sets.map((set) => (
             <div
               key={set.id}
-              className="bg-zinc-500/20 rounded-lg px-2 py-1 text-xs whitespace-nowrap text-gray-300"
+              className="bg-fill-strong rounded-lg px-2 py-1 text-xs whitespace-nowrap text-ink-secondary"
             >
-              <span className="font-medium text-white">{formatWeight(set.weight, unit, 0)}</span> {formatWeightUnit(unit)} × <span className="font-medium text-white">{set.reps}</span>
+              <span className="font-medium text-foreground">{formatWeight(set.weight, unit, 0)}</span> {formatWeightUnit(unit)} × <span className="font-medium text-foreground">{set.reps}</span>
             </div>
           ))}
         </div>

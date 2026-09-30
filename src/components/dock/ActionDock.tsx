@@ -21,22 +21,12 @@ import { cn } from "@/lib/utils";
 import { ACTIVE_WORKOUT_TRANSITION_NAME } from "@/lib/view-transitions";
 
 const HIDDEN_ROUTES = new Set(["/login", "/onboarding"]);
-// The Start pill's fill and glow (purple-600) as animatable values. They fade
-// out while the drawer is open; only the label stays and flies up as the title.
-const START_FILL_IDLE = {
-  backgroundColor: "rgba(147,51,234,1)",
-  boxShadow: "0 12px 40px rgba(0,0,0,0.5), 0 8px 24px rgba(147,51,234,0.35)",
-};
-const START_FILL_OPEN = {
-  backgroundColor: "rgba(147,51,234,0)",
-  boxShadow: "0 12px 40px rgba(0,0,0,0), 0 8px 24px rgba(147,51,234,0)",
-};
 const DOCK_FADE = { duration: 0.22, ease: [0.2, 0, 0, 1] } satisfies Transition;
 
 const startClosing = (phase: DockPhase): DockPhase => (phase === "open" ? "closing" : phase);
 const finishClosing = (phase: DockPhase): DockPhase => (phase === "closing" ? "closed" : phase);
 const PRIMARY_BUTTON =
-  "flex h-14 min-w-0 flex-1 items-center justify-center gap-2 px-5 text-base font-bold text-white outline-none focus-visible:ring-2 focus-visible:ring-white/70";
+  "flex h-14 min-w-0 flex-1 items-center justify-center gap-2 px-5 text-base font-bold text-white outline-none focus-visible:ring-2 focus-visible:ring-foreground/60";
 
 function formatElapsed(startIso: string | undefined, now: number): string {
   const start = startIso ? Date.parse(startIso) : NaN;
@@ -117,7 +107,7 @@ export function ActionDock() {
         animate={{ opacity: phase === "open" ? 1 : 0 }}
         transition={{ duration: 0.2 }}
         onClick={() => setPhase(startClosing)}
-        className={cn("fixed inset-0 z-50 bg-black/60", resting && "pointer-events-none")}
+        className={cn("fixed inset-0 z-50 bg-scrim", resting && "pointer-events-none")}
       />
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center [view-transition-name:bottom-nav]">
         <StartDrawer
@@ -150,7 +140,7 @@ export function ActionDock() {
           ) : isLoading ? (
             <div
               aria-hidden
-              className="pointer-events-auto h-14 flex-1 animate-pulse rounded-full bg-white/10"
+              className="pointer-events-auto h-14 flex-1 animate-pulse rounded-full bg-fill-strong"
             />
           ) : (
             <motion.button
@@ -170,9 +160,9 @@ export function ActionDock() {
               <motion.span
                 aria-hidden
                 initial={false}
-                animate={resting ? START_FILL_IDLE : START_FILL_OPEN}
+                animate={{ opacity: resting ? 1 : 0 }}
                 transition={DOCK_FADE}
-                className="absolute inset-0 -z-10 rounded-full"
+                className="absolute inset-0 -z-10 rounded-full bg-brand shadow-brand-glow"
               />
               <motion.span
                 aria-hidden
@@ -187,7 +177,7 @@ export function ActionDock() {
                 layoutId={START_TITLE_LAYOUT_ID}
                 layoutCrossfade={false}
                 transition={resting ? springs.smooth : springs.sheet}
-                className={`whitespace-nowrap ${START_TITLE_TEXT}`}
+                className={`whitespace-nowrap transition-colors duration-300 ${START_TITLE_TEXT} ${resting ? "text-white" : "text-foreground"}`}
               >
                 Start workout
               </motion.span>
@@ -219,7 +209,7 @@ function ResumeButton({ workout, ref }: ResumeButtonProps) {
       params={{ id: workout.id }}
       aria-label={parts ? `Resume workout, ${parts}` : "Resume workout"}
       style={{ viewTransitionName: ACTIVE_WORKOUT_TRANSITION_NAME }}
-      className={`pointer-events-auto rounded-full bg-emerald-700 shadow-[0_12px_40px_rgb(0_0_0/0.5),0_8px_24px_rgb(4_120_87/0.35)] transition-colors hover:bg-emerald-600 ${PRIMARY_BUTTON}`}
+      className={`pointer-events-auto rounded-full bg-emerald-700 shadow-float transition-colors hover:bg-emerald-600 ${PRIMARY_BUTTON}`}
     >
       <span aria-hidden className="relative flex h-2 w-2 shrink-0">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75 motion-reduce:animate-none" />

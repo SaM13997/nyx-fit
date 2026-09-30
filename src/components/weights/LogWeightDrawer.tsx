@@ -102,15 +102,15 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
       onClose={onClose}
       labelledBy={titleId}
       header={
-        <div className="flex items-center justify-between border-b border-white/10 px-4 pb-3 pt-2">
-          <h2 id={titleId} tabIndex={-1} className="text-xl font-bold text-white outline-none">
+        <div className="flex items-center justify-between border-b border-border px-4 pb-3 pt-2">
+          <h2 id={titleId} tabIndex={-1} className="text-xl font-bold text-foreground outline-none">
             {initialValues ? "Edit Entry" : "Log Weight"}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 active:scale-95"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-fill-strong text-foreground transition-colors hover:bg-line-strong active:scale-95"
           >
             <X className="h-5 w-5" />
           </button>
@@ -120,93 +120,93 @@ export function LogWeightDrawer({ isOpen, onClose, onSave, isSaving, unit, initi
       <div className="flex flex-col gap-8 overflow-y-auto overscroll-contain p-6 pb-8 scrollbar-hide">
         {/* Weight Wheel Picker */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center">Weight ({formatWeightUnit(unit)})</label>
+          <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-center">Weight ({formatWeightUnit(unit)})</label>
           <div className="flex justify-center items-center gap-2">
-            <div className="relative h-40 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
+            <div className="relative h-40 w-24 overflow-hidden rounded-xl bg-muted/50">
               <WheelPicker
                 options={WEIGHT_INTEGERS.map(w => ({ value: w, label: w }))}
                 value={weightInt}
                 onValueChange={(val) => setWeightInt(val)}
               />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
             </div>
-            <span className="text-3xl font-bold text-zinc-600">.</span>
-            <div className="relative h-40 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
+            <span className="text-3xl font-bold text-ink-subtle">.</span>
+            <div className="relative h-40 w-20 overflow-hidden rounded-xl bg-muted/50">
               <WheelPicker
                 options={WEIGHT_DECIMALS.map(w => ({ value: w, label: w }))}
                 value={weightDec}
                 onValueChange={(val) => setWeightDec(val)}
               />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
             </div>
           </div>
         </div>
 
         {/* Date Wheel Picker */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider text-center flex items-center justify-center gap-2">
+          <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider text-center flex items-center justify-center gap-2">
             <Calendar className="w-4 h-4" /> Date
           </label>
           <div className="flex justify-center gap-2">
-            <div className="relative h-32 w-28 overflow-hidden rounded-xl bg-zinc-800/50">
+            <div className="relative h-32 w-28 overflow-hidden rounded-xl bg-muted/50">
               <WheelPicker
                 options={MONTHS.map(m => ({ value: m, label: m.substring(0, 3) }))}
                 value={month}
                 onValueChange={(val) => setMonth(val)}
               />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
             </div>
-            <div className="relative h-32 w-20 overflow-hidden rounded-xl bg-zinc-800/50">
+            <div className="relative h-32 w-20 overflow-hidden rounded-xl bg-muted/50">
               <WheelPicker
                 options={dayOptions.map(d => ({ value: d, label: d }))}
                 value={day}
                 onValueChange={(val) => setDay(val)}
               />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
             </div>
-            <div className="relative h-32 w-24 overflow-hidden rounded-xl bg-zinc-800/50">
+            <div className="relative h-32 w-24 overflow-hidden rounded-xl bg-muted/50">
               <WheelPicker
                 options={YEARS.map(y => ({ value: y, label: y }))}
                 value={year}
                 onValueChange={(val) => setYear(val)}
               />
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-zinc-900/80 via-transparent to-zinc-900/80" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-card/80 via-transparent to-card/80" />
             </div>
           </div>
         </div>
 
         {/* Note Input */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider">Note (Optional)</label>
+          <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Note (Optional)</label>
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="How are you feeling?"
-            className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl p-4 text-white focus:outline-hidden focus:ring-2 focus:ring-orange-500 transition-all resize-none h-20"
+            className="w-full bg-muted/50 border border-input rounded-xl p-4 text-foreground focus:outline-hidden focus:ring-2 focus:ring-orange-600 dark:focus:ring-orange-500 transition-all resize-none h-20"
           />
         </div>
 
         {/* Photo Input */}
         <div>
-          <label className="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-2 block">Progress Photo</label>
+          <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2 block">Progress Photo</label>
           <div
             onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "border-2 border-dashed border-zinc-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-zinc-800/50 transition-colors",
-              photo ? "border-orange-500/50 bg-orange-500/10" : ""
+              "border-2 border-dashed border-input rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors",
+              photo ? "border-orange-600/40 dark:border-orange-500/50 bg-orange-700/10 dark:bg-orange-500/10" : ""
             )}
           >
             {photo ? (
               <div className="text-center">
-                <div className="text-orange-300 font-medium truncate max-w-[200px] text-sm">{photo.name}</div>
-                <div className="text-xs text-orange-400/60 mt-1">Click to change</div>
+                <div className="text-orange-700 dark:text-orange-300 font-medium truncate max-w-[200px] text-sm">{photo.name}</div>
+                <div className="text-xs text-orange-700 dark:text-orange-400/60 mt-1">Click to change</div>
               </div>
             ) : (
               <>
-                <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400">
+                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                   <Camera className="w-5 h-5" />
                 </div>
-                <div className="text-zinc-400 text-xs text-center">Tap to upload photo</div>
+                <div className="text-muted-foreground text-xs text-center">Tap to upload photo</div>
               </>
             )}
             <input

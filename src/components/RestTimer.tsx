@@ -193,10 +193,10 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
               initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              className="absolute bottom-full right-0 mb-4 px-4 py-2 bg-zinc-800 text-white text-[10px] font-bold rounded-xl shadow-2xl whitespace-nowrap z-50 border border-white/10 uppercase tracking-tight"
+              className="absolute bottom-full right-0 mb-4 px-4 py-2 bg-popover text-popover-foreground text-[10px] font-bold rounded-xl shadow-float whitespace-nowrap z-50 border border-border uppercase tracking-tight"
             >
               Hold the button for info
-              <div className="absolute top-full right-6 w-3 h-3 bg-zinc-800 rotate-45 -translate-y-1.5 border-r border-b border-white/10" />
+              <div className="absolute top-full right-6 w-3 h-3 bg-popover rotate-45 -translate-y-1.5 border-r border-b border-border" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -213,7 +213,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                 transition={springs.snappy}
                 whileTap={{ scale: 0.88 }}
                 onClick={resetTimer}
-                className="flex h-[46px] items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-colors hover:text-white"
+                className="flex h-[46px] items-center justify-center overflow-hidden rounded-full border border-border bg-fill text-muted-foreground transition-colors hover:text-foreground"
               >
                 <RotateCcw className="h-5 w-5 shrink-0" />
               </motion.button>
@@ -229,7 +229,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
             onClick={toggleTimer}
             className={cn(
               "group relative flex items-center justify-center h-14 w-14 rounded-full transition-all active:scale-95",
-              isActive ? "bg-violet-500/5" : "bg-white/5 hover:bg-white/10"
+              isActive ? "bg-violet-700/5 dark:bg-violet-500/5" : "bg-fill hover:bg-fill-strong"
             )}
           >
             {/* Unified SVG Border and Progress */}
@@ -243,7 +243,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                 fill="transparent"
                 className={cn(
                   "transition-colors duration-500",
-                  isActive ? "text-violet-500/20" : "text-white/10"
+                  isActive ? "text-violet-700/20 dark:text-violet-500/20" : "text-border"
                 )}
               />
               {isActive && (
@@ -258,7 +258,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                   initial={{ strokeDashoffset: strokeDasharray }}
                   animate={{ strokeDashoffset }}
                   transition={{ duration: 1, ease: "linear" }}
-                  className="text-violet-400"
+                  className="text-violet-700 dark:text-violet-400"
                   strokeLinecap="round"
                 />
               )}
@@ -269,8 +269,8 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
               className={cn(
                 "absolute inset-0 rounded-full transition-all duration-500 blur-md",
                 isActive
-                  ? "bg-violet-500/10 opacity-100"
-                  : "bg-white/5 opacity-0 group-hover:opacity-100"
+                  ? "bg-violet-700/10 dark:bg-violet-500/10 opacity-100"
+                  : "bg-fill opacity-0 group-hover:opacity-100"
               )}
             />
 
@@ -281,7 +281,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                   initial={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
                   animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, scale: 0.8, filter: "blur(5px)" }}
-                  className="text-[10px] font-black font-heading tabular-nums text-violet-400 relative z-10 leading-none"
+                  className="text-[10px] font-black font-heading tabular-nums text-violet-700 dark:text-violet-400 relative z-10 leading-none"
                 >
                   {formatTime(timeLeft)}
                 </motion.span>
@@ -296,7 +296,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
                   <RiRestTimeLine
                     className={cn(
                       "h-6 w-6 transition-colors duration-300",
-                      "text-zinc-400 group-hover:text-white"
+                      "text-muted-foreground group-hover:text-foreground"
                     )}
                   />
                 </motion.div>
@@ -315,48 +315,48 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
       >
         <div className="overflow-y-auto overscroll-contain px-8 pb-8 pt-6">
           <div className="flex items-center gap-5 mb-8">
-            <div className="h-16 w-16 rounded-3xl bg-violet-500/20 flex items-center justify-center border border-violet-500/20 shadow-lg shadow-violet-500/10">
-              <RiRestTimeLine className="h-9 w-9 text-violet-400" />
+            <div className="h-16 w-16 rounded-3xl bg-violet-700/20 dark:bg-violet-500/20 flex items-center justify-center border border-violet-700/20 dark:border-violet-500/20 shadow-lg shadow-violet-500/10">
+              <RiRestTimeLine className="h-9 w-9 text-violet-700 dark:text-violet-400" />
             </div>
             <div>
               <h2
                 id="rest-timer-info-title"
                 tabIndex={-1}
-                className="text-2xl font-black font-heading text-white outline-none"
+                className="text-2xl font-black font-heading text-foreground outline-none"
               >
                 REST TIMER
               </h2>
-              <p className="text-zinc-400 text-sm font-medium tracking-tight">
+              <p className="text-muted-foreground text-sm font-medium tracking-tight">
                 Focus on your recovery
               </p>
             </div>
           </div>
 
           <div className="space-y-4 mb-10">
-            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500">
+            <div className="p-5 bg-fill rounded-3xl border border-hairline flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-violet-700/10 dark:bg-violet-500/10 flex items-center justify-center text-violet-700 dark:text-violet-500">
                 <RiRestTimeLine className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                <h3 className="font-bold text-foreground mb-1 text-sm uppercase tracking-tight">
                   Timer at a glance
                 </h3>
-                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
                   Tap the icon to start a timer that will stop you from
                   scrolling on your phone.
                 </p>
               </div>
             </div>
 
-            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <div className="p-5 bg-fill rounded-3xl border border-hairline flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-blue-700/10 dark:bg-blue-500/10 flex items-center justify-center text-blue-700 dark:text-blue-500">
                 <Bell className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                <h3 className="font-bold text-foreground mb-1 text-sm uppercase tracking-tight">
                   Never miss a set
                 </h3>
-                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
                   You'll get a notification, vibration, and a toast
                   alert when your rest is finished, even if you're in
                   another app.
@@ -364,15 +364,15 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
               </div>
             </div>
 
-            <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+            <div className="p-5 bg-fill rounded-3xl border border-hairline flex gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-full bg-brand-tint flex items-center justify-center text-purple-700 dark:text-purple-500">
                 <RotateCcw className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white mb-1 text-sm uppercase tracking-tight">
+                <h3 className="font-bold text-foreground mb-1 text-sm uppercase tracking-tight">
                   Your rest, your rules
                 </h3>
-                <p className="text-zinc-400 text-xs leading-relaxed font-medium">
+                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
                   Adjust your default rest period (30s to 5m) in the
                   settings anytime. We'll remember your preferences for
                   every workout.
@@ -383,7 +383,7 @@ export function RestTimer({ isActiveWorkout }: RestTimerProps) {
 
           <button
             onClick={() => setIsDrawerOpen(false)}
-            className="w-full bg-white text-black py-5 rounded-2xl font-black font-heading text-lg transition-all active:scale-[0.98] shadow-xl hover:bg-zinc-100 uppercase tracking-widest"
+            className="w-full bg-foreground text-background py-5 rounded-2xl font-black font-heading text-lg transition-all active:scale-[0.98] shadow-xl hover:bg-zinc-700 dark:hover:bg-zinc-100 uppercase tracking-widest"
           >
             GOT IT
           </button>

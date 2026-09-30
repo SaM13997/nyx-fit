@@ -49,7 +49,7 @@ function TermsPage() {
           promptly at{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="font-medium text-orange-400 underline decoration-orange-400/40 underline-offset-4"
+            className="font-medium text-orange-700 dark:text-orange-400 underline decoration-orange-600/40 dark:decoration-orange-400/40 underline-offset-4"
           >
             {LEGAL_CONTACT_EMAIL}
           </a>{" "}
@@ -128,7 +128,7 @@ function TermsPage() {
           Questions about these Terms? Email{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="font-medium text-orange-400 underline decoration-orange-400/40 underline-offset-4"
+            className="font-medium text-orange-700 dark:text-orange-400 underline decoration-orange-600/40 dark:decoration-orange-400/40 underline-offset-4"
           >
             {LEGAL_CONTACT_EMAIL}
           </a>

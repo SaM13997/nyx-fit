@@ -37,7 +37,7 @@ export function WeeklyAttendance({ workouts, goal, isLoading = false }: WeeklyAt
       <div className={cn(
         "rounded-[2rem] animate-pulse",
         attendanceVariant === 'circle' ? "h-40" : attendanceVariant === 'bar' ? "h-24" : "h-36",
-        "bg-white/5"
+        "bg-fill"
       )} />
     );
   }
@@ -52,11 +52,11 @@ export function WeeklyAttendance({ workouts, goal, isLoading = false }: WeeklyAt
       transition={springs.snappy}
       aria-label={`${title}: ${workoutsThisWeek} workouts. Show ${viewMode === "week" ? "last 4 weeks" : "this week"}`}
       className={cn(
-        "relative block w-full overflow-hidden border text-left shadow-xl backdrop-blur-xl transition-[border-color,background-color,box-shadow] duration-500 outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+        "relative block w-full overflow-hidden border text-left shadow-float backdrop-blur-xl transition-[border-color,background-color,box-shadow] duration-500 outline-none focus-visible:ring-2 focus-visible:ring-foreground/60",
         attendanceVariant === "bar" ? "rounded-2xl" : "rounded-[2rem]",
         isSuccess
-          ? "border-amber-500/30 bg-amber-950/10 shadow-amber-500/10"
-          : "border-white/10 bg-zinc-900/50"
+          ? "border-amber-700/30 dark:border-amber-500/30 bg-amber-700/10 dark:bg-amber-950/10 shadow-amber-500/10"
+          : "border-border bg-card/50"
       )}
     >
       <AnimatedHeight innerClassName={attendanceVariant === "bar" ? "p-4" : "p-5"}>
@@ -70,7 +70,7 @@ export function WeeklyAttendance({ workouts, goal, isLoading = false }: WeeklyAt
               transition={springs.snappy}
               className={cn(
                 "pl-1 text-xs font-bold uppercase tracking-widest transition-colors duration-500",
-                isSuccess ? "text-amber-500" : "text-zinc-400"
+                isSuccess ? "text-amber-800 dark:text-amber-500" : "text-muted-foreground"
               )}
             >
               {title}
@@ -80,7 +80,9 @@ export function WeeklyAttendance({ workouts, goal, isLoading = false }: WeeklyAt
           <span
             className={cn(
               "rounded-full px-2 py-0.5 text-xs font-medium tabular-nums transition-colors duration-500",
-              isSuccess ? "bg-amber-500/20 text-amber-300" : "bg-emerald-500/10 text-emerald-400"
+              isSuccess
+                ? "bg-amber-700/20 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300"
+                : "bg-success-tint text-success-ink"
             )}
           >
             {workoutsThisWeek} {workoutsThisWeek === 1 ? "Workout" : "Workouts"}

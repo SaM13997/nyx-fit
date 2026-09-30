@@ -7,8 +7,8 @@ export type NavItem = {
   href: NavHref
   icon: LucideIcon
   label: string
-  // Icon color for the current route in the dock menu.
-  iconColor: string
+  // Icon classes for the current route in the dock menu.
+  iconClass: string
 }
 
 export const navItems: NavItem[] = [
@@ -16,31 +16,31 @@ export const navItems: NavItem[] = [
     href: '/',
     label: 'Home',
     icon: Home,
-    iconColor: '#67e8f9',
+    iconClass: 'text-cyan-700 dark:text-cyan-300',
   },
   {
     href: '/workouts',
     label: 'Workouts',
     icon: Dumbbell,
-    iconColor: '#d8b4fe',
+    iconClass: 'text-purple-700 dark:text-purple-300',
   },
   {
     href: '/stats',
     label: 'Stats',
     icon: BarChart3,
-    iconColor: '#fdba74',
+    iconClass: 'text-orange-700 dark:text-orange-300',
   },
   {
     href: '/weights',
     label: 'Weight',
     icon: Scale,
-    iconColor: '#fda4af',
+    iconClass: 'text-rose-700 dark:text-rose-300',
   },
   {
     href: '/settings',
     label: 'Settings',
     icon: Settings,
-    iconColor: '#ffffff',
+    iconClass: 'text-foreground',
   },
 ]
 
