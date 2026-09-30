@@ -28,7 +28,6 @@ code {
   --font-heading: var(--font-heading);
   --font-sans: var(--font-sans);
   --color-background: var(--background);
-  --color-black: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -46,6 +45,30 @@ code {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-fill: var(--fill);
+  --color-fill-strong: var(--fill-strong);
+  --color-hairline: var(--hairline);
+  --color-line-strong: var(--line-strong);
+  --color-glass: var(--glass);
+  --color-scrim: var(--scrim);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-tint: var(--brand-tint);
+  --color-brand-line: var(--brand-line);
+  --color-success-ink: var(--success-ink);
+  --color-success-tint: var(--success-tint);
+  --color-success-line: var(--success-line);
+  --color-danger-ink: var(--danger-ink);
+  --color-info-ink: var(--info-ink);
+  --color-series-weight: var(--series-weight);
+  --color-series-accent: var(--series-accent);
+  --shadow-float: var(--elev-float);
+  --shadow-sheet: var(--elev-sheet);
+  --shadow-highlight: var(--highlight);
+  --shadow-brand-glow: var(--brand-glow);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -105,30 +128,33 @@ code {
 }
 
 :root {
+  color-scheme: light;
+
   --radius: 0.625rem;
 
   /* Font Theme - Default: Night Runner */
   --font-heading: "Chakra Petch", sans-serif;
   --font-sans: "Titillium Web", sans-serif;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
+  /* Light values retuned for the Nyx look (docs/light-mode.md §4.1). */
+  --background: #fafafa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
   --primary: oklch(0.21 0.006 285.885);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
+  --secondary: #f4f4f5;
   --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: #a1a1aa;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -142,6 +168,40 @@ code {
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* App tokens, light values (docs/light-mode.md §4.2). */
+  --ink-secondary: #3f3f46;
+  --ink-subtle: #71717a;
+  --fill: rgb(9 9 11 / 0.04);
+  --fill-strong: rgb(9 9 11 / 0.07);
+  --hairline: rgb(9 9 11 / 0.06);
+  --line-strong: #d4d4d8;
+  --glass: rgb(250 250 250 / 0.75);
+  --scrim: rgb(9 9 11 / 0.35);
+  --elev-float: 0 12px 32px rgb(24 24 27 / 0.12), 0 2px 6px rgb(24 24 27 / 0.06);
+  --elev-sheet: 0 -8px 32px rgb(24 24 27 / 0.12), inset 0 1px 0 rgb(9 9 11 / 0.06);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
+
+  /* Brand and status tokens, light values (docs/light-mode.md §4.3). */
+  --brand: #9333ea;
+  --brand-hover: #7e22ce;
+  --brand-ink: #7e22ce;
+  --brand-tint: rgb(147 51 234 / 0.1);
+  --brand-line: rgb(147 51 234 / 0.55);
+  --brand-glow: 0 10px 28px rgb(147 51 234 / 0.28);
+  --success-ink: #047857;
+  --success-tint: rgb(5 150 105 / 0.1);
+  --success-line: rgb(5 150 105 / 0.35);
+  --danger-ink: #b91c1c;
+  --info-ink: #1d4ed8;
+
+  /* Chart series colours (docs/light-mode.md §5.2). */
+  --series-weight: #059669;
+  --series-accent: #ea580c;
+
+  /* Hex hero background, light values (§5.2). */
+  --hex-line: #c084fc;
+  --hex-base: #f4f4f5;
 }
 
 /* Font Theme: Powerhouse */
@@ -157,6 +217,8 @@ code {
 }
 
 .dark {
+  color-scheme: dark;
+
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
@@ -188,6 +250,47 @@ code {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+
+  /* App tokens, dark values — reproduce today's look exactly (§4.2). */
+  --ink-secondary: #d4d4d8;
+  --ink-subtle: #71717a;
+  --fill: rgb(255 255 255 / 0.05);
+  --fill-strong: rgb(255 255 255 / 0.1);
+  --hairline: rgb(255 255 255 / 0.05);
+  --line-strong: rgb(255 255 255 / 0.2);
+  --glass: rgb(9 9 11 / 0.7);
+  --scrim: rgb(0 0 0 / 0.6);
+  --elev-float: 0 12px 40px rgb(0 0 0 / 0.5);
+  --elev-sheet: 0 -12px 48px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
+
+  /* Brand and status tokens, dark values (§4.3). */
+  --brand: #9333ea;
+  --brand-hover: #a855f7;
+  --brand-ink: #d8b4fe;
+  --brand-tint: rgb(168 85 247 / 0.15);
+  --brand-line: rgb(192 132 252 / 0.6);
+  --brand-glow: 0 12px 40px rgb(0 0 0 / 0.5), 0 8px 24px rgb(147 51 234 / 0.35);
+  --success-ink: #6ee7b7;
+  --success-tint: rgb(16 185 129 / 0.1);
+  --success-line: rgb(52 211 153 / 0.25);
+  --danger-ink: #f87171;
+  --info-ink: #60a5fa;
+
+  /* Chart series colours, dark values = the original hexes (§5.2). */
+  --series-weight: #10b981;
+  --series-accent: #f97316;
+
+  /* Hex hero background, dark values = the original hexes (§5.2). */
+  --hex-line: #a032f4;
+  --hex-base: #1a1a2e;
+}
+
+/* Colour transitions must not animate while the mode flips (§3.4); the
+   class is removed by applyColorMode one frame after the switch. */
+.color-mode-switching,
+.color-mode-switching * {
+  transition: none !important;
 }
 
 @layer base {
@@ -212,7 +315,7 @@ code {
 .animated-hex-bg {
   --s: 56px; /* control the size */
   --g: 10px; /* control the gap */
-  --c: #a032f4; /* energetic orange - primary workout color */
+  --c: var(--hex-line); /* hex line colour; heroes may override it inline */
 
   --_l: #0000 calc(33% - .866*var(--g)),var(--c) calc(33.2% - .866*var(--g)) 33%,#0000 34%;
   background:
@@ -220,7 +323,7 @@ code {
      0 calc(.866*var(--s) - var(--g)/2),
     conic-gradient(from -150deg at var(--g) 50%,var(--c) 120deg,#0000 0),
     linear-gradient(-120deg,var(--_l)),linear-gradient( -60deg,var(--_l))
-    #1a1a2e; /* deep blue-black - secondary color */
+    var(--hex-base); /* base fill behind the hex lines */
   background-size: var(--s) calc(3.466*var(--s));
   animation: hexPattern infinite 2s linear;
 }

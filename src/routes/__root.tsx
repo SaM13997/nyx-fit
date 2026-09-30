@@ -12,6 +12,7 @@ import { MotionConfig } from "framer-motion";
 import { fetchAuth } from "@/lib/api/auth.functions";
 import { useApiUserCache } from "@/lib/api/hooks";
 import { AppearanceProvider } from "@/lib/AppearanceContext";
+import { COLOR_MODE_SCRIPT, THEME_COLOR } from "@/lib/color-mode";
 import { ToastProvider } from "@/lib/toast";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -83,7 +84,7 @@ export const Route = createRootRouteWithContext<{
       },
       {
         name: "theme-color",
-        content: "#000000",
+        content: THEME_COLOR.dark,
       },
       {
         name: "mobile-web-app-capable",
@@ -179,9 +180,13 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {/* Applies the stored colour mode before first paint; it may have
+            changed the html class before React takes over. After HeadContent
+            so the theme-color meta it updates already exists. */}
+        <script dangerouslySetInnerHTML={{ __html: COLOR_MODE_SCRIPT }} />
         <title>Nyx Fitness</title>
       </head>
       <body className="bg-background">

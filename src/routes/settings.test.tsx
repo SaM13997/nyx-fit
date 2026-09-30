@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   requestPermission: vi.fn<() => Promise<NotificationPermissionState>>(),
   permission: "default" as NotificationPermissionState,
   constructed: [] as { title: string; options: unknown }[],
+  setColorMode: vi.fn(),
 }));
 
 vi.mock("@/lib/auth-client", () => ({
@@ -60,6 +61,9 @@ vi.mock("@/lib/AppearanceContext", () => ({
     setAttendanceVariant: vi.fn(),
     restTimerDuration: 180,
     setRestTimerDuration: vi.fn(),
+    colorMode: "dark",
+    resolvedColorMode: "dark",
+    setColorMode: mocks.setColorMode,
   }),
 }));
 
@@ -108,6 +112,7 @@ beforeEach(() => {
   mocks.upsert.mockReset();
   mocks.showError.mockReset();
   mocks.requestPermission.mockReset();
+  mocks.setColorMode.mockReset();
 });
 
 afterEach(() => {
@@ -317,5 +322,21 @@ describe("weekly goal setting", () => {
     fireEvent.click(screen.getByRole("button", { name: "Increase weekly goal" }));
     await waitFor(() => expect(mocks.showError).toHaveBeenCalled());
     expect(mocks.upsert).toHaveBeenCalledWith({ updates: { weeklyWorkoutGoal: 2 } });
+  });
+});
+
+describe("theme setting", () => {
+  it("records the chosen colour mode through the toggle", async () => {
+    // jsdom has no CSS.escape, which React's ViewTransition reads.
+    vi.stubGlobal("CSS", { escape: (value: string) => value });
+    renderSettings();
+    fireEvent.click(screen.getByRole("button", { name: /Appearance/ }));
+    await screen.findByText("Theme");
+
+    fireEvent.click(screen.getByRole("radio", { name: "Light" }));
+
+    await waitFor(() =>
+      expect(mocks.setColorMode).toHaveBeenCalledWith("light"),
+    );
   });
 });
