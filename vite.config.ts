@@ -1,10 +1,31 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import { VitePWA } from 'vite-plugin-pwa'
+
+// Dev only. Cloudflare's edge caches anything ending in .css and rewrites the
+// dev server's `no-cache` to a 4 hour browser TTL, so phones on the tunnel kept
+// a stale (or JS-module) /src/styles.css. `no-store` is the one value it keeps.
+function noStoreDevCss(): Plugin {
+	return {
+		name: 'nyx:no-store-dev-css',
+		apply: 'serve',
+		configureServer(server) {
+			server.middlewares.use((req, res, next) => {
+				const pathname = req.url?.split('?')[0] ?? ''
+				if (pathname.endsWith('.css')) {
+					const setHeader = res.setHeader.bind(res)
+					res.setHeader = (name, value) =>
+						setHeader(name, name.toLowerCase() === 'cache-control' ? 'no-store' : value)
+				}
+				next()
+			})
+		},
+	}
+}
 
 const config = defineConfig({
 	server: {
@@ -21,6 +42,7 @@ const config = defineConfig({
 		],
 	},
 	plugins: [
+		noStoreDevCss(),
 		cloudflare({ viteEnvironment: { name: 'ssr' } }),
 		// this is the plugin that enables path aliases
 		viteTsConfigPaths({
